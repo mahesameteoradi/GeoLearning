@@ -1,0 +1,320 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                     String              @id @default(uuid())
+  name                   String
+  email                  String              @unique
+  role                   Role                @default(STUDENT)
+  xp                     Int                 @default(0)
+  level                  Int                 @default(1)
+  avatar_url             String?
+  equipped_badge_id      String?
+  current_streak         Int                 @default(0)
+  longest_streak         Int                 @default(0)
+  created_at             DateTime            @default(now())
+  updated_at             DateTime            @updatedAt
+  nis_nip                String?
+  school_class           String?
+  chat_messages          chat_messages[]
+  enrollments            ClassStudent[]      @relation("StudentEnrollments")
+  taught_classes         Class[]             @relation("TeacherClasses")
+  forum_posts            ForumPost[]
+  forum_replies          ForumReply[]
+  interventions_received Intervention[]      @relation("StudentInterventions")
+  interventions_given    Intervention[]      @relation("TeacherInterventions")
+  notifications          Notification[]
+  quiz_attempts          QuizAttempt[]
+  badges                 UserBadge[]         @relation("OwnedBadges")
+  equipped_badge         UserBadge?          @relation("EquippedBadge", fields: [equipped_badge_id], references: [id])
+  projectSubmissions     ProjectSubmission[]
+
+  @@map("users")
+}
+
+model Class {
+  id                 String              @id @default(uuid())
+  name               String
+  description        String?
+  teacher_id         String
+  join_code          String              @unique @default(cuid())
+  gamification_mode  GamificationMode    @default(STANDARD)
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @updatedAt
+  enrollments        ClassStudent[]
+  teacher            User                @relation("TeacherClasses", fields: [teacher_id], references: [id], onDelete: Cascade)
+  forum_posts        ForumPost[]
+  modules            Module[]
+  quizzes            Quiz[]
+  projectAssignments ProjectAssignment[]
+
+  @@map("classes")
+}
+
+model ClassStudent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  class_id   String
+  student_id String
+  joined_at  DateTime @default(now())
+  class      Class    @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  student    User     @relation("StudentEnrollments", fields: [student_id], references: [id], onDelete: Cascade)
+
+  @@unique([class_id, student_id])
+  @@map("class_students")
+}
+
+model Badge {
+  id           String      @id
+  display_name String
+  description  String
+  icon         String
+  created_at   DateTime    @default(now())
+  user_badges  UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id                String   @id @default(uuid())
+  user_id           String
+  badge_id          String
+  earned_at         DateTime @default(now())
+  badge             Badge    @relation(fields: [badge_id], references: [id])
+  user              User     @relation("OwnedBadges", fields: [user_id], references: [id], onDelete: Cascade)
+  equipped_by_users User[]   @relation("EquippedBadge")
+
+  @@unique([user_id, badge_id])
+  @@map("user_badges")
+}
+
+model Module {
+  id          String     @id @default(uuid())
+  class_id    String
+  title       String
+  description String?
+  order       Int        @default(0)
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  materials   Material[]
+  class       Class      @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  quizzes     Quiz[]
+
+  @@map("modules")
+}
+
+model Material {
+  id           String       @id @default(uuid())
+  module_id    String
+  title        String
+  type         MaterialType @default(TEXT)
+  content_url  String?
+  content_text String?
+  order        Int          @default(0)
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+  module       Module       @relation(fields: [module_id], references: [id], onDelete: Cascade)
+
+  @@map("materials")
+}
+
+model Quiz {
+  id           String        @id @default(uuid())
+  module_id    String?
+  title        String
+  time_limit   Int?
+  xp_reward    Int           @default(10)
+  is_published Boolean       @default(false)
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+  class_id     String?
+  questions    Question[]
+  attempts     QuizAttempt[]
+  class        Class?        @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  module       Module?       @relation(fields: [module_id], references: [id], onDelete: Cascade)
+
+  @@map("quizzes")
+}
+
+model Question {
+  id             String       @id @default(uuid())
+  quiz_id        String
+  text           String
+  type           QuestionType @default(MULTIPLE_CHOICE)
+  options        Json
+  correct_answer String
+  explanation    String?
+  points         Int?
+  duration       Int?
+  order          Int          @default(0)
+  created_at     DateTime     @default(now())
+  quiz           Quiz         @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+model QuizAttempt {
+  id           String    @id @default(uuid())
+  quiz_id      String
+  user_id      String
+  score        Float     @default(0)
+  xp_earned    Int       @default(0)
+  answers      Json?
+  completed_at DateTime?
+  started_at   DateTime  @default(now())
+  quiz         Quiz      @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempts")
+}
+
+model ProjectAssignment {
+  id           String              @id @default(uuid())
+  class_id     String
+  title        String
+  description  String
+  deadline     DateTime?
+  xp_reward    Int                 @default(100)
+  is_published Boolean             @default(false)
+  created_at   DateTime            @default(now())
+  updated_at   DateTime            @updatedAt
+  class        Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  submissions  ProjectSubmission[]
+
+  @@map("project_assignments")
+}
+
+model ProjectSubmission {
+  id            String            @id @default(uuid())
+  assignment_id String
+  user_id       String
+  file_url      String?
+  notes         String?
+  score         Float?
+  xp_earned     Int               @default(0)
+  graded_at     DateTime?
+  submitted_at  DateTime          @default(now())
+  assignment    ProjectAssignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("project_submissions")
+}
+
+model ForumPost {
+  id         String       @id @default(dbgenerated("(gen_random_uuid())::text"))
+  class_id   String?
+  user_id    String
+  title      String
+  body       String
+  is_pinned  Boolean      @default(false)
+  created_at DateTime     @default(now())
+  updated_at DateTime     @default(now()) @updatedAt
+  class      Class?       @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  replies    ForumReply[]
+
+  @@map("forum_posts")
+}
+
+model ForumReply {
+  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  post_id    String
+  user_id    String
+  body       String
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now()) @updatedAt
+  post       ForumPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("forum_replies")
+}
+
+model Intervention {
+  id         String           @id @default(uuid())
+  teacher_id String
+  student_id String
+  note       String
+  type       InterventionType @default(ACADEMIC)
+  resolved   Boolean          @default(false)
+  created_at DateTime         @default(now())
+  updated_at DateTime         @updatedAt
+  student    User             @relation("StudentInterventions", fields: [student_id], references: [id], onDelete: Cascade)
+  teacher    User             @relation("TeacherInterventions", fields: [teacher_id], references: [id], onDelete: Cascade)
+
+  @@map("interventions")
+}
+
+model Notification {
+  id         String           @id @default(uuid())
+  user_id    String
+  message    String
+  is_read    Boolean          @default(false)
+  type       NotificationType @default(SYSTEM)
+  metadata   Json?
+  created_at DateTime         @default(now())
+  user       User             @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model chat_messages {
+  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  room_id             String
+  user_id             String
+  body                String
+  reply_to_id         String?         @db.Uuid
+  created_at          DateTime        @default(now()) @db.Timestamptz(6)
+  chat_messages       chat_messages?  @relation("chat_messagesTochat_messages", fields: [reply_to_id], references: [id], onUpdate: NoAction)
+  other_chat_messages chat_messages[] @relation("chat_messagesTochat_messages")
+  users               User            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([room_id, created_at(sort: Desc)], map: "idx_chat_messages_room_id")
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum GamificationMode {
+  STANDARD
+  COMPETITIVE
+}
+
+enum MaterialType {
+  VIDEO
+  PDF
+  TEXT
+  LINK
+  IMAGE
+  INTERACTIVE_MAP
+  SIMULATION
+}
+
+enum NotificationType {
+  ACHIEVEMENT
+  REMINDER
+  INTERVENTION
+  SYSTEM
+  FORUM
+}
+
+enum InterventionType {
+  ACADEMIC
+  BEHAVIORAL
+  ATTENDANCE
+  EMOTIONAL
+  POSITIVE
+  CORRECTIVE
+}
+
+enum QuestionType {
+  MULTIPLE_CHOICE
+  MAP_PINPOINT
+}

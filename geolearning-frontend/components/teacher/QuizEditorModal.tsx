@@ -1,0 +1,722 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import {
+  X, Plus, Trash2, Loader2, ClipboardList, FileText,
+  ChevronDown, ChevronUp, Check, AlertCircle, Upload,
+  Sparkles, GripVertical,
+} from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import toast from 'react-hot-toast'
+import { cn } from '@/lib/utils/cn'
+import dynamic from 'next/dynamic'
+
+const MapPicker = dynamic(() => import('@/components/MapPicker'), { ssr: false })
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface ClassOption {
+  id: string
+  name: string
+  gamification_mode?: string
+}
+
+interface QuestionDraft {
+  id?: string
+  text: string
+  type: 'MULTIPLE_CHOICE' | 'MAP_PINPOINT'
+  options: any
+  correct_answer: string
+  explanation: string
+  points?: number
+  duration?: number
+  order: number
+}
+
+interface QuizMeta {
+  id: string
+  title: string
+  class_id: string | null
+  module_id: string | null
+  time_limit: number | null
+  xp_reward: number
+  is_published: boolean
+}
+
+interface QuizEditorModalProps {
+  classes: ClassOption[]
+  quiz: QuizMeta | null  // null = create new
+  onClose: () => void
+  onSaved: () => void
+}
+
+const EMPTY_QUESTION = (): QuestionDraft => ({
+  text: '',
+  type: 'MULTIPLE_CHOICE',
+  options: [
+    { label: 'A', value: '' },
+    { label: 'B', value: '' },
+    { label: 'C', value: '' },
+    { label: 'D', value: '' },
+  ],
+  correct_answer: 'A',
+  explanation: '',
+  points: undefined,
+  duration: undefined,
+  order: 0,
+})
+
+const EMPTY_MAP_QUESTION = (): QuestionDraft => ({
+  text: '',
+  type: 'MAP_PINPOINT',
+  options: {
+    target_lat: -0.7893,
+    target_lng: 113.9213,
+    radius_toleransi_meter: 50000,
+    radius_maksimal_meter: 500000,
+    clue_gambar_url: '',
+  },
+  correct_answer: 'MAP',
+  explanation: '',
+  points: undefined,
+  duration: undefined,
+  order: 0,
+})
+
+// ─── Parse plain text soal (format: 1. Soal\nA. ...\nB. ...\nJawaban: A) ─────
+
+function parseTextToQuestions(text: string): QuestionDraft[] {
+  const questions: QuestionDraft[] = []
+  
+  // Normalize line endings
+  const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+  
+  // Split by question numbers (1. atau 1) atau Soal 1:)
+  const questionBlocks = normalized.split(/\n(?=\d+[\.\)]\s)/g).filter(b => b.trim())
+  
+  for (const block of questionBlocks) {
+    const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
+    if (lines.length < 3) continue
+
+    // Question text: first line without the number
+    const questionText = lines[0].replace(/^\d+[\.\)]\s*/, '').trim()
+    if (!questionText) continue
+
+    const options: { label: string; value: string }[] = []
+    let correctAnswer = 'A'
+    const explanation = ''
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i]
+      
+      // Detect option lines: A. xxx or A) xxx or a. xxx
+      const optMatch = line.match(/^([A-Ea-e])[\.\)]\s*(.+)/)
+      if (optMatch) {
+        options.push({
+          label: optMatch[1].toUpperCase(),
+          value: optMatch[2].trim(),
+        })
+        continue
+      }
+
+      // Detect answer line: Jawaban: A or Kunci: A or Answer: A
+      const answerMatch = line.match(/^(?:jawaban|kunci|answer|kunci jawaban|correct)[:\s]+([A-Ea-e])/i)
+      if (answerMatch) {
+        correctAnswer = answerMatch[1].toUpperCase()
+      }
+    }
+
+    // Need at least 2 options
+    if (options.length < 2) continue
+
+    // Pad to 4 options if needed
+    const labels = ['A', 'B', 'C', 'D']
+    while (options.length < 4) {
+      const nextLabel = labels[options.length] || `${options.length + 1}`
+      options.push({ label: nextLabel, value: '(kosong)' })
+    }
+
+    questions.push({
+      text: questionText,
+      type: 'MULTIPLE_CHOICE',
+      options: options.slice(0, 4),
+      correct_answer: correctAnswer,
+      explanation,
+      order: questions.length,
+    })
+  }
+  
+  return questions
+}
+
+// ─── Question Card ────────────────────────────────────────────────────────────
+
+function QuestionCard({
+  question,
+  index,
+  onChange,
+  onDelete,
+}: {
+  question: QuestionDraft
+  index: number
+  onChange: (q: QuestionDraft) => void
+  onDelete: () => void
+}) {
+  const [collapsed, setCollapsed] = useState(false)
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50">
+      {/* Header */}
+      <div className="flex items-center gap-2 p-3">
+        <GripVertical className="h-4 w-4 flex-shrink-0 text-slate-700" />
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-violet-50 text-[10px] font-bold text-blue-600">
+          {index + 1}
+        </span>
+        <div className="flex flex-1 min-w-0 flex-col gap-1">
+          <input
+            value={question.text}
+            onChange={e => onChange({ ...question, text: e.target.value })}
+            placeholder={`Teks soal nomor ${index + 1}…`}
+            className="w-full bg-transparent text-sm font-semibold text-slate-800 placeholder-slate-400 outline-none"
+          />
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-1 text-[10px] text-slate-500">
+              Durasi (dtk):
+              <input type="number" min="0" placeholder="Default" value={question.duration || ''} onChange={e => onChange({ ...question, duration: e.target.value ? parseInt(e.target.value) : undefined })} className="w-16 rounded border px-1.5 py-0.5 outline-none focus:border-blue-500" />
+            </label>
+            <label className="flex items-center gap-1 text-[10px] text-slate-500">
+              Poin:
+              <input type="number" min="0" max="100" placeholder="Default" value={question.points || ''} onChange={e => onChange({ ...question, points: e.target.value ? parseInt(e.target.value) : undefined })} className="w-16 rounded border px-1.5 py-0.5 outline-none focus:border-blue-500" />
+            </label>
+          </div>
+        </div>
+        <select
+          value={question.type}
+          onChange={e => {
+            const newType = e.target.value as 'MULTIPLE_CHOICE' | 'MAP_PINPOINT'
+            if (newType === 'MAP_PINPOINT') {
+              onChange({ ...question, type: newType, options: EMPTY_MAP_QUESTION().options, correct_answer: 'MAP' })
+            } else {
+              onChange({ ...question, type: newType, options: EMPTY_QUESTION().options, correct_answer: 'A' })
+            }
+          }}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 outline-none"
+        >
+          <option value="MULTIPLE_CHOICE">Pilihan Ganda</option>
+          <option value="MAP_PINPOINT">Peta (GeoGuessr)</option>
+        </select>
+        <button onClick={() => setCollapsed(c => !c)} className="text-slate-600 hover:text-slate-500">
+          {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+        </button>
+        <button onClick={onDelete} className="text-slate-700 hover:text-red-600">
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {/* Options + answer */}
+      {!collapsed && (
+        <div className="border-t border-slate-100 px-4 pb-4 pt-3 space-y-3">
+          {question.type === 'MULTIPLE_CHOICE' ? (
+            <div className="grid grid-cols-2 gap-2">
+              {(question.options as {label: string, value: string}[]).map((opt, oi) => (
+                <label
+                  key={opt.label}
+                  className={cn(
+                    'flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors',
+                    question.correct_answer === opt.label
+                      ? 'border-emerald-200 bg-emerald-50'
+                      : 'border-slate-200 bg-slate-50 hover:border-slate-200'
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name={`correct-${index}`}
+                    value={opt.label}
+                    checked={question.correct_answer === opt.label}
+                    onChange={() => onChange({ ...question, correct_answer: opt.label })}
+                    className="accent-emerald-500"
+                  />
+                  <span className={cn(
+                    'text-[11px] font-bold',
+                    question.correct_answer === opt.label ? 'text-emerald-600' : 'text-slate-500'
+                  )}>
+                    {opt.label}.
+                  </span>
+                  <input
+                    value={opt.value}
+                    onChange={e => {
+                      const newOpts = [...(question.options as {label: string, value: string}[])]
+                      newOpts[oi] = { ...opt, value: e.target.value }
+                      onChange({ ...question, options: newOpts })
+                    }}
+                    placeholder={`Pilihan ${opt.label}…`}
+                    className="flex-1 min-w-0 bg-transparent text-xs text-slate-700 placeholder-slate-700 outline-none"
+                  />
+                </label>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-[10px] font-semibold text-slate-600">URL Gambar Clue (Opsional)
+                  <input value={question.options.clue_gambar_url || ''} onChange={e => onChange({...question, options: {...question.options, clue_gambar_url: e.target.value}})} className="w-full mt-1 rounded border px-2 py-1.5 outline-none focus:border-blue-500" placeholder="https://..." />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="block text-[10px] font-semibold text-slate-600">Toleransi Sempurna (m)
+                    <input type="number" value={question.options.radius_toleransi_meter || 0} onChange={e => onChange({...question, options: {...question.options, radius_toleransi_meter: parseInt(e.target.value) || 0}})} className="w-full mt-1 rounded border px-2 py-1.5 outline-none focus:border-blue-500" />
+                  </label>
+                  <label className="block text-[10px] font-semibold text-slate-600">Batas Maksimal Skor 0 (m)
+                    <input type="number" value={question.options.radius_maksimal_meter || 0} onChange={e => onChange({...question, options: {...question.options, radius_maksimal_meter: parseInt(e.target.value) || 0}})} className="w-full mt-1 rounded border px-2 py-1.5 outline-none focus:border-blue-500" />
+                  </label>
+                </div>
+              </div>
+              
+              <div className="text-xs font-semibold text-slate-700 mt-2 border-t pt-2">Tentukan Lokasi Jawaban Benar</div>
+              <MapPicker 
+                position={{ lat: question.options.target_lat, lng: question.options.target_lng }} 
+                onChange={(pos) => onChange({ ...question, options: { ...question.options, target_lat: pos.lat, target_lng: pos.lng } })} 
+              />
+              <p className="text-center text-[10px] text-slate-500">Siswa akan mendapatkan skor penuh jika menebak dalam {question.options.radius_toleransi_meter} meter dari pin ini.</p>
+            </div>
+          )}
+          {/* Explanation */}
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-slate-600">Pembahasan (opsional)</p>
+            <textarea
+              value={question.explanation}
+              onChange={e => onChange({ ...question, explanation: e.target.value })}
+              placeholder="Penjelasan mengapa jawaban ini benar…"
+              rows={2}
+              className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 placeholder-slate-700 outline-none focus:border-blue-200"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Import Panel ─────────────────────────────────────────────────────────────
+
+function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void }) {
+  const [text, setText] = useState('')
+  const [parsed, setParsed] = useState<QuestionDraft[]>([])
+  const [showPreview, setShowPreview] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  function handleParse() {
+    const qs = parseTextToQuestions(text)
+    if (qs.length === 0) {
+      toast.error('Tidak ada soal yang berhasil diparsing. Pastikan format sudah benar.')
+      return
+    }
+    setParsed(qs)
+    setShowPreview(true)
+  }
+
+  async function handleFileRead(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.name.endsWith('.txt') || file.type === 'text/plain') {
+      const content = await file.text()
+      setText(content)
+      toast.success('File TXT berhasil dibaca! Klik "Parse Soal" untuk melanjutkan.')
+    } else {
+      toast('📋 Salin teks dari PDF/DOCX dan tempelkan di kotak di bawah.', { duration: 4000 })
+    }
+    e.target.value = ''
+  }
+
+  if (showPreview) {
+    return (
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-emerald-600">
+            ✅ {parsed.length} soal berhasil diparsing
+          </p>
+          <button onClick={() => setShowPreview(false)} className="text-xs text-slate-500 hover:text-slate-700">
+            Ubah teks
+          </button>
+        </div>
+        <div className="space-y-1.5 max-h-48 overflow-y-auto mb-3">
+          {parsed.map((q, i) => (
+            <div key={i} className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700">
+              <span className="mr-2 font-bold text-blue-600">{i + 1}.</span>
+              {q.text.slice(0, 80)}{q.text.length > 80 ? '…' : ''}
+              <span className="ml-2 text-emerald-600 font-semibold">✓ {q.correct_answer}</span>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => { onImported(parsed); setShowPreview(false); setText(''); setParsed([]) }}
+          className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+        >
+          Tambahkan {parsed.length} soal ke kuis
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-xl border border-blue-300 bg-violet-50 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-blue-600" />
+        <p className="text-sm font-semibold text-blue-700">Import Soal dari Dokumen</p>
+      </div>
+      <p className="mb-3 text-[11px] text-slate-500">
+        Upload file TXT atau salin-tempel teks dari PDF/Word. Format: <code className="text-blue-600">1. Soal A. opt B. opt Jawaban: A</code>
+      </p>
+      <input ref={fileRef} type="file" accept=".txt,text/plain" className="hidden" onChange={handleFileRead} />
+      <button
+        onClick={() => fileRef.current?.click()}
+        className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-blue-300 py-3 text-sm text-slate-500 hover:border-blue-500 hover:text-slate-700"
+      >
+        <Upload className="h-4 w-4" />
+        Upload file .txt
+      </button>
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value)}
+        placeholder={`Tempel teks soal di sini...\n\nContoh format:\n1. Apa ibukota Indonesia?\nA. Jakarta\nB. Surabaya\nC. Bandung\nD. Medan\nJawaban: A\n\n2. Gunung tertinggi di Indonesia adalah...\nA. Semeru\nB. Rinjani\nC. Puncak Jaya\nD. Kerinci\nJawaban: C`}
+        rows={6}
+        className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 placeholder-slate-700 outline-none focus:border-blue-200 mb-2"
+      />
+      <button
+        onClick={handleParse}
+        disabled={!text.trim()}
+        className="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+      >
+        Parse Soal Otomatis
+      </button>
+    </div>
+  )
+}
+
+// ─── Main Modal ───────────────────────────────────────────────────────────────
+
+export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorModalProps) {
+  const supabase = createClient()
+  const [saving, setSaving] = useState(false)
+  const [showImport, setShowImport] = useState(false)
+
+  const [form, setForm] = useState({
+    title: quiz?.title ?? '',
+    class_id: quiz?.class_id ?? classes[0]?.id ?? '',
+    timeLimit: quiz?.time_limit ? quiz.time_limit.toString() : '',
+    xpReward: quiz?.xp_reward ? quiz.xp_reward.toString() : '100',
+    is_published: quiz?.is_published ?? false,
+  })
+
+  const [questions, setQuestions] = useState<QuestionDraft[]>([])
+  const [loadingQuestions, setLoadingQuestions] = useState(!!quiz)
+
+  // Load existing questions when editing
+  useState(() => {
+    if (!quiz) return
+    const load = async () => {
+      const { data } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('quiz_id', quiz.id)
+        .order('order')
+      setQuestions((data ?? []).map(q => ({
+        id: q.id,
+        text: q.text,
+        type: q.type as 'MULTIPLE_CHOICE' | 'MAP_PINPOINT',
+        options: q.options as any,
+        correct_answer: q.correct_answer,
+        explanation: q.explanation ?? '',
+        order: q.order,
+      })))
+      setLoadingQuestions(false)
+    }
+    load()
+  })
+
+  function addQuestion() {
+    setQuestions(prev => [...prev, { ...EMPTY_QUESTION(), order: prev.length }])
+  }
+
+  function updateQuestion(index: number, q: QuestionDraft) {
+    setQuestions(prev => { const n = [...prev]; n[index] = q; return n })
+  }
+
+  function deleteQuestion(index: number) {
+    setQuestions(prev => prev.filter((_, i) => i !== index).map((q, i) => ({ ...q, order: i })))
+  }
+
+  function handleImported(qs: QuestionDraft[]) {
+    setQuestions(prev => [
+      ...prev,
+      ...qs.map((q, i) => ({ ...q, order: prev.length + i })),
+    ])
+    setShowImport(false)
+    toast.success(`${qs.length} soal ditambahkan!`)
+  }
+
+  async function handleSave() {
+    if (!form.title.trim()) { toast.error('Judul kuis wajib diisi'); return }
+    if (!form.class_id) { toast.error('Pilih kelas terlebih dahulu'); return }
+    if (questions.length === 0) { toast.error('Tambahkan minimal 1 soal'); return }
+
+    // Validate questions
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i]
+      if (!q.text.trim()) { toast.error(`Soal #${i + 1} belum ada teksnya`); return }
+      if (q.type === 'MULTIPLE_CHOICE') {
+        if ((q.options as {value: string}[]).some(o => !o.value.trim())) { 
+          toast.error(`Soal #${i + 1} ada pilihan yang kosong`); return 
+        }
+      }
+      if (q.type === 'MAP_PINPOINT') {
+        const { target_lat, target_lng, radius_toleransi_meter, radius_maksimal_meter } = q.options as any
+        if (target_lat === undefined || target_lng === undefined) {
+          toast.error(`Soal ke-${i + 1} tipe Peta belum memiliki koordinat target!`)
+          return
+        }
+        if (radius_maksimal_meter <= radius_toleransi_meter) {
+          toast.error(`Soal ke-${i + 1} tipe Peta: Radius maksimal harus lebih besar dari radius toleransi!`)
+          return
+        }
+      }
+    }
+
+    setSaving(true)
+    try {
+      const timeLimitSeconds = parseInt(form.timeLimit) || 30
+      const xpReward = parseInt(form.xpReward) || 100
+      
+      let quizId = quiz?.id
+
+      if (quizId) {
+        const { error } = await supabase.from('quizzes').update({
+          title: form.title.trim(),
+          class_id: form.class_id,
+          time_limit: timeLimitSeconds,
+          xp_reward: xpReward,
+          is_published: form.is_published,
+          updated_at: new Date().toISOString(),
+        }).eq('id', quizId)
+        if (error) throw error
+        await supabase.from('questions').delete().eq('quiz_id', quizId)
+      } else {
+        const { data: newQuiz, error } = await supabase.from('quizzes').insert({
+          id: crypto.randomUUID(),
+          title: form.title.trim(),
+          class_id: form.class_id,
+          module_id: null,
+          time_limit: timeLimitSeconds,
+          xp_reward: xpReward,
+          is_published: form.is_published,
+          updated_at: new Date().toISOString(),
+        }).select('id').single()
+        if (error) throw error
+        quizId = newQuiz.id
+      }
+
+      const { error: qError } = await supabase.from('questions').insert(
+        questions.map((q, i) => ({
+          id: crypto.randomUUID(),
+          quiz_id: quizId,
+          text: (q.text || '').trim(),
+          type: q.type,
+          options: q.options,
+          correct_answer: q.type === 'MAP_PINPOINT' ? 'MAP' : q.correct_answer,
+          explanation: (q.explanation || '').trim() || null,
+          points: q.points ?? xpReward,
+          duration: q.duration ?? timeLimitSeconds,
+          order: i,
+        }))
+      )
+      if (qError) {
+        console.error("Supabase insert error:", qError)
+        throw qError
+      }
+
+      toast.success(quiz ? 'Kuis berhasil diperbarui! ✅' : 'Kuis berhasil dibuat! 🎉')
+      onSaved()
+      onClose()
+    } catch (err) {
+      console.error('[QuizEditor] save error:', err)
+      let msg = 'Unknown error'
+      if (err instanceof Error) msg = err.message
+      else if (typeof err === 'object' && err !== null) {
+        msg = (err as any).message || JSON.stringify(err)
+      }
+      toast.error(`Gagal menyimpan: ${msg}`)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-8"
+      style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+    >
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-black/60">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100">
+              <ClipboardList className="h-4 w-4 text-blue-600" />
+            </div>
+            <h2 className="text-base font-bold text-slate-800">
+              {quiz ? 'Edit Kuis' : 'Buat Kuis Baru'}
+            </h2>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-5 p-6">
+          {/* Basic Info */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {/* Title */}
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Judul Kuis <span className="text-red-600">*</span>
+              </label>
+              <input
+                value={form.title}
+                onChange={e => setForm({ ...form, title: e.target.value })}
+                placeholder="Contoh: Kuis Bab 1 — Geografi Indonesia"
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+              />
+            </div>
+
+            {/* Class */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Kelas <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={form.class_id}
+                onChange={e => setForm({ ...form, class_id: e.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+              >
+                {classes.length === 0 && <option value="">Belum ada kelas</option>}
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Default Time Limit */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Durasi Default / Soal (detik) <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="number"
+                min="5"
+                value={form.timeLimit}
+                onChange={e => setForm({ ...form, timeLimit: e.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+              />
+            </div>
+
+            {/* Default Points */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Poin Default / Soal (10-1000) <span className="text-red-600">*</span>
+              </label>
+              <input
+                type="number"
+                min="10"
+                max="1000"
+                value={form.xpReward}
+                onChange={e => setForm({ ...form, xpReward: e.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+              />
+            </div>
+            {/* Publish toggle */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Status
+              </label>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 hover:border-emerald-200">
+                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_published ? 'bg-emerald-500' : 'bg-slate-100')}>
+                  <div className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform', form.is_published ? 'translate-x-4' : 'translate-x-0.5')} />
+                </div>
+                <input type="checkbox" className="sr-only" checked={form.is_published} onChange={e => setForm({ ...form, is_published: e.target.checked })} />
+                <span className="text-sm text-slate-700">{form.is_published ? '✅ Published — siswa bisa mengerjakan' : '📝 Draft — hanya kamu yang bisa lihat'}</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Questions section */}
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+                Soal ({questions.length})
+              </h3>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowImport(v => !v)}
+                  className="flex items-center gap-1.5 rounded-lg border border-blue-300 px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50"
+                >
+                  <Upload className="h-3 w-3" />
+                  Import dari Dokumen
+                </button>
+                <button
+                  onClick={addQuestion}
+                  className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
+                >
+                  <Plus className="h-3 w-3" />
+                  Tambah Soal
+                </button>
+              </div>
+            </div>
+
+            {/* Import panel */}
+            {showImport && (
+              <div className="mb-3">
+                <ImportPanel onImported={handleImported} />
+              </div>
+            )}
+
+            {/* Questions list */}
+            {loadingQuestions ? (
+              <div className="py-8 text-center text-slate-600 text-sm">Memuat soal…</div>
+            ) : questions.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-slate-200 py-8 text-center text-xs text-slate-600">
+                Belum ada soal. Klik &quot;Tambah Soal&quot; atau &quot;Import dari Dokumen&quot;.
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                {questions.map((q, i) => (
+                  <QuestionCard
+                    key={i}
+                    question={q}
+                    index={i}
+                    onChange={updated => updateQuestion(i, updated)}
+                    onDelete={() => deleteQuestion(i)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 border-t border-slate-200 pt-4">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-800"
+            >
+              Batal
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50"
+            >
+              {saving ? <><Loader2 className="h-4 w-4 animate-spin" />Menyimpan…</> : `💾 Simpan Kuis (${questions.length} soal)`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

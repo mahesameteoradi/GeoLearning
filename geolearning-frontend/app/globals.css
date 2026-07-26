@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/* ─── Educational Light Theme Design Tokens ──────────────── */
+:root {
+  /* === Backgrounds === */
+  --color-bg:          #F1F5F9;      /* Slate-100 main background */
+  --color-bg-sidebar:  #FFFFFF;      /* Pure white sidebar */
+  --color-surface:     #FFFFFF;      /* Card surface */
+  --color-surface-2:   #F8FAFC;      /* Slightly grey surface */
+  --color-border:      #E2E8F0;      /* Slate-200 border */
+  --color-border-2:    #CBD5E1;      /* Slate-300 stronger border */
+
+  /* === Primary: Royal Blue === */
+  --color-primary:     #2563EB;
+  --color-primary-2:   #3B82F6;
+  --color-primary-light: #EFF6FF;    /* Blue-50 */
+  --color-primary-glow: rgba(37, 99, 235, 0.15);
+
+  /* === Secondary: Teal === */
+  --color-secondary:   #0EA5E9;
+  --color-secondary-light: #F0F9FF;  /* Sky-50 */
+
+  /* === Accent: Amber highlight === */
+  --color-accent:      #F59E0B;
+  --color-accent-light: #FFFBEB;     /* Amber-50 */
+
+  /* === Success: Green === */
+  --color-success:     #10B981;
+  --color-success-light: #ECFDF5;    /* Emerald-50 */
+
+  /* === Text === */
+  --color-text:        #0F172A;      /* Slate-900 — strong text */
+  --color-text-2:      #334155;      /* Slate-700 */
+  --color-text-muted:  #64748B;      /* Slate-500 */
+  --color-text-faint:  #94A3B8;      /* Slate-400 */
+
+  /* === Font === */
+  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
+/* ─── Base ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* ─── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #F1F5F9; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ─── Animations ──────────────────────────────────────── */
+@keyframes slide-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.95) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-slide-in  { animation: slide-in 0.2s ease-out forwards; }
+.animate-fade-out  { animation: fade-out 0.18s ease-in forwards; }
+.animate-pop-in    { animation: pop-in 0.2s ease-out forwards; }
+
+/* ─── Card Surface ───────────────────────────────────── */
+.card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+}
+
+.card-hover {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-hover:hover {
+  border-color: #BFDBFE;   /* Blue-200 */
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.08);
+}
+
+/* ─── Gradient Text ───────────────────────────────────── */
+.text-gradient-primary {
+  background: linear-gradient(135deg, #2563EB, #0EA5E9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-edu {
+  background: linear-gradient(135deg, #F59E0B, #EF4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-xp {
+  background: linear-gradient(135deg, #F59E0B, #FBBF24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── XP Progress Bar ─────────────────────────────────── */
+.xp-bar-fill {
+  background: linear-gradient(90deg, #2563EB, #0EA5E9, #10B981);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: width;
+}
+
+/* ─── Selection Color ─────────────────────────────────── */
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+  color: #1E3A8A;
+}
+
+/* ─── Focus Ring ──────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid #3B82F6;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
