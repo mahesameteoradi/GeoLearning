@@ -28,19 +28,21 @@ export function InteractiveMapEditorModal({ moduleId, title, description, onClos
     
     // Save to database
     const { data: mat, error } = await supabase.from('materials').insert({
+      id: crypto.randomUUID(),
       module_id: moduleId,
       title: title,
       type: 'INTERACTIVE_MAP',
       content_url: null,
       content_text: JSON.stringify(data),
       order: 0,
+      updated_at: new Date().toISOString(),
     }).select().single()
 
     setSaving(false)
 
     if (error) {
-      toast.error('Gagal menyimpan peta interaktif')
-      console.error(error)
+      toast.error(`Gagal menyimpan: ${error.message || 'Unknown error'}`)
+      console.error('[MapEditor] Save error:', error.message, error.details, error.hint, error)
       return
     }
 

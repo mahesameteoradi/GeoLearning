@@ -9,6 +9,11 @@ async function main() {
 
   try {
     await client.connect();
+    
+    // Add INTERACTIVE_MAP to MaterialType ENUM manually because Prisma db push sometimes skips it
+    await client.query(`ALTER TYPE "MaterialType" ADD VALUE IF NOT EXISTS 'INTERACTIVE_MAP'`);
+    console.log("Enum MaterialType updated!");
+
     await client.query(`NOTIFY pgrst, 'reload schema'`);
     console.log("Supabase schema cache reloaded successfully!");
   } catch (error) {

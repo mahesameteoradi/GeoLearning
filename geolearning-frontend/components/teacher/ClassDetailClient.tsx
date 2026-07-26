@@ -182,8 +182,9 @@ function UploadMaterialModal({ classId, moduleId, onClose, onSuccess }: {
       } else { contentUrl = linkUrl.trim() }
       setUploadProgress(85)
       const { data: mat, error: matErr } = await supabase.from('materials').insert({
-        module_id: moduleId, title: title.trim(), type: currentTab.dbType,
+        id: crypto.randomUUID(), module_id: moduleId, title: title.trim(), type: currentTab.dbType,
         content_url: contentUrl, content_text: description.trim() || null, order: 0,
+        updated_at: new Date().toISOString(),
       }).select().single()
       if (matErr) throw new Error(matErr.message)
       setUploadProgress(100)
