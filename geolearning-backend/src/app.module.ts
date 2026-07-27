@@ -5,6 +5,7 @@ import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { GamificationModule } from './gamification/gamification.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
+import { AdminModule } from './admin/admin.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -30,6 +31,9 @@ import { AppService } from './app.service';
 
     // Feature: Top-10 leaderboard + Realtime leaderboard channel
     LeaderboardModule,
+
+    // Feature: Admin
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

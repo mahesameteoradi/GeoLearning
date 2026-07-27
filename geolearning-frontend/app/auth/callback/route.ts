@@ -46,13 +46,17 @@ export async function GET(request: Request) {
       user.email?.split('@')[0] ??
       'Student'
 
+    const role = user.user_metadata?.role || 'STUDENT'
+    const nis = user.user_metadata?.nis_nip || null
+
     const { error: insertError } = await supabase.from('users').insert({
       id: user.id,
       name: displayName,
       email: user.email ?? '',
-      role: 'STUDENT',
+      role: role,
       xp: 0,
       level: 1,
+      nis_nip: nis,
       updated_at: new Date().toISOString(),
     })
 
@@ -66,12 +70,38 @@ export async function GET(request: Request) {
       }
     }
 
-    // New user → redirect to student dashboard
+    // If teacher, record the invitation code usage
+    if (role === 'TEACHER' && user.user_metadata?.invitation_code) {
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/record-invitation`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            code: user.user_metadata.invitation_code,
+          }),
+        });
+      } catch (err) {
+        console.error('[auth/callback] Failed to record invitation code:', err);
+      }
+    }
+
+    // New user → redirect to appropriate dashboard
+    if (role === 'ADMIN') {
+      return NextResponse.redirect(`${origin}/admin`)
+    } else if (role === 'TEACHER') {
+      return NextResponse.redirect(`${origin}/teacher/dashboard`)
+    }
     return NextResponse.redirect(`${origin}/student/dashboard`)
   }
 
   // ── Existing user: redirect based on role ────────────────────────────────
-  if (profile.role === 'TEACHER' || profile.role === 'ADMIN') {
+  if (profile.role === 'ADMIN') {
+    return NextResponse.redirect(`${origin}/admin`)
+  }
+  if (profile.role === 'TEACHER') {
     return NextResponse.redirect(`${origin}/teacher/dashboard`)
   }
 

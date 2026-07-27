@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { GraduationCap, Eye, EyeOff, Loader2, BookOpen, Sparkles } from 'lucide-react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -21,18 +20,34 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
     })
 
     if (signInError) {
-      setError(signInError.message)
+      setError('Email atau password salah.')
       setLoading(false)
       return
     }
 
-    router.push('/')
+    // Get profile from database to ensure correct role
+    const { data: profile } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
+    const role = profile?.role || data?.user?.user_metadata?.role
+
+    if (role === 'ADMIN') {
+      router.push('/admin')
+    } else if (role === 'TEACHER') {
+      router.push('/teacher/dashboard')
+    } else {
+      router.push('/student/dashboard')
+    }
+    
     router.refresh()
   }
 
@@ -145,28 +160,14 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-3 text-center">
+        <div className="mt-4 text-center">
           <a href="#" className="text-xs text-blue-600 hover:text-blue-700 transition-colors">
             Lupa kata sandi?
           </a>
         </div>
 
-        {/* Divider */}
-        <div className="mt-5 flex items-center gap-3">
-          <div className="flex-1 h-px bg-slate-200" />
-          <span className="text-xs text-slate-500">atau</span>
-          <div className="flex-1 h-px bg-slate-200" />
-        </div>
-
-        <div className="mt-4 text-center">
-          <span className="text-sm text-slate-500">Belum punya akun? </span>
-          <Link href="/register" className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-            Daftar Gratis →
-          </Link>
-        </div>
-
         {/* Footer */}
-        <div className="mt-6 flex items-center justify-center gap-1.5">
+        <div className="mt-8 flex items-center justify-center gap-1.5">
           <BookOpen className="h-3 w-3 text-blue-400" />
           <span className="text-[10px] font-medium text-slate-500">
             Platform Belajar Geografi Interaktif

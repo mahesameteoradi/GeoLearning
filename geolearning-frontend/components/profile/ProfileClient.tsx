@@ -207,21 +207,39 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
             <div className="space-y-4">
               {/* Name */}
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Nama Lengkap
-                </label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
-                  />
+              {role === 'STUDENT' ? (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Nama Lengkap
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      readOnly
+                      disabled
+                      value={profile.name}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Nama Lengkap
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Email (Readonly) */}
               <div>
@@ -239,54 +257,76 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
               </div>
 
               {/* NIS/NIP */}
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  {role === 'TEACHER' ? 'NIP (Nomor Induk Pegawai)' : 'NIS / NISN'}
-                </label>
-                <div className="relative">
-                  <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
-                  <input
-                    type="text"
-                    value={nisNip}
-                    onChange={(e) => setNisNip(e.target.value)}
-                    placeholder={role === 'TEACHER' ? "Contoh: 19800101 200501 1 001" : "Contoh: 12345678"}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
-                  />
+              {role === 'STUDENT' ? (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    NIS (Nomor Induk Siswa)
+                  </label>
+                  <div className="relative">
+                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      type="text"
+                      readOnly
+                      disabled
+                      value={profile.nis_nip || '-'}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-500 cursor-not-allowed"
+                    />
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    NIP (Nomor Induk Pegawai)
+                  </label>
+                  <div className="relative">
+                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
+                    <input
+                      type="text"
+                      value={nisNip}
+                      onChange={(e) => setNisNip(e.target.value)}
+                      placeholder="Contoh: 19800101 200501 1 001"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              )}
 
-              {/* School Class */}
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  {role === 'TEACHER' ? 'Wali Kelas / Guru Bidang (Opsional)' : 'Kelas'}
-                </label>
-                <div className="relative">
-                  <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
-                  <input
-                    type="text"
-                    value={schoolClass}
-                    onChange={(e) => setSchoolClass(e.target.value)}
-                    placeholder={role === 'TEACHER' ? "Contoh: Geografi Lintas Minat" : "Contoh: XII IPS 1"}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
-                  />
+              {/* School Class (Only for Teacher) */}
+              {role === 'TEACHER' && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Wali Kelas / Guru Bidang (Opsional)
+                  </label>
+                  <div className="relative">
+                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
+                    <input
+                      type="text"
+                      value={schoolClass}
+                      onChange={(e) => setSchoolClass(e.target.value)}
+                      placeholder="Contoh: Geografi Lintas Minat"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            <div className="mt-8 flex items-center justify-end border-t border-slate-100 pt-5">
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-slate-800 shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-60"
-              >
-                {saving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Simpan Perubahan
-              </button>
-            </div>
+            {role === 'TEACHER' && (
+              <div className="mt-8 flex items-center justify-end border-t border-slate-100 pt-5">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-slate-800 shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-60"
+                >
+                  {saving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4" />
+                  )}
+                  Simpan Perubahan
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </div>

@@ -171,12 +171,26 @@ function AvailableClassesWidget({
   loading,
   enrollingId,
   onEnroll,
+  onJoinByCode,
 }: {
   classes: AvailableClassItem[]
   loading: boolean
   enrollingId: string | null
   onEnroll: (id: string, name: string) => void
+  onJoinByCode: (code: string) => Promise<void>
 }) {
+  const [joinCode, setJoinCode] = useState('')
+  const [joining, setJoining] = useState(false)
+
+  const handleJoinByCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!joinCode || joinCode.length < 5) return
+    setJoining(true)
+    await onJoinByCode(joinCode.toUpperCase())
+    setJoinCode('')
+    setJoining(false)
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -191,6 +205,25 @@ function AvailableClassesWidget({
           Lihat semua <ArrowRight className="h-3 w-3" />
         </Link>
       </div>
+
+      {/* Join by Code Form */}
+      <form onSubmit={handleJoinByCode} className="mb-4 flex gap-2">
+        <input
+          type="text"
+          placeholder="Kode Kelas (6 digit)"
+          value={joinCode}
+          onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+          maxLength={6}
+          className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-900 placeholder-slate-400 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20"
+        />
+        <button
+          type="submit"
+          disabled={joining || joinCode.length < 5}
+          className="flex items-center justify-center rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+        >
+          {joining ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Gabung'}
+        </button>
+      </form>
 
       {loading ? (
         <div className="space-y-2">
@@ -440,6 +473,45 @@ export function DashboardClient() {
     setEnrollingId(null)
   }
 
+  // ── Join class by 6-digit code ─────────────────────────────────────────────
+  async function handleJoinByCode(code: string) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    // Find class by join code
+    const { data: cls, error: findError } = await supabase
+      .from('classes')
+      .select('id, name')
+      .eq('join_code', code)
+      .single()
+
+    if (findError || !cls) {
+      alert('Kelas tidak ditemukan dengan kode tersebut.')
+      return
+    }
+
+    // Enroll in the class
+    const { error: enrollError } = await supabase.from('class_students').insert({
+      class_id: cls.id,
+      student_id: user.id,
+    })
+
+    if (enrollError) {
+      // If it's a unique constraint violation, they are already enrolled
+      if (enrollError.code?.includes('23505')) {
+        alert('Kamu sudah tergabung di kelas ini.')
+      } else {
+        alert('Gagal bergabung ke kelas. Silakan coba lagi.')
+      }
+      return
+    }
+
+    // Remove from available list if it was there
+    setAvailableClasses((prev) => prev.filter((c) => c.id !== cls.id))
+    alert(`Berhasil bergabung ke kelas ${cls.name}!`)
+  }
+
   // ── Loading state → show skeleton immediately ──────────────────────────────
   if (loading) return <DashboardSkeleton />
 
@@ -571,6 +643,7 @@ export function DashboardClient() {
             loading={availableLoading}
             enrollingId={enrollingId}
             onEnroll={handleQuickEnroll}
+            onJoinByCode={handleJoinByCode}
           />
         </div>
       </div>

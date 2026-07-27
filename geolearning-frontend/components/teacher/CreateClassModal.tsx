@@ -37,11 +37,13 @@ export function CreateClassModal({ onClose, teacherId }: CreateClassModalProps) 
       const joinCode = generateJoinCode()
 
       const { error } = await supabase.from('classes').insert({
+        id: crypto.randomUUID(),
         name: form.name.trim(),
         description: form.description.trim() || null,
         teacher_id: teacherId,
         join_code: joinCode,
         gamification_mode: form.gamification_mode,
+        updated_at: new Date().toISOString(),
       })
 
       if (error) {

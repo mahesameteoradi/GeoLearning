@@ -33,6 +33,10 @@ model User {
   badges                 UserBadge[]         @relation("OwnedBadges")
   equipped_badge         UserBadge?          @relation("EquippedBadge", fields: [equipped_badge_id], references: [id])
   projectSubmissions     ProjectSubmission[]
+  
+  verification_status    VerificationStatus  @default(UNVERIFIED)
+  created_codes          InvitationCode[]    @relation("AdminCreatedCodes")
+  used_codes             InvitationCodeLog[] @relation("TeacherUsedCodes")
 
   @@map("users")
 }
@@ -280,6 +284,40 @@ enum Role {
   STUDENT
   TEACHER
   ADMIN
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  VERIFIED
+  SUSPENDED
+}
+
+model InvitationCode {
+  id              String                @id @default(uuid())
+  code            String                @unique
+  created_by_id   String
+  expires_at      DateTime?
+  max_uses        Int?
+  times_used      Int                   @default(0)
+  is_active       Boolean               @default(true)
+  created_at      DateTime              @default(now())
+  
+  created_by      User                  @relation("AdminCreatedCodes", fields: [created_by_id], references: [id])
+  logs            InvitationCodeLog[]
+  
+  @@map("invitation_codes")
+}
+
+model InvitationCodeLog {
+  id                  String          @id @default(uuid())
+  invitation_code_id  String
+  used_by_id          String
+  used_at             DateTime        @default(now())
+  
+  invitation_code     InvitationCode  @relation(fields: [invitation_code_id], references: [id])
+  used_by             User            @relation("TeacherUsedCodes", fields: [used_by_id], references: [id])
+  
+  @@map("invitation_code_logs")
 }
 
 enum GamificationMode {

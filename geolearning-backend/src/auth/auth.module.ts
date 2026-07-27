@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { SupabaseAuthGuard } from './auth.guard';
+import { AuthController } from './auth.controller';
+import { PrismaModule } from '../prisma/prisma.module';
 
 /**
  * AuthModule
@@ -10,6 +12,8 @@ import { SupabaseAuthGuard } from './auth.guard';
  * Use @Public() on routes that should be accessible without a token.
  */
 @Module({
+  imports: [PrismaModule],
+  controllers: [AuthController],
   providers: [
     {
       provide: APP_GUARD,

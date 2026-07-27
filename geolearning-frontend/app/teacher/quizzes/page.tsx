@@ -55,12 +55,14 @@ function QuizCard({
   onDelete,
   onTogglePublish,
   onViewResults,
+  isVerified,
 }: {
   quiz: QuizItem
   onEdit: (quiz: QuizItem) => void
   onDelete: (id: string) => void
   onTogglePublish: (id: string, current: boolean) => void
   onViewResults: (quiz: QuizItem) => void
+  isVerified: boolean
 }) {
   const [deleting, setDeleting] = useState(false)
   const [toggling, setToggling] = useState(false)
@@ -109,9 +111,13 @@ function QuizCard({
           </button>
           <button
             onClick={handleToggle}
-            disabled={toggling}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-cyan-50 hover:text-cyan-600 transition-colors"
-            title={quiz.is_published ? 'Sembunyikan' : 'Publikasikan'}
+            disabled={toggling || !isVerified}
+            className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
+              !isVerified 
+                ? 'text-slate-300 cursor-not-allowed' 
+                : 'text-slate-500 hover:bg-cyan-50 hover:text-cyan-600'
+            }`}
+            title={!isVerified ? 'Menunggu Verifikasi Admin' : (quiz.is_published ? 'Sembunyikan' : 'Publikasikan')}
           >
             {toggling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : quiz.is_published ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
           </button>
@@ -176,15 +182,20 @@ export default function TeacherQuizzesPage() {
   const [showEditor, setShowEditor] = useState(false)
   const [editingQuiz, setEditingQuiz] = useState<QuizItem | null>(null)
   const [viewingResults, setViewingResults] = useState<QuizItem | null>(null)
-  const [userId, setUserId] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [filterClassId, setFilterClassId] = useState('ALL')
   const [filterStatus, setFilterStatus] = useState('ALL')
+  const [isVerified, setIsVerified] = useState(false)
+  const [userId, setUserId] = useState('')
 
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     setUserId(user.id)
+
+    // Check verification status
+    const { data: profile } = await supabase.from('users').select('verification_status').eq('id', user.id).single()
+    setIsVerified(profile?.verification_status === 'VERIFIED')
 
     // Load classes
     const { data: cls } = await supabase
@@ -268,6 +279,20 @@ export default function TeacherQuizzesPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      {!isVerified && (
+        <div className="mb-6 rounded-xl bg-amber-50 p-4 border border-amber-200 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+              <ClipboardList className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-800">Menunggu Verifikasi Admin</h3>
+              <p className="text-xs text-amber-700">Akun Anda belum diverifikasi. Anda dapat membuat kuis, tetapi belum bisa mempublikasikannya ke siswa.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
@@ -381,6 +406,7 @@ export default function TeacherQuizzesPage() {
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
                 onViewResults={setViewingResults}
+                isVerified={isVerified}
               />
             ))}
           </div>
@@ -402,6 +428,7 @@ export default function TeacherQuizzesPage() {
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
                 onViewResults={setViewingResults}
+                isVerified={isVerified}
               />
             ))}
           </div>

@@ -22,7 +22,7 @@ export default async function TeacherDashboardPage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('id, name, role, avatar_url')
+    .select('id, name, role, avatar_url, verification_status')
     .eq('id', user.id)
     .single()
 
@@ -76,13 +76,43 @@ export default async function TeacherDashboardPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      {/* ─── Verification Warning ──────────────────────────── */}
+      {profile.verification_status === 'UNVERIFIED' && (
+        <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-5 flex items-start gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-amber-800">Akun Belum Diverifikasi</h3>
+            <p className="mt-1 text-sm text-amber-700">
+              Akun Anda saat ini sedang menunggu verifikasi dari Admin. Anda dapat membuat kelas dan kuis (draft), 
+              tetapi fitur publikasi dibatasi sampai akun Anda diverifikasi.
+            </p>
+          </div>
+        </div>
+      )}
+      {profile.verification_status === 'SUSPENDED' && (
+        <div className="mb-6 rounded-2xl bg-red-50 border border-red-200 p-5 flex items-start gap-4">
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-red-800">Akun Ditangguhkan</h3>
+            <p className="mt-1 text-sm text-red-700">
+              Akun Anda telah ditangguhkan oleh Admin. Anda tidak dapat melakukan aktivitas pengajaran saat ini.
+              Silakan hubungi Admin sekolah Anda.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ─── Page Header ─────────────────────────────────── */}
       <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 flex items-center gap-4">
         <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-50">
           {profile.avatar_url ? (
             <img src={profile.avatar_url} alt={profile.name} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 font-bold text-slate-800 text-xl">
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 font-bold text-slate-800 text-xl text-white">
               {profile.name.charAt(0).toUpperCase()}
             </div>
           )}
