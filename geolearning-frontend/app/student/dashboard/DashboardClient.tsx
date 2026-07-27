@@ -11,6 +11,7 @@ import { BadgeGrid } from '@/components/ui/BadgeGrid'
 import { StatsCard } from '@/components/student/StatsCard'
 import { ActivityFeed } from '@/components/student/ActivityFeed'
 import { LeaderboardWidget } from '@/components/student/LeaderboardWidget'
+import { FlashcardWidget } from './FlashcardWidget'
 import { calculateLevel } from '@/lib/utils/level'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -611,8 +612,12 @@ export function DashboardClient() {
 
       {/* ─── Main Grid ───────────────────────────────────────────────────── */}
       <div className="grid gap-5 xl:grid-cols-3">
-        {/* Left — badges + activity */}
+        {/* Left — flashcards + badges + activity */}
         <div className="space-y-5 xl:col-span-2">
+          <section>
+            <FlashcardWidget userId={profile.id} />
+          </section>
+
           <section>
             <div className="mb-2.5 flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">

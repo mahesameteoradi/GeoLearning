@@ -421,9 +421,10 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
     if (moduleId) return moduleId
     setInitializingModule(true)
     const supabase = createClient()
-    const { data, error } = await supabase.from('modules').insert({ class_id: cls.id, title: 'Materi Kelas', order: 0 }).select('id').single()
+    const newId = crypto.randomUUID()
+    const { data, error } = await supabase.from('modules').insert({ id: newId, class_id: cls.id, title: 'Materi Kelas', order: 0, updated_at: new Date().toISOString() }).select('id').single()
     setInitializingModule(false)
-    if (error || !data) { toast.error('Gagal inisialisasi modul'); return null }
+    if (error || !data) { console.error('Module insertion error:', error); toast.error('Gagal inisialisasi modul'); return null }
     setModuleId(data.id)
     return data.id
   }

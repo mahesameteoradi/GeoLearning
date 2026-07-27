@@ -158,14 +158,13 @@ function ResultScreen({
   correctCount: number
   onBack: () => void
 }) {
-  const [showConfetti, setShowConfetti] = useState(score >= 70)
-
   useEffect(() => {
-    if (showConfetti) {
-      const t = setTimeout(() => setShowConfetti(false), 4000)
-      return () => clearTimeout(t)
+    if (score >= 70) {
+      import('@/lib/utils/confetti').then(({ triggerConfetti }) => {
+        triggerConfetti()
+      })
     }
-  }, [showConfetti])
+  }, [score])
 
   const emoji = score >= 85 ? '🏆' : score >= 70 ? '🎉' : score >= 55 ? '💪' : '📚'
   const message =
@@ -182,7 +181,6 @@ function ResultScreen({
 
   return (
     <>
-      {showConfetti && <Confetti />}
       <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950">
         <div className="w-full max-w-md text-center">
           {/* Big score */}

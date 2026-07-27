@@ -12,6 +12,7 @@ import {
 import { ChatPanel } from '@/components/forum/ChatPanel'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { InteractiveMapViewer } from '@/components/ui/InteractiveMapViewer'
+import { ExpeditionMap } from '@/components/student/ExpeditionMap'
 import { cn } from '@/lib/utils/cn'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -28,6 +29,13 @@ interface MaterialItem {
   created_at: string
 }
 
+interface QuizItem {
+  id: string
+  title: string
+  xp_reward: number
+  created_at: string
+}
+
 interface ClassInfo {
   id: string
   name: string
@@ -39,6 +47,7 @@ interface ClassInfo {
     title: string
     order: number
     materials: MaterialItem[]
+    quizzes: QuizItem[]
   }[]
 }
 
@@ -131,6 +140,19 @@ function MaterialCard({ mat, index, onViewMap }: { mat: MaterialItem; index: num
           <Eye className="h-3.5 w-3.5" />
           {meta.actionLabel}
         </button>
+      ) : mat.type === 'TEXT' || (!mat.content_url && mat.content_text) ? (
+        <Link
+          href={`/student/classes/${useParams().classId}/materials/${mat.id}`}
+          className={cn(
+            'flex flex-shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-all',
+            'opacity-0 group-hover:opacity-100',
+            meta.bg, meta.border, meta.color,
+            'hover:shadow-md'
+          )}
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Baca Artikel
+        </Link>
       ) : mat.content_url && (
         <a
           href={mat.content_url}
@@ -167,6 +189,8 @@ export default function StudentClassDetailPage() {
   const [activeTab, setActiveTab] = useState<'materi' | 'forum' | 'peringkat'>('materi')
   const [userId, setUserId] = useState<string>('')
   const [viewingMap, setViewingMap] = useState<MaterialItem | null>(null)
+  const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
+  const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const supabase = createClient()
@@ -190,7 +214,7 @@ export default function StudentClassDetailPage() {
         return
       }
 
-      // Fetch class with materials
+      // Fetch class with materials and quizzes
       const { data: classData, error } = await supabase
         .from('classes')
         .select(`
@@ -198,7 +222,8 @@ export default function StudentClassDetailPage() {
           teacher:users!classes_teacher_id_fkey(name),
           modules(
             id, title, order,
-            materials(id, title, type, content_url, content_text, order, created_at)
+            materials(id, title, type, content_url, content_text, order, created_at),
+            quizzes(id, title, xp_reward, created_at)
           )
         `)
         .eq('id', classId)
@@ -208,6 +233,21 @@ export default function StudentClassDetailPage() {
         setLoading(false)
         return
       }
+
+      // Fetch completions
+      const { data: completions } = await supabase
+        .from('material_completions')
+        .select('material_id')
+        .eq('user_id', user.id)
+      
+      const { data: attempts } = await supabase
+        .from('quiz_attempts')
+        .select('quiz_id')
+        .eq('user_id', user.id)
+        .not('completed_at', 'is', null)
+
+      const completedMaterialIds = new Set((completions ?? []).map(c => c.material_id))
+      const completedQuizIds = new Set((attempts ?? []).map(a => a.quiz_id))
 
       const teacher = Array.isArray(classData.teacher)
         ? classData.teacher[0]
@@ -228,6 +268,8 @@ export default function StudentClassDetailPage() {
 
       setCls(processed as ClassInfo)
       setAllMaterials(flat)
+      setCompletedMaterials(completedMaterialIds)
+      setCompletedQuizzes(completedQuizIds)
       setLoading(false)
     }
 
@@ -381,14 +423,15 @@ export default function StudentClassDetailPage() {
           </div>
         ) : (
           <div>
-            <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500">
-              📚 Materi Pembelajaran ({allMaterials.length})
+            <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500 text-center mt-4">
+              🗺️ Peta Ekspedisi
             </h2>
-            <div className="space-y-3">
-              {allMaterials.map((mat, i) => (
-                <MaterialCard key={mat.id} mat={mat} index={i} onViewMap={setViewingMap} />
-              ))}
-            </div>
+            <ExpeditionMap 
+              modules={cls.modules} 
+              completedMaterials={completedMaterials}
+              completedQuizzes={completedQuizzes}
+              classId={classId}
+            />
           </div>
         )
       )}

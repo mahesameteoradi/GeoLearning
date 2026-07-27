@@ -62,10 +62,13 @@ export async function proxy(request: NextRequest) {
       }
 
       const url = request.nextUrl.clone()
-      url.pathname =
-        role === 'TEACHER' || role === 'ADMIN'
-          ? '/teacher/dashboard'
-          : '/student/dashboard'
+      if (role === 'ADMIN') {
+        url.pathname = '/admin'
+      } else if (role === 'TEACHER') {
+        url.pathname = '/teacher/dashboard'
+      } else {
+        url.pathname = '/student/dashboard'
+      }
       return NextResponse.redirect(url)
     }
     return supabaseResponse
@@ -74,9 +77,8 @@ export async function proxy(request: NextRequest) {
   // ── Root path redirect ─────────────────────────────────────────────────
   if (pathname === '/') {
     if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
+      // Allow root path to render landing page
+      return supabaseResponse
     }
 
     let role = 'STUDENT'
@@ -92,10 +94,13 @@ export async function proxy(request: NextRequest) {
     }
 
     const url = request.nextUrl.clone()
-    url.pathname =
-      role === 'TEACHER' || role === 'ADMIN'
-        ? '/teacher/dashboard'
-        : '/student/dashboard'
+    if (role === 'ADMIN') {
+      url.pathname = '/admin'
+    } else if (role === 'TEACHER') {
+      url.pathname = '/teacher/dashboard'
+    } else {
+      url.pathname = '/student/dashboard'
+    }
     return NextResponse.redirect(url)
   }
 
