@@ -28,23 +28,36 @@ export default async function TeacherDashboardPage() {
 
   if (!profile) redirect('/login')
 
-  // Fetch teacher's classes with module counts
+  // Fetch teacher's classes with module and student counts
   const { data: classes } = await supabase
     .from('classes')
     .select(`
       id, name, description, join_code,
-      modules(id)
+      modules(id),
+      class_students(
+        student:users!class_students_student_id_fkey(id, name, email, xp, current_streak, avatar_url)
+      )
     `)
     .eq('teacher_id', user.id)
     .order('created_at', { ascending: false })
 
-  // Fetch all students (for progress table)
-  const { data: allStudents } = await supabase
-    .from('users')
-    .select('id, name, email, xp, current_streak, avatar_url')
-    .eq('role', 'STUDENT')
-    .order('xp', { ascending: false })
-    .limit(50)
+  // Derive unique students from the teacher's classes
+  const uniqueStudentsMap = new Map()
+  if (classes) {
+    for (const cls of classes) {
+      if (cls.class_students) {
+        for (const cs of cls.class_students) {
+          const student = Array.isArray(cs.student) ? cs.student[0] : cs.student
+          if (student && !uniqueStudentsMap.has(student.id)) {
+            uniqueStudentsMap.set(student.id, student)
+          }
+        }
+      }
+    }
+  }
+  const allStudents = Array.from(uniqueStudentsMap.values())
+    .sort((a, b) => b.xp - a.xp)
+    .slice(0, 50)
 
   // Fetch interventions by this teacher
   const { data: rawInterventions } = await supabase
@@ -158,18 +171,32 @@ export default async function TeacherDashboardPage() {
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {(classes ?? []).map((cls) => (
-              <ClassCard
-                key={cls.id}
-                id={cls.id}
-                name={cls.name}
-                description={cls.description}
-                joinCode={cls.join_code}
-                studentCount={0}
-                moduleCount={(cls.modules as { id: string }[]).length}
-                avgXp={avgXp}
-              />
-            ))}
+            {(classes ?? []).map((cls) => {
+              const students = cls.class_students || []
+              const studentCount = students.length
+              
+              let classAvgXp = avgXp // fallback to global avg if no students
+              if (studentCount > 0) {
+                const totalClassXp = students.reduce((acc: number, curr: any) => {
+                  const xp = Array.isArray(curr.student) ? curr.student[0]?.xp : curr.student?.xp
+                  return acc + (xp || 0)
+                }, 0)
+                classAvgXp = Math.round(totalClassXp / studentCount)
+              }
+
+              return (
+                <ClassCard
+                  key={cls.id}
+                  id={cls.id}
+                  name={cls.name}
+                  description={cls.description}
+                  joinCode={cls.join_code}
+                  studentCount={studentCount}
+                  moduleCount={(cls.modules as { id: string }[]).length}
+                  avgXp={classAvgXp}
+                />
+              )
+            })}
           </div>
         )}
       </section>

@@ -30,6 +30,7 @@ model User {
   interventions_given    Intervention[]      @relation("TeacherInterventions")
   notifications          Notification[]
   quiz_attempts          QuizAttempt[]
+  xp_logs                XpLog[]
   badges                 UserBadge[]         @relation("OwnedBadges")
   equipped_badge         UserBadge?          @relation("EquippedBadge", fields: [equipped_badge_id], references: [id])
   projectSubmissions     ProjectSubmission[]
@@ -157,6 +158,7 @@ model Question {
   order          Int          @default(0)
   created_at     DateTime     @default(now())
   quiz           Quiz         @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+  attempt_answers QuizAttemptAnswer[]
 
   @@map("questions")
 }
@@ -173,7 +175,35 @@ model QuizAttempt {
   quiz         Quiz      @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
   user         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
+  detailed_answers QuizAttemptAnswer[]
+
   @@map("quiz_attempts")
+}
+
+model QuizAttemptAnswer {
+  id               String       @id @default(uuid())
+  attempt_id       String
+  question_id      String
+  is_correct       Boolean
+  selected_options Json?
+  
+  attempt          QuizAttempt  @relation(fields: [attempt_id], references: [id], onDelete: Cascade)
+  question         Question     @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  @@map("quiz_attempt_answers")
+}
+
+model XpLog {
+  id           String   @id @default(uuid())
+  user_id      String
+  amount       Int
+  source       String   // e.g. 'quiz', 'badge', 'manual_adjustment', 'project'
+  reference_id String?  // ID of the quiz attempt, badge, etc.
+  created_at   DateTime @default(now())
+
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("xp_logs")
 }
 
 model ProjectAssignment {

@@ -20,6 +20,10 @@ export interface XpContext {
   isFirstQuiz?: boolean;
   /** Whether the user is currently in the leaderboard top 10 */
   isTopTen?: boolean;
+  /** The source of the XP (e.g. 'quiz', 'badge', 'manual_adjustment', 'project') */
+  source?: string;
+  /** ID of the reference entity (e.g. quiz attempt ID, project submission ID) */
+  referenceId?: string;
 }
 
 export interface AwardedBadge {
@@ -106,16 +110,26 @@ export class GamificationService {
       user.updated_at,
     );
 
-    // ── 3. Persist XP, level, streak in one atomic DB update ────────────────
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        xp: newXp,
-        level: newLevel,
-        current_streak: streakResult.currentStreak,
-        longest_streak: streakResult.longestStreak,
-      },
-    });
+    // ── 3. Persist XP, level, streak, and log in one atomic DB update ───────
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          xp: newXp,
+          level: newLevel,
+          current_streak: streakResult.currentStreak,
+          longest_streak: streakResult.longestStreak,
+        },
+      }),
+      (this.prisma as any).xpLog.create({
+        data: {
+          user_id: userId,
+          amount: xpAmount,
+          source: context.source || (context.quizAttemptId ? 'quiz' : 'manual_adjustment'),
+          reference_id: context.referenceId || context.quizAttemptId || null,
+        },
+      }),
+    ]);
 
     this.logger.log(
       `[XP] User ${userId}: ${previousXp} → ${newXp} XP | ` +
@@ -482,3 +496,4 @@ export class GamificationService {
     };
   }
 }
+

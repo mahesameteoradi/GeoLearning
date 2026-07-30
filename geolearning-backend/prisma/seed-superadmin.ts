@@ -55,7 +55,7 @@ async function seedSuperAdmin() {
       console.log('User already registered in Supabase Auth, but not in Prisma. Checking users list...')
       // Try to find the user id from auth.users (requires DB query usually, or we can use admin API)
       const { data: listData } = await supabase.auth.admin.listUsers()
-      const user = listData?.users.find(u => u.email === email)
+      const user = listData?.users.find((u: any) => u.email === email)
       if (user) {
         await insertIntoPrisma(user.id, email)
         return

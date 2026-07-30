@@ -1,0 +1,14 @@
+{
+  "name": "geolearning-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd geolearning-backend && npm run start:dev",
+    "dev:frontend": "cd geolearning-frontend && npm run dev",
+    "install:all": "npm install && cd geolearning-backend && npm install && cd ../geolearning-frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
