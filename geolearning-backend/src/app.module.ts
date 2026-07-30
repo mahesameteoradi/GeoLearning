@@ -7,6 +7,7 @@ import { GamificationModule } from './gamification/gamification.module';
 import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { ClassesModule } from './classes/classes.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -35,6 +36,12 @@ import { AppService } from './app.service';
 
     // Feature: Admin
     AdminModule,
+
+    // Feature: Analytics
+    AnalyticsModule,
+
+    // Feature: Classes
+    ClassesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

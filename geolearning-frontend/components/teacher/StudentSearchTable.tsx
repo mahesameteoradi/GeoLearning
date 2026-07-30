@@ -77,22 +77,22 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
       <div className={cn('flex-1 min-w-0 transition-all', selectedStudent ? 'max-w-[calc(100%-300px)]' : '')}>
         {/* Search */}
         <div className="mb-4 relative">
-          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
+          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Cari nama, email, atau kelas…"
-            className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-200 focus:outline-none focus:ring-1 focus:ring-blue-500/20"
+            className="w-full rounded-2xl border border-slate-200/80 bg-white py-3 pl-11 pr-4 text-sm text-slate-800 placeholder-slate-400 shadow-sm transition-all focus:border-indigo-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
           />
         </div>
 
         {/* Table */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200">
+        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">#</th>
+                <tr className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm">
+                  <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">#</th>
                   {[
                     { label: 'Siswa', key: 'name' as SortKey },
                     { label: 'Level', key: 'level' as SortKey },
@@ -102,7 +102,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                     <th
                       key={key}
                       onClick={() => handleSort(key)}
-                      className="cursor-pointer select-none px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-slate-700"
+                      className="cursor-pointer select-none px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:text-indigo-600"
                     >
                       <span className="inline-flex items-center gap-1">
                         {label}
@@ -112,13 +112,13 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                   ))}
                   {/* Kelas column — only if data available */}
                   {hasClassData && (
-                    <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                    <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                       Kelas
                     </th>
                   )}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04]">
+              <tbody className="divide-y divide-slate-100">
                 {sorted.map((s, idx) => {
                   const progress = levelProgressPercent(s.xp)
                   const isSelected = selectedStudent?.id === s.id
@@ -127,16 +127,16 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                       key={s.id}
                       onClick={() => setSelectedStudent(isSelected ? null : s)}
                       className={cn(
-                        'cursor-pointer transition-colors',
+                        'group cursor-pointer transition-all duration-300',
                         isSelected
-                          ? 'bg-blue-50 hover:bg-blue-50'
-                          : 'hover:bg-slate-50'
+                          ? 'bg-indigo-50/60'
+                          : 'hover:bg-indigo-50/40'
                       )}
                     >
-                      <td className="px-4 py-3 text-sm font-bold text-slate-600">
+                      <td className="px-5 py-4 text-sm font-bold text-slate-600 transition-colors group-hover:text-indigo-600">
                         {idx < 3 ? ['🥇', '🥈', '🥉'][idx] : idx + 1}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         <div className="flex items-center gap-2.5">
                           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800">
                             {s.name.charAt(0).toUpperCase()}
@@ -147,14 +147,14 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold', levelColors(s.level))}>
+                      <td className="px-5 py-4">
+                        <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm', levelColors(s.level))}>
                           Lv. {s.level}
                         </span>
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100 shadow-inner">
                             <div
                               className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500"
                               style={{ width: `${progress}%` }}
@@ -165,8 +165,8 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-1.5">
                           <Flame className={cn('h-3.5 w-3.5', s.current_streak > 0 ? 'text-orange-600' : 'text-slate-700')} />
                           <span className={cn('text-sm font-semibold', s.current_streak > 0 ? 'text-orange-600' : 'text-slate-600')}>
                             {s.current_streak}d
@@ -174,7 +174,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                         </div>
                       </td>
                       {hasClassData && (
-                        <td className="px-4 py-3">
+                        <td className="px-5 py-4">
                           <div className="flex flex-wrap gap-1">
                             {(s.enrolledClasses ?? []).length > 0 ? (
                               (s.enrolledClasses ?? []).map((cls) => (

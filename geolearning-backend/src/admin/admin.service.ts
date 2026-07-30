@@ -138,14 +138,6 @@ export class AdminService {
         where: { teacher_id: teacherId },
         data: { teacher_id: adminId }
       });
-      await tx.forumPost.updateMany({
-        where: { user_id: teacherId },
-        data: { user_id: adminId }
-      });
-      await tx.forumReply.updateMany({
-        where: { user_id: teacherId },
-        data: { user_id: adminId }
-      });
       await tx.intervention.updateMany({
         where: { teacher_id: teacherId },
         data: { teacher_id: adminId }

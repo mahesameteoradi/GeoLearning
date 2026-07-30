@@ -15,18 +15,20 @@ const GEOGRAPHY_FLASHCARDS = [
   { question: 'Apa nama gurun terluas di dunia?', answer: 'Gurun Sahara' },
 ]
 
-export function FlashcardWidget({ userId }: { userId: string }) {
+export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: string, customFlashcards?: { question: string, answer: string }[] }) {
+  const flashcards = customFlashcards.length > 0 ? customFlashcards : GEOGRAPHY_FLASHCARDS
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [claimed, setClaimed] = useState(false)
   const [claiming, setClaiming] = useState(false)
 
-  const card = GEOGRAPHY_FLASHCARDS[currentIndex]
+
+  const card = flashcards[currentIndex] || flashcards[0]
 
   const handleNext = () => {
     setIsFlipped(false)
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % GEOGRAPHY_FLASHCARDS.length)
+      setCurrentIndex((prev) => (prev + 1) % flashcards.length)
     }, 150)
   }
 

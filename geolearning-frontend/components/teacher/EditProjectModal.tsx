@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Loader2, BookMarked } from 'lucide-react'
+import { X, Loader2, Edit3 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
@@ -11,23 +11,24 @@ interface ClassOption {
   name: string
 }
 
-interface CreateProjectModalProps {
+interface EditProjectModalProps {
+  project: any
   classes: ClassOption[]
   onClose: () => void
   onSaved: () => void
 }
 
-export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectModalProps) {
+export function EditProjectModal({ project, classes, onClose, onSaved }: EditProjectModalProps) {
   const supabase = createClient()
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({
-    title: '',
-    description: '',
-    class_id: classes[0]?.id ?? '',
-    xp_reward: 100,
-    deadline: '',
-    is_published: true,
-    is_group_project: false,
+    title: project.title || '',
+    description: project.description || '',
+    class_id: project.class_id || (classes[0]?.id ?? ''),
+    xp_reward: project.xp_reward || 100,
+    deadline: project.deadline ? new Date(project.deadline).toISOString().slice(0, 16) : '',
+    is_published: project.is_published ?? true,
+    is_group_project: project.is_group_project ?? false,
   })
 
   async function handleSave() {
@@ -42,20 +43,22 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
 
     setSaving(true)
     try {
-      const { error } = await supabase.from('project_assignments').insert({
-        id: crypto.randomUUID(),
-        title: form.title.trim(),
-        description: form.description.trim(),
-        class_id: form.class_id,
-        xp_reward: form.xp_reward,
-        deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
-        is_published: form.is_published,
-        is_group_project: form.is_group_project,
-        updated_at: new Date().toISOString(),
-      })
+      const { error } = await supabase.from('project_assignments')
+        .update({
+          title: form.title.trim(),
+          description: form.description.trim(),
+          class_id: form.class_id,
+          xp_reward: form.xp_reward,
+          deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
+          is_published: form.is_published,
+          is_group_project: form.is_group_project,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', project.id)
+
       if (error) throw error
 
-      toast.success('Tugas Proyek berhasil dibuat! 🎉')
+      toast.success('Tugas Proyek berhasil diperbarui! 🎉')
       onSaved()
       onClose()
     } catch (err: any) {
@@ -74,11 +77,11 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100">
-              <BookMarked className="h-4 w-4 text-blue-600" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-100">
+              <Edit3 className="h-4 w-4 text-amber-600" />
             </div>
             <h2 className="text-base font-bold text-slate-800">
-              Buat Tugas Proyek
+              Edit Tugas Proyek
             </h2>
           </div>
           <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
@@ -179,7 +182,7 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
               disabled={saving}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : '💾 Simpan Tugas'}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : '💾 Simpan Perubahan'}
             </button>
           </div>
         </div>

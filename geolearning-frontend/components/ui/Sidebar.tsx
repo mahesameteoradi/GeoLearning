@@ -79,9 +79,9 @@ export function Sidebar({ role, userName, avatarUrl }: SidebarProps) {
     >
       {/* ── Logo ── */}
       <div className="flex h-14 items-center gap-2.5 overflow-hidden px-3.5" style={{ borderBottom: '1px solid #F1F5F9' }}>
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl"
-          style={{ background: 'linear-gradient(135deg, #2563EB, #0EA5E9)', boxShadow: '0 2px 8px rgba(37,99,235,0.3)' }}>
-          <GraduationCap className="h-4 w-4 text-white" />
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden"
+          style={{ border: '1px solid #E2E8F0' }}>
+          <img src="/logo.png" alt="GeoLearning Logo" className="h-full w-full object-cover" />
         </div>
         {!collapsed && (
           <div className="flex flex-col">

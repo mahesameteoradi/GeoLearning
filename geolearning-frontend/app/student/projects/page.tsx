@@ -15,6 +15,10 @@ export default function StudentProjectsPage() {
   const [fileUrl, setFileUrl] = useState('')
   const [notes, setNotes] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [classmates, setClassmates] = useState<any[]>([])
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
+  const [loadingClassmates, setLoadingClassmates] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -30,19 +34,33 @@ export default function StudentProjectsPage() {
       const { data: pData } = await supabase
         .from('project_assignments')
         .select(`
-          id, title, description, deadline, xp_reward, created_at,
+          id, title, description, deadline, xp_reward, is_group_project, created_at,
+          class_id,
           class:classes(name),
-          submissions:project_submissions(id, file_url, notes, score, xp_earned, graded_at, submitted_at)
+          submissions:project_submissions(id, user_id, file_url, notes, score, xp_earned, graded_at, submitted_at, group_members)
         `)
         .in('class_id', classIds)
         .eq('is_published', true)
         .order('created_at', { ascending: false })
 
       // Filter submissions for this user
-      const formatted = (pData ?? []).map(p => ({
-        ...p,
-        submission: p.submissions.find((s: any) => true) || null // We only expect max 1 submission per student because of RLS/logic, but let's just take first
-      }))
+      const formatted = (pData ?? []).map(p => {
+        const mySub = p.submissions.find((s: any) => {
+          if (s.user_id === user.id) return true;
+          if (s.group_members) {
+            try {
+              const members = typeof s.group_members === 'string' ? JSON.parse(s.group_members) : s.group_members;
+              if (Array.isArray(members) && members.includes(user.id)) return true;
+            } catch (e) {}
+          }
+          return false;
+        });
+
+        return {
+          ...p,
+          submission: mySub || null
+        }
+      })
 
       setProjects(formatted)
     }
@@ -51,7 +69,24 @@ export default function StudentProjectsPage() {
 
   useEffect(() => {
     loadData()
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user))
   }, [])
+
+  const handleSelectProject = async (proj: any) => {
+    setSelectedProject(proj)
+    setSelectedMembers(currentUser ? [currentUser.id] : [])
+    if (proj.is_group_project && proj.class_id) {
+      setLoadingClassmates(true)
+      const { data } = await supabase
+        .from('class_students')
+        .select('student:users(id, name)')
+        .eq('class_id', proj.class_id)
+      
+      const students = data?.map(d => Array.isArray(d.student) ? d.student[0] : d.student).filter(s => s && s.id !== currentUser?.id) || []
+      setClassmates(students)
+      setLoadingClassmates(false)
+    }
+  }
 
   const handleSubmit = async () => {
     if (!fileUrl.trim()) {
@@ -64,10 +99,12 @@ export default function StudentProjectsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       const { error } = await supabase.from('project_submissions').insert({
+        id: crypto.randomUUID(),
         assignment_id: selectedProject.id,
         user_id: user?.id,
         file_url: fileUrl.trim(),
         notes: notes.trim(),
+        group_members: selectedProject.is_group_project ? JSON.stringify(selectedMembers) : null,
       })
       if (error) throw error
 
@@ -75,6 +112,7 @@ export default function StudentProjectsPage() {
       setSelectedProject(null)
       setFileUrl('')
       setNotes('')
+      setSelectedMembers([])
       loadData()
     } catch (err: any) {
       toast.error(`Gagal mengumpulkan: ${err.message}`)
@@ -110,9 +148,16 @@ export default function StudentProjectsPage() {
                   <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wider bg-slate-100 px-2 py-1 rounded-md">
                     {proj.class?.name || 'Unknown Class'}
                   </span>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
-                    <Zap className="h-3 w-3" />
-                    Max {proj.xp_reward} XP
+                  <div className="flex items-center gap-2">
+                    {proj.is_group_project && (
+                      <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-md">
+                        Kelompok
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
+                      <Zap className="h-3 w-3" />
+                      Max {proj.xp_reward} XP
+                    </div>
                   </div>
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 mb-1">{proj.title}</h3>
@@ -152,7 +197,7 @@ export default function StudentProjectsPage() {
                   </div>
                 ) : (
                   <button 
-                    onClick={() => setSelectedProject(proj)}
+                    onClick={() => handleSelectProject(proj)}
                     className="w-full rounded-xl bg-blue-50 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
                   >
                     Kumpulkan Tugas <ArrowRight className="h-4 w-4" />
@@ -198,6 +243,43 @@ export default function StudentProjectsPage() {
                     placeholder="Ada hal yang ingin disampaikan ke guru?"
                   />
                 </div>
+
+                {selectedProject.is_group_project && (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">Anggota Kelompok</label>
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 max-h-40 overflow-y-auto">
+                      {loadingClassmates ? (
+                        <p className="text-xs text-slate-500">Memuat daftar teman sekelas...</p>
+                      ) : classmates.length === 0 ? (
+                        <p className="text-xs text-slate-500">Tidak ada teman sekelas lain.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          <label className="flex items-center gap-2 text-sm text-slate-800">
+                            <input type="checkbox" checked disabled className="rounded text-blue-600" />
+                            <span>{currentUser?.name} (Kamu)</span>
+                          </label>
+                          {classmates.map(c => (
+                            <label key={c.id} className="flex items-center gap-2 text-sm text-slate-800">
+                              <input 
+                                type="checkbox" 
+                                className="rounded text-blue-600 focus:ring-blue-500"
+                                checked={selectedMembers.includes(c.id)}
+                                onChange={e => {
+                                  if (e.target.checked) {
+                                    setSelectedMembers([...selectedMembers, c.id])
+                                  } else {
+                                    setSelectedMembers(selectedMembers.filter(id => id !== c.id))
+                                  }
+                                }}
+                              />
+                              <span>{c.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-6">

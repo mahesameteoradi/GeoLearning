@@ -41,8 +41,8 @@ export default function MaterialReaderPage() {
         .single()
 
       if (data) {
-        // Safe access since it might be an array depending on relation setup, but usually object for belongsTo
-        const modTitle = Array.isArray(data.module) ? data.module[0]?.title : data.module?.title
+        const mod = data.module as any
+        const modTitle = Array.isArray(mod) ? mod[0]?.title : mod?.title
         setMaterial({ ...data, module: { title: modTitle || 'Modul' } } as MaterialItem)
       }
       setLoading(false)

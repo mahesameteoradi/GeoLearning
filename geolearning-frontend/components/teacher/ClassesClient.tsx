@@ -12,6 +12,7 @@ interface ClassItem {
   name: string
   description: string | null
   join_code: string
+  flashcards?: any
   moduleCount: number
   studentCount: number
 }
@@ -55,25 +56,27 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
   return (
     <>
       {/* Stats Row */}
-      <div className="mb-6 grid grid-cols-3 gap-3">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { label: 'Total Kelas', value: classes.length, icon: BookMarked, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' },
-          { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' },
-          { label: 'Total Modul', value: totalModules, icon: BookOpen, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-        ].map(({ label, value, icon: Icon, color, bg, border }) => (
-          <div key={label} className={`rounded-2xl border ${border} bg-white p-4`}>
-            <div className="flex items-start justify-between">
+          { label: 'Total Kelas', value: classes.length, icon: BookMarked, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
+          { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-100', gradient: 'from-cyan-500/5 to-transparent' },
+          { label: 'Total Modul', value: totalModules, icon: BookOpen, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent' },
+        ].map(({ label, value, icon: Icon, color, bg, border, gradient }) => (
+          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1`}>
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+            <div className="relative flex items-start justify-between">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</p>
-                <p className={`mt-1.5 text-2xl font-bold tabular-nums ${color}`}>{value}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+                <p className={`mt-2 text-4xl font-black tabular-nums ${color} drop-shadow-sm`}>{value}</p>
               </div>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${bg}`}>
-                <Icon className={`h-4 w-4 ${color}`} />
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${bg} transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3`}>
+                <Icon className={`h-6 w-6 ${color}`} />
               </div>
             </div>
           </div>
         ))}
       </div>
+
 
       {/* Classes Grid */}
       {classes.length === 0 ? (
@@ -95,20 +98,20 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
             <Link
               key={cls.id}
               href={`/teacher/classes/${cls.id}`}
-              className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-200 hover:border-blue-300 hover:shadow-lg hover:shadow-violet-900/20 cursor-pointer block"
+              className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white p-6 transition-all duration-300 hover:border-indigo-300/50 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 cursor-pointer block"
             >
               {/* Decorative blur */}
-              <div className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full bg-blue-50 blur-2xl transition-all group-hover:bg-blue-100" />
+              <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-50 to-blue-50 blur-3xl transition-all duration-500 group-hover:bg-indigo-100 group-hover:scale-150" />
 
               {/* Header */}
-              <div className="mb-3 flex items-start justify-between">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-sky-500 text-base font-extrabold text-white shadow-lg shadow-blue-600/20">
+              <div className="mb-4 flex items-start justify-between relative z-10">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 text-lg font-black text-white shadow-lg shadow-indigo-600/20">
                   {cls.name.charAt(0).toUpperCase()}
                 </div>
                 <CopyableCode code={cls.join_code} />
               </div>
 
-              <h3 className="mb-1 line-clamp-1 text-base font-bold text-slate-900 group-hover:text-violet-100">
+              <h3 className="mb-1.5 line-clamp-1 text-lg font-bold text-slate-900 relative z-10">
                 {cls.name}
               </h3>
               {cls.description && (
@@ -138,8 +141,8 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
           <button
             onClick={() => setShowModal(true)}
             className={cn(
-              'flex flex-col items-center justify-center gap-2.5 rounded-2xl border border-dashed border-slate-200 bg-white/[0.01] py-10 text-slate-600',
-              'transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600'
+              'flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-500',
+              'transition-all duration-300 hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-600 hover:-translate-y-1'
             )}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-current">

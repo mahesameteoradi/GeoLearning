@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards, Req, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Req, ForbiddenException, NotFoundException } from '@nestjs/common';
 // @ts-ignore
 import { AnalyticsService } from './analytics.service';
 import { SupabaseAuthGuard } from '../auth/auth.guard';
@@ -29,7 +29,9 @@ export class AnalyticsController {
       include: { class: true }
     });
     const hasAccess = enrollments.some(e => e.class.teacher_id === teacherId);
-    if (!hasAccess) throw new ForbiddenException('You do not have access to this student');
+    if (!hasAccess) {
+      throw new ForbiddenException('You do not have access to this student');
+    }
   }
 
   @Get('class/:classId/summary')
@@ -78,6 +80,39 @@ export class AnalyticsController {
   async getInterventions(@Req() req: any, @Param('userId') userId: string) {
     await this.validateStudentAccess(req.user.id, userId);
     return this.analyticsService.getInterventions(userId);
+  }
+
+  @Get('student/:userId/profile')
+  async getStudentProfile(@Req() req: any, @Param('userId') userId: string) {
+    await this.validateStudentAccess(req.user.id, userId);
+    
+    // Use raw query with ::text cast because of Postgres UUID mismatch issues
+    const users: any[] = await this.prisma.$queryRaw`
+      SELECT id, name, level, xp 
+      FROM users 
+      WHERE id::text = ${userId}
+    `;
+    
+    if (!users || users.length === 0) {
+      throw new NotFoundException('Student not found for id: ' + userId);
+    }
+    
+    return {
+      id: users[0].id,
+      name: users[0].name,
+      level: users[0].level,
+      xp: Number(users[0].xp)
+    };
+  }
+
+  @Post('student/:userId/interventions')
+  async createIntervention(
+    @Req() req: any, 
+    @Param('userId') userId: string,
+    @Body() body: { message: string, type?: string }
+  ) {
+    await this.validateStudentAccess(req.user.id, userId);
+    return this.analyticsService.createIntervention(req.user.id, userId, body.message, body.type);
   }
 }
 

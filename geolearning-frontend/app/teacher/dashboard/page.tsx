@@ -2,7 +2,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { ClassCard } from '@/components/teacher/ClassCard'
 import { StudentProgressTable } from '@/components/teacher/StudentProgressTable'
-import { InterventionPanel } from '@/components/teacher/InterventionPanel'
 import { BarChart3, BookMarked, Users, AlertTriangle } from 'lucide-react'
 import type { Metadata } from 'next'
 
@@ -32,7 +31,7 @@ export default async function TeacherDashboardPage() {
   const { data: classes } = await supabase
     .from('classes')
     .select(`
-      id, name, description, join_code,
+      id, name, description, join_code, flashcards,
       modules(id),
       class_students(
         student:users!class_students_student_id_fkey(id, name, email, xp, current_streak, avatar_url)
@@ -59,33 +58,12 @@ export default async function TeacherDashboardPage() {
     .sort((a, b) => b.xp - a.xp)
     .slice(0, 50)
 
-  // Fetch interventions by this teacher
-  const { data: rawInterventions } = await supabase
-    .from('interventions')
-    .select(`
-      id, note, type, resolved, created_at,
-      student:users!interventions_student_id_fkey(id, name)
-    `)
-    .eq('teacher_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  const interventions = (rawInterventions ?? []).map((iv) => {
-    const stu = Array.isArray(iv.student) ? iv.student[0] : iv.student as { id: string; name: string } | null
-    return {
-      ...iv,
-      student_id: stu?.id ?? '',
-      studentName: stu?.name ?? 'Unknown',
-    }
-  })
-
   // Compute stats
   const totalStudents = allStudents?.length ?? 0
   const totalClasses = classes?.length ?? 0
   const avgXp = totalStudents > 0
     ? Math.round((allStudents ?? []).reduce((s, u) => s + u.xp, 0) / totalStudents)
     : 0
-  const openInterventions = interventions.filter((i) => !i.resolved).length
 
   return (
     <div className="min-h-full p-5 lg:p-7">
@@ -120,40 +98,47 @@ export default async function TeacherDashboardPage() {
       )}
 
       {/* ─── Page Header ─────────────────────────────────── */}
-      <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 flex items-center gap-4">
-        <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-full border border-slate-200 bg-slate-50">
-          {profile.avatar_url ? (
-            <img src={profile.avatar_url} alt={profile.name} className="h-full w-full object-cover" />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 font-bold text-slate-800 text-xl text-white">
-              {profile.name.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Dashboard Guru</h1>
-          <p className="mt-0.5 text-sm text-slate-500">
-            Selamat datang, <span className="font-semibold text-slate-700">{profile.name}</span>. Berikut ringkasan kelas Anda.
-          </p>
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        {/* Decorative background elements */}
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+            {profile.avatar_url ? (
+              <img src={profile.avatar_url} alt={profile.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-400 to-indigo-500 font-bold text-white text-3xl">
+                {profile.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Dashboard Guru</h1>
+            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+              Selamat datang kembali, <span className="font-semibold text-white">{profile.name}</span>. Pantau aktivitas kelas, evaluasi hasil belajar, dan lihat perkembangan siswa Anda.
+            </p>
+          </div>
         </div>
       </div>
 
       {/* ─── Overview Stats ───────────────────────────────── */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { label: 'Kelas Saya',   value: totalClasses,             icon: BookMarked,     color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' },
-          { label: 'Siswa',        value: totalStudents,            icon: Users,          color: 'text-cyan-600',   bg: 'bg-cyan-50',   border: 'border-cyan-200'   },
-          { label: 'Rata-rata XP', value: avgXp.toLocaleString(),   icon: BarChart3,      color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200'  },
-          { label: 'Isu Terbuka',  value: openInterventions,        icon: AlertTriangle,  color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
-        ].map(({ label, value, icon: Icon, color, bg, border }) => (
-          <div key={label} className={`rounded-2xl border ${border} bg-white p-4`}>
-            <div className="flex items-start justify-between">
+          { label: 'Kelas Saya',   value: totalClasses,             icon: BookMarked,     color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
+          { label: 'Total Siswa',        value: totalStudents,            icon: Users,          color: 'text-cyan-600',   bg: 'bg-cyan-50',   border: 'border-cyan-100', gradient: 'from-cyan-500/5 to-transparent'   },
+          { label: 'Rata-rata XP', value: avgXp.toLocaleString(),   icon: BarChart3,      color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent'  },
+        ].map(({ label, value, icon: Icon, color, bg, border, gradient }) => (
+          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1`}>
+            <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+            <div className="relative flex items-start justify-between">
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</p>
-                <p className={`mt-1.5 text-2xl font-bold tabular-nums ${color}`}>{value}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">{label}</p>
+                <p className={`mt-2 text-4xl font-black tabular-nums ${color} drop-shadow-sm`}>{value}</p>
               </div>
-              <div className={`flex h-8 w-8 items-center justify-center rounded-xl ${bg}`}>
-                <Icon className={`h-4 w-4 ${color}`} />
+              <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${bg} transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-3`}>
+                <Icon className={`h-6 w-6 ${color}`} />
               </div>
             </div>
           </div>
@@ -191,6 +176,7 @@ export default async function TeacherDashboardPage() {
                   name={cls.name}
                   description={cls.description}
                   joinCode={cls.join_code}
+                  flashcards={cls.flashcards}
                   studentCount={studentCount}
                   moduleCount={(cls.modules as { id: string }[]).length}
                   avgXp={classAvgXp}
@@ -202,26 +188,11 @@ export default async function TeacherDashboardPage() {
       </section>
 
       {/* ─── Bottom Grid ─────────────────────────────────── */}
-      <div className="grid gap-5 xl:grid-cols-3">
-        {/* Student Progress Table */}
-        <div className="xl:col-span-2">
-          <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
-            📊 Progres Siswa
-          </h2>
-          <StudentProgressTable students={allStudents ?? []} />
-        </div>
-
-        {/* Interventions */}
-        <div>
-          <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
-            ⚠️ Intervensi
-          </h2>
-          <InterventionPanel
-            interventions={interventions}
-            students={(allStudents ?? []).map((s) => ({ id: s.id, name: s.name }))}
-            teacherId={user.id}
-          />
-        </div>
+      <div className="mt-5">
+        <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
+          📊 Progres Siswa
+        </h2>
+        <StudentProgressTable students={allStudents ?? []} />
       </div>
     </div>
   )

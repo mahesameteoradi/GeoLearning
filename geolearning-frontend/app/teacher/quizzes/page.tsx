@@ -5,12 +5,13 @@ import { createClient } from '@/lib/supabase/client'
 import {
   ClipboardList, Plus, Trash2, Eye, EyeOff, Users,
   BookOpen, Clock, Star, ChevronRight, Loader2,
-  FileText, Award, BarChart3, X, Edit3,
+  FileText, Award, BarChart3, X, Edit3, Activity,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
 import { QuizEditorModal } from '@/components/teacher/QuizEditorModal'
 import { QuizResultsModal } from '@/components/teacher/QuizResultsModal'
+import { QuizLiveMonitorModal } from '@/components/teacher/QuizLiveMonitorModal'
 import type { Metadata } from 'next'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -55,6 +56,7 @@ function QuizCard({
   onDelete,
   onTogglePublish,
   onViewResults,
+  onLiveMonitor,
   isVerified,
 }: {
   quiz: QuizItem
@@ -62,6 +64,7 @@ function QuizCard({
   onDelete: (id: string) => void
   onTogglePublish: (id: string, current: boolean) => void
   onViewResults: (quiz: QuizItem) => void
+  onLiveMonitor: (quiz: QuizItem) => void
   isVerified: boolean
 }) {
   const [deleting, setDeleting] = useState(false)
@@ -81,7 +84,7 @@ function QuizCard({
   }
 
   return (
-    <div className="group relative rounded-2xl border border-slate-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-lg hover:shadow-violet-900/10">
+    <div className="group relative rounded-3xl border border-slate-200/60 bg-white p-6 transition-all duration-300 hover:border-indigo-300/50 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1">
       {/* Header */}
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -161,12 +164,22 @@ function QuizCard({
             </span>
           )}
         </div>
-        <button
-          onClick={() => onViewResults(quiz)}
-          className="flex items-center gap-1 rounded-lg bg-violet-50 px-2.5 py-1.5 text-[11px] font-semibold text-blue-600 transition-colors hover:bg-blue-50"
-        >
-          Hasil <ChevronRight className="h-3 w-3" />
-        </button>
+        <div className="flex items-center gap-2">
+          {quiz.is_published && (
+            <button
+              onClick={() => onLiveMonitor(quiz)}
+              className="flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 text-[11px] font-bold text-emerald-600 transition-colors hover:bg-emerald-100"
+            >
+              <Activity className="h-3 w-3 animate-pulse" /> Live
+            </button>
+          )}
+          <button
+            onClick={() => onViewResults(quiz)}
+            className="flex items-center gap-1 rounded-lg bg-violet-50 px-2.5 py-1.5 text-[11px] font-semibold text-blue-600 transition-colors hover:bg-blue-50"
+          >
+            Hasil <ChevronRight className="h-3 w-3" />
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -182,6 +195,7 @@ export default function TeacherQuizzesPage() {
   const [showEditor, setShowEditor] = useState(false)
   const [editingQuiz, setEditingQuiz] = useState<QuizItem | null>(null)
   const [viewingResults, setViewingResults] = useState<QuizItem | null>(null)
+  const [liveMonitorQuiz, setLiveMonitorQuiz] = useState<QuizItem | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [filterClassId, setFilterClassId] = useState('ALL')
   const [filterStatus, setFilterStatus] = useState('ALL')
@@ -294,37 +308,50 @@ export default function TeacherQuizzesPage() {
       )}
 
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900">
-            <ClipboardList className="h-5 w-5 text-blue-600" />
-            Manajemen Kuis
-          </h1>
-          <p className="mt-0.5 text-sm text-slate-500">
-            Buat, kelola, dan pantau kuis gamifikasi untuk siswa
-          </p>
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <div className="h-16 w-16 flex-shrink-0 flex items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+              <ClipboardList className="h-8 w-8 text-white drop-shadow-md" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
+                Manajemen Kuis
+              </h1>
+              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+                Buat, kelola, dan pantau kuis gamifikasi untuk mengevaluasi pemahaman siswa secara *real-time*.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => { setEditingQuiz(null); setShowEditor(true) }}
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50 hover:from-blue-400 hover:to-indigo-500"
+          >
+            <Plus className="h-5 w-5" />
+            Buat Kuis
+          </button>
         </div>
-        <button
-          onClick={() => { setEditingQuiz(null); setShowEditor(true) }}
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500"
-        >
-          <Plus className="h-4 w-4" />
-          Buat Kuis
-        </button>
       </div>
 
       {/* Stats */}
       {!loading && quizzes.length > 0 && (
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { label: 'Total Kuis (Tersaring)', value: filteredQuizzes.length, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' },
-            { label: 'Published', value: published.length, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
-            { label: 'Draft', value: drafts.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-            { label: 'Total Attempt', value: filteredQuizzes.reduce((s, q) => s + q.attempt_count, 0), color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' },
-          ].map(({ label, value, color, bg, border }) => (
-            <div key={label} className={`rounded-2xl border ${border} ${bg} p-4`}>
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</p>
-              <p className={`mt-1.5 text-2xl font-bold tabular-nums ${color}`}>{value}</p>
+            { label: 'Total Kuis (Tersaring)', value: filteredQuizzes.length, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
+            { label: 'Published', value: published.length, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', gradient: 'from-emerald-500/5 to-transparent' },
+            { label: 'Draft', value: drafts.length, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent' },
+            { label: 'Total Attempt', value: filteredQuizzes.reduce((s, q) => s + q.attempt_count, 0), color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-100', gradient: 'from-cyan-500/5 to-transparent' },
+          ].map(({ label, value, color, bg, border, gradient }) => (
+            <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1`}>
+              <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+              <div className="relative">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+                <p className={`mt-2 text-3xl font-black tabular-nums ${color} drop-shadow-sm`}>{value}</p>
+              </div>
             </div>
           ))}
         </div>
@@ -406,6 +433,7 @@ export default function TeacherQuizzesPage() {
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
                 onViewResults={setViewingResults}
+                onLiveMonitor={setLiveMonitorQuiz}
                 isVerified={isVerified}
               />
             ))}
@@ -428,6 +456,7 @@ export default function TeacherQuizzesPage() {
                 onDelete={handleDelete}
                 onTogglePublish={handleTogglePublish}
                 onViewResults={setViewingResults}
+                onLiveMonitor={setLiveMonitorQuiz}
                 isVerified={isVerified}
               />
             ))}
@@ -449,6 +478,13 @@ export default function TeacherQuizzesPage() {
         <QuizResultsModal
           quiz={viewingResults}
           onClose={() => setViewingResults(null)}
+        />
+      )}
+
+      {liveMonitorQuiz && (
+        <QuizLiveMonitorModal
+          quiz={liveMonitorQuiz}
+          onClose={() => setLiveMonitorQuiz(null)}
         />
       )}
     </div>

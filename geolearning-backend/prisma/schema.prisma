@@ -21,11 +21,8 @@ model User {
   updated_at             DateTime            @updatedAt
   nis_nip                String?
   school_class           String?
-  chat_messages          chat_messages[]
   enrollments            ClassStudent[]      @relation("StudentEnrollments")
   taught_classes         Class[]             @relation("TeacherClasses")
-  forum_posts            ForumPost[]
-  forum_replies          ForumReply[]
   interventions_received Intervention[]      @relation("StudentInterventions")
   interventions_given    Intervention[]      @relation("TeacherInterventions")
   notifications          Notification[]
@@ -53,10 +50,10 @@ model Class {
   updated_at         DateTime            @updatedAt
   enrollments        ClassStudent[]
   teacher            User                @relation("TeacherClasses", fields: [teacher_id], references: [id], onDelete: Cascade)
-  forum_posts        ForumPost[]
   modules            Module[]
   quizzes            Quiz[]
   projectAssignments ProjectAssignment[]
+  flashcards         Json?
 
   @@map("classes")
 }
@@ -65,6 +62,7 @@ model ClassStudent {
   id         String   @id @default(dbgenerated("gen_random_uuid()"))
   class_id   String
   student_id String
+  no_absen   Int?
   joined_at  DateTime @default(now())
   class      Class    @relation(fields: [class_id], references: [id], onDelete: Cascade)
   student    User     @relation("StudentEnrollments", fields: [student_id], references: [id], onDelete: Cascade)
@@ -214,6 +212,7 @@ model ProjectAssignment {
   deadline     DateTime?
   xp_reward    Int                 @default(100)
   is_published Boolean             @default(false)
+  is_group_project Boolean         @default(false)
   created_at   DateTime            @default(now())
   updated_at   DateTime            @updatedAt
   class        Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
@@ -232,40 +231,14 @@ model ProjectSubmission {
   xp_earned     Int               @default(0)
   graded_at     DateTime?
   submitted_at  DateTime          @default(now())
+  group_members Json?
   assignment    ProjectAssignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
   user          User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("project_submissions")
 }
 
-model ForumPost {
-  id         String       @id @default(dbgenerated("(gen_random_uuid())::text"))
-  class_id   String?
-  user_id    String
-  title      String
-  body       String
-  is_pinned  Boolean      @default(false)
-  created_at DateTime     @default(now())
-  updated_at DateTime     @default(now()) @updatedAt
-  class      Class?       @relation(fields: [class_id], references: [id], onDelete: Cascade)
-  user       User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  replies    ForumReply[]
 
-  @@map("forum_posts")
-}
-
-model ForumReply {
-  id         String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  post_id    String
-  user_id    String
-  body       String
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now()) @updatedAt
-  post       ForumPost @relation(fields: [post_id], references: [id], onDelete: Cascade)
-  user       User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@map("forum_replies")
-}
 
 model Intervention {
   id         String           @id @default(uuid())
@@ -295,20 +268,7 @@ model Notification {
   @@map("notifications")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model chat_messages {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  room_id             String
-  user_id             String
-  body                String
-  reply_to_id         String?         @db.Uuid
-  created_at          DateTime        @default(now()) @db.Timestamptz(6)
-  chat_messages       chat_messages?  @relation("chat_messagesTochat_messages", fields: [reply_to_id], references: [id], onUpdate: NoAction)
-  other_chat_messages chat_messages[] @relation("chat_messagesTochat_messages")
-  users               User            @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@index([room_id, created_at(sort: Desc)], map: "idx_chat_messages_room_id")
-}
 
 enum Role {
   STUDENT
@@ -370,7 +330,6 @@ enum NotificationType {
   REMINDER
   INTERVENTION
   SYSTEM
-  FORUM
 }
 
 enum InterventionType {

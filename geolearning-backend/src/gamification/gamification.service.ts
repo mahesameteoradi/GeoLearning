@@ -231,7 +231,25 @@ export class GamificationService {
 
     if (!submission) throw new NotFoundException('Project submission not found');
 
-    const xpEarned = Math.round(submission.assignment.xp_reward * (score / 100));
+    const totalXpEarned = Math.round(submission.assignment.xp_reward * (score / 100));
+    
+    // For group projects, divide XP by the number of members
+    let xpEarned = totalXpEarned;
+    let groupMembers: string[] = [];
+    if (submission.assignment.is_group_project && submission.group_members) {
+      try {
+        const members = Array.isArray(submission.group_members) 
+          ? submission.group_members 
+          : JSON.parse(submission.group_members as string);
+        
+        if (Array.isArray(members) && members.length > 0) {
+          groupMembers = members;
+          xpEarned = Math.round(totalXpEarned / members.length);
+        }
+      } catch (e) {
+        this.logger.error('Failed to parse group_members', e);
+      }
+    }
 
     await this.prisma.projectSubmission.update({
       where: { id: submissionId },
@@ -244,7 +262,17 @@ export class GamificationService {
 
     let xpResult: any = null;
     if (xpEarned > 0) {
-      xpResult = await this.awardXP(submission.user_id, xpEarned);
+      if (groupMembers.length > 0) {
+        // Award XP to all group members
+        const results = await Promise.all(
+          groupMembers.map(memberId => this.awardXP(memberId, xpEarned, { source: 'project', referenceId: submissionId }))
+        );
+        // We just return the submitter's result or the first one for backwards compatibility
+        xpResult = results.find(r => r.userId === submission.user_id) || results[0];
+      } else {
+        // Single user project
+        xpResult = await this.awardXP(submission.user_id, xpEarned, { source: 'project', referenceId: submissionId });
+      }
     }
 
     return {

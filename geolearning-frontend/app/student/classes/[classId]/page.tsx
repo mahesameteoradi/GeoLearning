@@ -9,7 +9,6 @@ import {
   FileImage, Download, ExternalLink, BookOpen, GraduationCap,
   Hash, Loader2, Users, MessageSquare, Trophy
 } from 'lucide-react'
-import { ChatPanel } from '@/components/forum/ChatPanel'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { InteractiveMapViewer } from '@/components/ui/InteractiveMapViewer'
 import { ExpeditionMap } from '@/components/student/ExpeditionMap'
@@ -186,7 +185,7 @@ export default function StudentClassDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notEnrolled, setNotEnrolled] = useState(false)
   const [allMaterials, setAllMaterials] = useState<MaterialItem[]>([])
-  const [activeTab, setActiveTab] = useState<'materi' | 'forum' | 'peringkat'>('materi')
+  const [activeTab, setActiveTab] = useState<'materi' | 'peringkat'>('materi')
   const [userId, setUserId] = useState<string>('')
   const [viewingMap, setViewingMap] = useState<MaterialItem | null>(null)
   const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
@@ -383,18 +382,7 @@ export default function StudentClassDetailPage() {
           <BookOpen className="h-4 w-4" />
           Materi
         </button>
-        <button
-          onClick={() => setActiveTab('forum')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all',
-            activeTab === 'forum'
-              ? 'bg-white text-slate-800 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
-          )}
-        >
-          <MessageSquare className="h-4 w-4" />
-          Forum Kelas
-        </button>
+
         <button
           onClick={() => setActiveTab('peringkat')}
           className={cn(
@@ -436,11 +424,6 @@ export default function StudentClassDetailPage() {
         )
       )}
 
-      {activeTab === 'forum' && (
-        <div className="h-[600px] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <ChatPanel roomId={classId} roomName={cls.name} userId={userId} />
-        </div>
-      )}
 
       {activeTab === 'peringkat' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

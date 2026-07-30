@@ -20,32 +20,32 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
   const sorted = [...students].sort((a, b) => b.xp - a.xp)
 
   return (
-    <div className={cn('overflow-hidden rounded-2xl border border-slate-200', className)}>
+    <div className={cn('overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40', className)}>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50">
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">
+            <tr className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm">
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Rank
               </th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Student
               </th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Level
               </th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500 min-w-[160px]">
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 min-w-[160px]">
                 XP Progress
               </th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Streak
               </th>
-              <th className="px-4 py-3 text-left text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Total XP
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody className="divide-y divide-slate-100">
             {sorted.map((student, idx) => {
               const level = calculateLevel(student.xp)
               const progress = levelProgressPercent(student.xp)
@@ -53,12 +53,12 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
               return (
                 <tr
                   key={student.id}
-                  className="transition-colors hover:bg-slate-50"
+                  className="group transition-all duration-300 hover:bg-indigo-50/40"
                 >
-                  <td className="px-4 py-3 text-center text-sm font-bold text-slate-500">
+                  <td className="px-5 py-4 text-center text-sm font-bold text-slate-500 transition-colors group-hover:text-indigo-600">
                     {idx + 1}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800">
                         {student.name.charAt(0).toUpperCase()}
@@ -69,7 +69,7 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-4">
                     <span
                       className={cn(
                         'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold',
@@ -85,9 +85,9 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                       Lv. {level}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-32 overflow-hidden rounded-full bg-slate-100">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-2.5 w-32 overflow-hidden rounded-full bg-slate-100 shadow-inner">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500"
                           style={{ width: `${progress}%` }}
@@ -96,8 +96,8 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                       <span className="text-[10px] text-slate-500">{progress}%</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-1.5">
                       <Flame
                         className={cn(
                           'h-3.5 w-3.5',
@@ -114,7 +114,7 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold text-amber-600">
+                  <td className="px-5 py-4 text-sm font-bold text-amber-600">
                     {student.xp.toLocaleString()}
                   </td>
                 </tr>

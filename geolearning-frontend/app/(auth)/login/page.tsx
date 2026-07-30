@@ -65,14 +65,12 @@ export default function LoginPage() {
         {/* Header */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 relative inline-flex">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg"
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg bg-white overflow-hidden border border-slate-200"
               style={{
-                background: 'linear-gradient(135deg, #2563EB, #0EA5E9)',
-                boxShadow: '0 8px 24px rgba(37,99,235,0.3)',
+                boxShadow: '0 8px 24px rgba(37,99,235,0.1)',
               }}>
-              <GraduationCap className="h-8 w-8 text-white" />
+              <img src="/logo.png" alt="GeoLearning Logo" className="h-full w-full object-cover" />
             </div>
-            <span className="absolute -top-1 -right-1 text-lg">✨</span>
           </div>
 
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">

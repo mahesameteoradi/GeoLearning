@@ -301,6 +301,7 @@ export function DashboardClient() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [availableClasses, setAvailableClasses] = useState<AvailableClassItem[]>([])
   const [availableLoading, setAvailableLoading] = useState(true)
+  const [enrolledFlashcards, setEnrolledFlashcards] = useState<{question:string, answer:string}[]>([])
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
   const [interventions, setInterventions] = useState<{id: string, note: string, type: string, teacher: string}[]>([])
   const [loading, setLoading] = useState(true)
@@ -354,10 +355,13 @@ export function DashboardClient() {
             .order('xp', { ascending: false })
             .limit(5),
 
-          // Fetch enrolled class IDs to exclude from available list
+          // Fetch enrolled class IDs to exclude from available list and get their flashcards
           supabase
             .from('class_students')
-            .select('class_id')
+            .select(`
+              class_id,
+              class:classes(flashcards)
+            `)
             .eq('student_id', user.id),
 
           // Fetch active interventions for this student
@@ -431,6 +435,17 @@ export function DashboardClient() {
 
         // Fetch available classes (not yet enrolled)
         const enrolledIds = (enrolledRes.data ?? []).map((r) => r.class_id)
+        
+        // Extract flashcards from enrolled classes
+        const customCards: {question:string, answer:string}[] = []
+        for (const item of (enrolledRes.data ?? [])) {
+          const cls = Array.isArray(item.class) ? item.class[0] : item.class
+          if (cls && Array.isArray(cls.flashcards)) {
+            customCards.push(...cls.flashcards)
+          }
+        }
+        setEnrolledFlashcards(customCards)
+
         const allClassesRes = await supabase
           .from('classes')
           .select(`
@@ -615,7 +630,7 @@ export function DashboardClient() {
         {/* Left — flashcards + badges + activity */}
         <div className="space-y-5 xl:col-span-2">
           <section>
-            <FlashcardWidget userId={profile.id} />
+            <FlashcardWidget userId={profile.id} customFlashcards={enrolledFlashcards} />
           </section>
 
           <section>

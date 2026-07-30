@@ -28,7 +28,7 @@ export default function ProjectSubmissionsPage() {
     // Fetch project info
     const { data: pData, error: pErr } = await supabase
       .from('project_assignments')
-      .select('id, title, xp_reward, class:classes(name)')
+      .select('id, title, xp_reward, class_id, is_group_project, class:classes(name)')
       .eq('id', projectId)
       .single()
 
@@ -42,11 +42,39 @@ export default function ProjectSubmissionsPage() {
     // Fetch submissions
     const { data: sData } = await supabase
       .from('project_submissions')
-      .select('id, file_url, notes, score, xp_earned, submitted_at, user:users(name, avatar_url)')
+      .select('id, file_url, notes, score, xp_earned, submitted_at, group_members, user:users(name, avatar_url)')
       .eq('assignment_id', projectId)
       .order('submitted_at', { ascending: false })
 
-    setSubmissions(sData ?? [])
+    let submissionsData = sData ?? []
+
+    if (pData.is_group_project) {
+      const { data: classStudents } = await supabase
+        .from('class_students')
+        .select('student:users(id, name, avatar_url)')
+        .eq('class_id', pData.class_id)
+      
+      const classmatesMap = new Map()
+      classStudents?.forEach((cs: any) => {
+         const st = Array.isArray(cs.student) ? cs.student[0] : cs.student
+         if (st) classmatesMap.set(st.id, st)
+      })
+
+      submissionsData = submissionsData.map((sub: any) => {
+        let members: any[] = []
+        if (sub.group_members) {
+          try {
+            const memberIds = typeof sub.group_members === 'string' ? JSON.parse(sub.group_members) : sub.group_members
+            if (Array.isArray(memberIds)) {
+              members = memberIds.map(id => classmatesMap.get(id) || { name: 'Unknown' })
+            }
+          } catch (e) {}
+        }
+        return { ...sub, members }
+      })
+    }
+
+    setSubmissions(submissionsData)
     setLoading(false)
   }
 
@@ -110,31 +138,39 @@ export default function ProjectSubmissionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="mb-6 flex items-center gap-4">
-        <button 
-          onClick={() => router.push('/teacher/projects')}
-          className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 hover:bg-slate-50 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
-        <div>
-          <h1 className="text-xl font-extrabold text-slate-800">{project.title}</h1>
-          <p className="text-xs text-slate-500">{project.class?.name} • Max {project.xp_reward} XP</p>
+    <div className="min-h-screen p-5 lg:p-7">
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => router.push('/teacher/projects')}
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-110 text-white"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{project.title}</h1>
+              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">{project.class?.name} • Max {project.xp_reward} XP</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-          <h2 className="text-sm font-bold text-slate-700">Daftar Pengumpulan ({submissions.length})</h2>
+      <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+        <div className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm px-6 py-5">
+          <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Daftar Pengumpulan ({submissions.length})</h2>
         </div>
         
         {submissions.length === 0 ? (
-          <div className="p-10 text-center text-slate-500 text-sm">Belum ada siswa yang mengumpulkan tugas ini.</div>
+          <div className="p-16 text-center text-slate-500 text-sm">Belum ada siswa yang mengumpulkan tugas ini.</div>
         ) : (
           <div className="divide-y divide-slate-100">
             {submissions.map((sub, i) => (
-              <div key={sub.id} className="flex items-center justify-between p-6 hover:bg-slate-50 transition-colors">
+              <div key={sub.id} className="flex items-center justify-between p-6 transition-colors hover:bg-indigo-50/30 group">
                 <div className="flex items-center gap-4">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600 overflow-hidden">
                     {sub.user?.avatar_url ? (
@@ -144,7 +180,16 @@ export default function ProjectSubmissionsPage() {
                     )}
                   </div>
                   <div>
-                    <h4 className="text-sm font-bold text-slate-800">{sub.user?.name || 'Siswa'}</h4>
+                    {project.is_group_project && sub.members?.length > 0 ? (
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-800 mb-0.5">Kelompok ({(sub.members as any[]).length} orang)</h4>
+                        <p className="text-[10px] text-slate-500 mb-1 leading-tight">
+                          {(sub.members as any[]).map(m => m.name).join(', ')}
+                        </p>
+                      </div>
+                    ) : (
+                      <h4 className="text-sm font-bold text-slate-800">{sub.user?.name || 'Siswa'}</h4>
+                    )}
                     <p className="text-[10px] text-slate-500">
                       Dikumpulkan: {new Date(sub.submitted_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                     </p>

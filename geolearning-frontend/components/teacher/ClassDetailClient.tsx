@@ -14,16 +14,14 @@ import toast from 'react-hot-toast'
 import { InteractiveMapEditorModal } from '@/components/teacher/InteractiveMapEditorModal'
 import { InteractiveMapViewer } from '@/components/ui/InteractiveMapViewer'
 import { cn } from '@/lib/utils/cn'
-import { QuizEditorModal } from '@/components/teacher/QuizEditorModal'
-import { QuizResultsModal } from '@/components/teacher/QuizResultsModal'
-import { ChatPanel } from '@/components/forum/ChatPanel'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
-import { MessageSquare, Trophy, Map as MapIcon, MapPin } from 'lucide-react'
+import { ClassStudentsPanel } from '@/components/teacher/ClassStudentsPanel'
+import { Trophy, Map as MapIcon, MapPin } from 'lucide-react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 type FileCategory = 'pdf' | 'video' | 'ppt' | 'doc' | 'link' | 'image'
-type PageTab = 'materi' | 'kuis' | 'forum' | 'peringkat'
+type PageTab = 'materi' | 'kuis' | 'peringkat' | 'siswa'
 
 interface MaterialItem {
   id: string
@@ -104,29 +102,29 @@ function MaterialCard({ mat, onDelete, onViewMap }: { mat: MaterialItem; onDelet
   const meta = CATEGORY_META[cat]
   const Icon = meta.icon
   return (
-    <div className={cn('group flex items-start gap-4 rounded-2xl border p-4 transition-all bg-white hover:shadow-lg', meta.border)}>
-      <div className={cn('flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl', meta.bg, meta.border, 'border')}>
+    <div className={cn('group flex items-start gap-4 rounded-3xl border border-slate-200/80 p-5 transition-all duration-300 bg-white hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 hover:border-indigo-300/50')}>
+      <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border', meta.bg, meta.border)}>
         <Icon className={cn('h-5 w-5', meta.color)} />
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <h3 className="text-sm font-bold text-slate-900 truncate">{mat.title}</h3>
-          <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', meta.bg, meta.color)}>{meta.label}</span>
+        <div className="flex items-center gap-2 mb-1.5">
+          <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{mat.title}</h3>
+          <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm', meta.bg, meta.color)}>{meta.label}</span>
         </div>
-        {mat.content_text && <p className="text-xs text-slate-500 line-clamp-2">{mat.content_text}</p>}
+        {mat.content_text && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{mat.content_text}</p>}
       </div>
       <div className="flex flex-shrink-0 items-center gap-2 opacity-0 transition-all group-hover:opacity-100">
         {mat.type === 'INTERACTIVE_MAP' ? (
-          <button onClick={() => onViewMap(mat)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors">
-            <Eye className="h-3.5 w-3.5" />
+          <button onClick={() => onViewMap(mat)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm">
+            <Eye className="h-4 w-4" />
           </button>
         ) : mat.content_url && (
-          <a href={mat.content_url} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-500 hover:text-white transition-colors">
-            {cat === 'link' ? <ExternalLink className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+          <a href={mat.content_url} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm">
+            {cat === 'link' ? <ExternalLink className="h-4 w-4" /> : <Download className="h-4 w-4" />}
           </a>
         )}
-        <button onClick={() => onDelete(mat.id, mat.content_url)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-50 transition-colors">
-          <Trash2 className="h-3.5 w-3.5" />
+        <button onClick={() => onDelete(mat.id, mat.content_url)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm">
+          <Trash2 className="h-4 w-4" />
         </button>
       </div>
     </div>
@@ -270,141 +268,6 @@ function UploadMaterialModal({ classId, moduleId, onClose, onSuccess }: {
   )
 }
 
-// ─── Quiz Panel (tab) ─────────────────────────────────────────────────────────
-
-function QuizPanel({ classId, className }: { classId: string; className: string }) {
-  const supabase = createClient()
-  const [quizzes, setQuizzes] = useState<QuizItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showEditor, setShowEditor] = useState(false)
-  const [editingQuiz, setEditingQuiz] = useState<QuizItem | null>(null)
-  const [viewingResults, setViewingResults] = useState<QuizItem | null>(null)
-
-  const classOption = [{ id: classId, name: className }]
-
-  const loadQuizzes = useCallback(async () => {
-    const { data: rawQuizzes } = await supabase
-      .from('quizzes')
-      .select('id, title, class_id, module_id, time_limit, xp_reward, is_published, created_at, questions(id), quiz_attempts(score, user_id)')
-      .eq('class_id', classId)
-      .order('created_at', { ascending: false })
-
-    const mapped: QuizItem[] = (rawQuizzes ?? []).map(q => {
-      const attempts = (q.quiz_attempts as { score: number; user_id: string }[]) ?? []
-      const completed = attempts.filter(a => a.score >= 0)
-      const avgScore = completed.length > 0 ? completed.reduce((s, a) => s + a.score, 0) / completed.length : null
-      return {
-        id: q.id, title: q.title, class_id: q.class_id, module_id: q.module_id,
-        time_limit: q.time_limit, xp_reward: q.xp_reward, is_published: q.is_published,
-        created_at: q.created_at, question_count: (q.questions as { id: string }[]).length,
-        attempt_count: attempts.length, avg_score: avgScore,
-      }
-    })
-    setQuizzes(mapped)
-    setLoading(false)
-  }, [classId, supabase])
-
-  useEffect(() => { loadQuizzes() }, [loadQuizzes])
-
-  async function handleDelete(id: string) {
-    if (!confirm('Hapus kuis ini beserta semua data pengerjaannya?')) return
-    const { error } = await supabase.from('quizzes').delete().eq('id', id)
-    if (error) { toast.error('Gagal menghapus kuis'); return }
-    toast.success('Kuis dihapus')
-    setQuizzes(prev => prev.filter(q => q.id !== id))
-  }
-
-  async function handleTogglePublish(id: string, current: boolean) {
-    const { error } = await supabase.from('quizzes').update({ is_published: !current, updated_at: new Date().toISOString() }).eq('id', id)
-    if (error) { toast.error('Gagal mengubah status'); return }
-    toast.success(!current ? '✅ Kuis dipublikasikan! Siswa sudah bisa mengerjakan.' : 'Kuis disimpan sebagai draft')
-    setQuizzes(prev => prev.map(q => q.id === id ? { ...q, is_published: !current } : q))
-  }
-
-  if (loading) return <div className="py-12 text-center text-slate-600"><Loader2 className="mx-auto h-6 w-6 animate-spin" /></div>
-
-  return (
-    <div>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-xs text-slate-500">{quizzes.length} kuis dalam kelas ini</p>
-        <button onClick={() => { setEditingQuiz(null); setShowEditor(true) }}
-          className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-500">
-          <Plus className="h-4 w-4" />Buat Kuis
-        </button>
-      </div>
-
-      {quizzes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 py-20 text-center">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50">
-            <ClipboardList className="h-7 w-7 text-blue-600" />
-          </div>
-          <p className="text-sm font-semibold text-slate-700">Belum ada kuis</p>
-          <p className="mt-1 text-xs text-slate-600">Buat kuis gamifikasi untuk menguji pemahaman siswa</p>
-          <button onClick={() => { setEditingQuiz(null); setShowEditor(true) }}
-            className="mt-4 flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-500">
-            <Plus className="h-4 w-4" />Buat Kuis Pertama
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {quizzes.map(quiz => (
-            <div key={quiz.id} className="group rounded-2xl border border-slate-200 bg-white p-4 transition-all hover:border-blue-200">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest border',
-                      quiz.is_published ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200')}>
-                      {quiz.is_published ? '● Published' : '○ Draft'}
-                    </span>
-                  </div>
-                  <h3 className="text-sm font-bold text-slate-800">{quiz.title}</h3>
-                  <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-slate-500">
-                    <span className="flex items-center gap-1"><ClipboardList className="h-3 w-3" />{quiz.question_count} soal</span>
-                    {quiz.time_limit && <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatTime(quiz.time_limit)}</span>}
-                    <span className="flex items-center gap-1 text-amber-600"><Star className="h-3 w-3" />+{quiz.xp_reward} XP</span>
-                    <span className="flex items-center gap-1"><Users className="h-3 w-3" />{quiz.attempt_count} mengerjakan</span>
-                    {quiz.avg_score !== null && <span className="flex items-center gap-1"><BarChart3 className="h-3 w-3" />Avg {quiz.avg_score.toFixed(0)}%</span>}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  <button onClick={() => setViewingResults(quiz)} title="Lihat hasil"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-cyan-50 hover:text-cyan-600 transition-colors">
-                    <BarChart3 className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => { setEditingQuiz(quiz); setShowEditor(true) }} title="Edit kuis"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                    <Edit3 className="h-3.5 w-3.5" />
-                  </button>
-                  <button onClick={() => handleTogglePublish(quiz.id, quiz.is_published)} title={quiz.is_published ? 'Sembunyikan' : 'Publikasikan'}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
-                    {quiz.is_published ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                  </button>
-                  <button onClick={() => handleDelete(quiz.id)} title="Hapus"
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors">
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {showEditor && (
-        <QuizEditorModal
-          classes={classOption}
-          quiz={editingQuiz}
-          onClose={() => { setShowEditor(false); setEditingQuiz(null) }}
-          onSaved={loadQuizzes}
-        />
-      )}
-      {viewingResults && (
-        <QuizResultsModal quiz={viewingResults} onClose={() => setViewingResults(null)} />
-      )}
-    </div>
-  )
-}
-
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherId: string }) {
@@ -446,9 +309,8 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   }
 
   const TABS = [
+    { key: 'siswa'  as PageTab, label: 'Siswa',  icon: Users },
     { key: 'materi' as PageTab, label: 'Materi', icon: BookOpen, count: materials.length },
-    { key: 'kuis'   as PageTab, label: 'Kuis',   icon: ClipboardList },
-    { key: 'forum'  as PageTab, label: 'Forum',  icon: MessageSquare },
     { key: 'peringkat' as PageTab, label: 'Peringkat', icon: Trophy },
   ]
 
@@ -460,37 +322,26 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
       </Link>
 
       {/* Class Header */}
-      <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500 text-2xl font-extrabold text-white shadow-lg shadow-blue-600/20">
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-2xl font-black text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3 drop-shadow-md">
               {cls.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">{cls.name}</h1>
-              {cls.description && <p className="mt-0.5 text-sm text-slate-500">{cls.description}</p>}
-              <div className="mt-2 flex items-center gap-3">
-                <span className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 font-mono text-[11px] text-slate-500">
-                  <Hash className="h-3 w-3" />{cls.join_code}
+              <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{cls.name}</h1>
+              {cls.description && <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">{cls.description}</p>}
+              <div className="mt-3 flex items-center gap-3">
+                <span className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1 font-mono text-xs font-bold tracking-wider text-white shadow-inner backdrop-blur-sm">
+                  <Hash className="h-3.5 w-3.5" />{cls.join_code}
                 </span>
               </div>
             </div>
           </div>
-          {/* Tab-aware action button */}
-          {activeTab === 'materi' && (
-            <div className="flex gap-2">
-              <button onClick={handleOpenModal} disabled={initializingModule}
-                className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-60">
-                {initializingModule ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Tambah Materi
-              </button>
-              <button onClick={handleOpenMapEditor} disabled={initializingModule}
-                className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 disabled:opacity-60">
-                {initializingModule ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPin className="h-4 w-4" />}
-                Buat Peta Interaktif
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -511,20 +362,37 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
         ))}
       </div>
 
-      {/* Tab Content */}
       {activeTab === 'materi' && (
-        <>
+        <div className="space-y-6">
+          {/* Interactive Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button onClick={handleOpenModal} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-blue-300 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <UploadCloud className="h-7 w-7" />}
+              </div>
+              <div>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-blue-600 transition-colors">Unggah File / Link</h3>
+                <p className="text-sm text-slate-500 mt-1">PDF, Video, Dokumen, atau Tautan Luar</p>
+              </div>
+            </button>
+            <button onClick={handleOpenMapEditor} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <MapPin className="h-7 w-7" />}
+              </div>
+              <div>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">Buat Peta Interaktif</h3>
+                <p className="text-sm text-slate-500 mt-1">Editor peta visual dengan penanda kustom</p>
+              </div>
+            </button>
+          </div>
+
           {materials.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-28 text-center">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-20 text-center">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-300 bg-blue-50">
                 <BookOpen className="h-7 w-7 text-blue-600" />
               </div>
-              <p className="text-sm font-semibold text-slate-700">Belum ada materi</p>
-              <p className="mt-1.5 max-w-xs text-xs text-slate-600">Klik tombol &quot;Tambah Materi&quot; untuk mulai mengunggah PDF, video, presentasi, atau link</p>
-              <button onClick={handleOpenModal} disabled={initializingModule}
-                className="mt-5 flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-60">
-                <Plus className="h-4 w-4" />Tambah Materi Pertama
-              </button>
+              <p className="text-sm font-semibold text-slate-700">Belum ada materi tersimpan</p>
+              <p className="mt-1.5 max-w-xs text-xs text-slate-600">Gunakan menu di atas untuk mulai menambahkan materi pembelajaran ke dalam kelas ini.</p>
             </div>
           ) : (
             <div>
@@ -534,18 +402,13 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
               </div>
             </div>
           )}
-        </>
-      )}
-
-      {activeTab === 'kuis' && (
-        <QuizPanel classId={cls.id} className={cls.name} />
-      )}
-
-      {activeTab === 'forum' && (
-        <div className="h-[600px] rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
-          <ChatPanel roomId={cls.id} roomName={cls.name} userId={teacherId} />
         </div>
       )}
+
+      {activeTab === 'siswa' && (
+        <ClassStudentsPanel classId={cls.id} />
+      )}
+
 
       {activeTab === 'peringkat' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

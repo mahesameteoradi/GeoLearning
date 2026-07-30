@@ -372,7 +372,23 @@ export default function QuizPlayerPage() {
     setSelectedOption(optionLabel)
 
     setIsCorrect(correct)
-    setAnswers(prev => ({ ...prev, [q.id]: optionLabel }))
+    
+    // Save to local state and update DB immediately (fire-and-forget for live monitor)
+    setAnswers(prev => {
+      const newAnswers = { ...prev, [q.id]: optionLabel }
+      
+      // Update DB
+      if (attemptId) {
+        supabase.from('quiz_attempts').update({
+          answers: newAnswers,
+          // We can optionally keep score updated live, but since score depends on the final calculation,
+          // updating just `answers` is enough for progress tracking.
+        }).eq('id', attemptId).then()
+      }
+      
+      return newAnswers
+    })
+
     setState('reviewing')
 
     if (correct) {

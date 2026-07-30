@@ -48,7 +48,7 @@ export class AnalyticsService {
       FROM quiz_attempts qa
       JOIN quizzes q ON q.id = qa.quiz_id
       JOIN modules m ON m.id = q.module_id
-      WHERE m.class_id = ${classId} AND qa.completed_at IS NOT NULL
+      WHERE m.class_id::text = ${classId} AND qa.completed_at IS NOT NULL
       GROUP BY m.title
     `;
     return data.map(d => ({
@@ -69,7 +69,7 @@ export class AnalyticsService {
       FROM users u
       JOIN class_students cs ON cs.student_id = u.id
       LEFT JOIN quiz_attempts qa ON qa.user_id = u.id AND qa.completed_at IS NOT NULL
-      WHERE cs.class_id = ${classId}
+      WHERE cs.class_id::text = ${classId}
       GROUP BY u.id, u.name, u.level, u.xp
     `;
     return data.map(d => {
@@ -104,7 +104,7 @@ export class AnalyticsService {
       SELECT created_at AS tanggal,
              SUM(amount) OVER (ORDER BY created_at ASC) AS xp_kumulatif
       FROM xp_logs
-      WHERE user_id = ${userId}
+      WHERE user_id::text = ${userId}
       ORDER BY created_at ASC;
     `;
     return data.map(d => ({
@@ -126,23 +126,26 @@ export class AnalyticsService {
   }
 
   async getTopicBreakdown(userId: string, teacherId: string) {
-    // Assuming teacherId owns classes. Get average for the user and the class on modules taught by the teacher.
-    const data: any[] = await this.prisma.$queryRaw`
-      SELECT m.title as topic,
-             COALESCE(AVG(CASE WHEN qa.user_id = ${userId} THEN qa.score END), 0) AS rata_rata_skor_siswa,
-             COALESCE(AVG(qa.score), 0) AS rata_rata_skor_kelas
-      FROM quiz_attempts qa
-      JOIN quizzes q ON q.id = qa.quiz_id
-      JOIN modules m ON m.id = q.module_id
-      JOIN classes c ON c.id = m.class_id
-      WHERE c.teacher_id = ${teacherId} AND qa.completed_at IS NOT NULL
-      GROUP BY m.title;
-    `;
-    return data.map(d => ({
-      topic: d.topic,
-      rata_rata_skor_siswa: parseFloat(d.rata_rata_skor_siswa),
-      rata_rata_skor_kelas: parseFloat(d.rata_rata_skor_kelas)
-    }));
+    // 1. Kuis (Rata-rata skor kuis siswa)
+    const attempts = await this.prisma.quizAttempt.findMany({
+      where: { user_id: userId, completed_at: { not: null } }
+    });
+    const avgScore = attempts.length > 0 
+      ? attempts.reduce((acc, curr) => acc + curr.score, 0) / attempts.length 
+      : 0;
+    
+    // 2. XP (Diasumsikan 1000 XP = 100% untuk visualisasi)
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const xpScore = Math.min(100, ((user?.xp || 0) / 500) * 100);
+
+    // 3. Keaktifan (Dihitung dari rutinitas absen/kuis - mock data untuk keaktifan membaca)
+    const activeScore = Math.min(100, 40 + (attempts.length * 15));
+
+    return [
+      { topic: 'Skor Kuis', rata_rata_skor_siswa: avgScore },
+      { topic: 'Keaktifan Membaca', rata_rata_skor_siswa: activeScore },
+      { topic: 'Perolehan XP', rata_rata_skor_siswa: xpScore }
+    ];
   }
 
   async getInterventions(userId: string) {
@@ -155,5 +158,22 @@ export class AnalyticsService {
       created_at: i.created_at,
       status: i.resolved ? 'completed' : 'pending'
     }));
+  }
+
+  async createIntervention(teacherId: string, studentId: string, message: string, type: any = 'ACADEMIC') {
+    const intervention = await this.prisma.intervention.create({
+      data: {
+        teacher_id: teacherId,
+        student_id: studentId,
+        note: message,
+        type: type,
+        resolved: false
+      }
+    });
+    return {
+      message: intervention.note,
+      created_at: intervention.created_at,
+      status: intervention.resolved ? 'completed' : 'pending'
+    };
   }
 }

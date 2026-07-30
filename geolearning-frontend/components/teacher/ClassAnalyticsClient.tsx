@@ -41,10 +41,26 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
           fetch(`${apiUrl}/teacher/analytics/class/${selectedClassId}/students`, { headers })
         ])
 
-        if (sumRes.ok && topRes.ok && stuRes.ok && isMounted) {
-          setSummary(await sumRes.json())
-          setTopicPerformance(await topRes.json())
-          setStudents(await stuRes.json())
+        if (isMounted) {
+          if (sumRes.ok) {
+            setSummary(await sumRes.json());
+          } else {
+            console.error('Failed to fetch summary:', await sumRes.text());
+          }
+
+          if (topRes.ok) {
+            const data = await topRes.json();
+            if (Array.isArray(data)) setTopicPerformance(data);
+          } else {
+            console.error('Failed to fetch topic performance:', await topRes.text());
+          }
+
+          if (stuRes.ok) {
+            const data = await stuRes.json();
+            if (Array.isArray(data)) setStudents(data);
+          } else {
+            console.error('Failed to fetch students:', await stuRes.text());
+          }
         }
       } catch (error) {
         console.error('Error fetching analytics:', error)
@@ -92,30 +108,28 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
         <>
           {/* Summary Cards */}
           {summary && (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Rata-rata Skor</p>
-                <p className="mt-1.5 text-2xl font-bold text-blue-600">{Number(summary.rata_rata_skor).toFixed(1)}%</p>
-              </div>
-              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Completion Rate</p>
-                <p className="mt-1.5 text-2xl font-bold text-emerald-600">{Number(summary.completion_rate).toFixed(1)}%</p>
-              </div>
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Siswa Aktif</p>
-                <p className="mt-1.5 text-2xl font-bold text-amber-600">{summary.siswa_aktif}</p>
-              </div>
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">Siswa Pasif</p>
-                <p className="mt-1.5 text-2xl font-bold text-rose-600">{summary.siswa_pasif}</p>
-              </div>
+            <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {[
+                { label: 'Rata-rata Skor', value: `${Number(summary.rata_rata_skor).toFixed(1)}%`, color: 'text-indigo-600', border: 'border-indigo-100', bg: 'bg-indigo-50', gradient: 'from-indigo-500/5 to-transparent' },
+                { label: 'Completion Rate', value: `${Number(summary.completion_rate).toFixed(1)}%`, color: 'text-emerald-600', border: 'border-emerald-100', bg: 'bg-emerald-50', gradient: 'from-emerald-500/5 to-transparent' },
+                { label: 'Siswa Aktif', value: summary.siswa_aktif, color: 'text-amber-600', border: 'border-amber-100', bg: 'bg-amber-50', gradient: 'from-amber-500/5 to-transparent' },
+                { label: 'Siswa Pasif', value: summary.siswa_pasif, color: 'text-rose-600', border: 'border-rose-100', bg: 'bg-rose-50', gradient: 'from-rose-500/5 to-transparent' },
+              ].map(({ label, value, color, border, bg, gradient }) => (
+                <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1`}>
+                  <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
+                  <div className="relative">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">{label}</p>
+                    <p className={`mt-2 text-3xl font-black tabular-nums ${color} drop-shadow-sm`}>{value}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Topic Performance Bar Chart */}
-            <div className="lg:col-span-1 rounded-2xl border border-slate-200 bg-white p-5">
-              <h3 className="mb-4 font-bold text-slate-800">Performa per Topik (Rata-rata Skor)</h3>
+            <div className="lg:col-span-1 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
+              <h3 className="mb-5 font-bold text-slate-800">Performa per Topik (Rata-rata Skor)</h3>
               <div className="h-64">
                 {topicPerformance.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -141,7 +155,7 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
             </div>
 
             {/* Student List Table */}
-            <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white overflow-hidden flex flex-col">
+            <div className="lg:col-span-2 rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40 overflow-hidden flex flex-col">
               <div className="bg-slate-50 px-5 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 className="font-bold text-slate-800">Daftar Siswa</h3>
               </div>
