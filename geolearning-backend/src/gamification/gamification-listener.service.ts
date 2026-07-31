@@ -25,16 +25,24 @@ export class GamificationListenerService implements OnModuleInit, OnModuleDestro
   }
 
   onModuleDestroy() {
+    this.isDestroyed = true;
     if (this.supabase) {
       this.supabase.removeAllChannels();
     }
   }
 
+  private retryCount = 0;
+  private maxRetries = 5;
+
+  private isDestroyed = false;
+
   private startListening() {
+    if (this.isDestroyed) return;
     this.logger.log('Started listening to Supabase Realtime for Users table changes...');
 
-    this.supabase
-      .channel('gamification_users_listener')
+    const channelName = `gamification_users_listener_${Date.now()}`;
+    const channel = this.supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'users' },
@@ -48,11 +56,29 @@ export class GamificationListenerService implements OnModuleInit, OnModuleDestro
           }
         }
       )
-      .subscribe((status, err) => {
+      .subscribe(async (status, err) => {
+        if (this.isDestroyed) {
+            await this.supabase.removeChannel(channel);
+            return;
+        }
         if (status === 'SUBSCRIBED') {
           this.logger.log('Successfully subscribed to Users table updates');
-        } else if (err) {
-          this.logger.error('Failed to subscribe to Users table updates', err);
+          this.retryCount = 0; // Reset on success
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || err) {
+          this.logger.error(`Realtime subscription failed with status: ${status}`, err);
+          
+          if (this.retryCount < this.maxRetries) {
+            const delay = Math.pow(2, this.retryCount) * 1000;
+            this.retryCount++;
+            this.logger.warn(`Reconnecting in ${delay}ms (Attempt ${this.retryCount} of ${this.maxRetries})...`);
+            
+            // Remove old channel before recreating
+            await this.supabase.removeChannel(channel);
+            
+            setTimeout(() => this.startListening(), delay);
+          } else {
+            this.logger.error('Max reconnection retries reached. Realtime listener is offline.');
+          }
         }
       });
   }

@@ -32,6 +32,7 @@ interface QuizItem {
   id: string
   title: string
   xp_reward: number
+  order: number
   created_at: string
 }
 
@@ -222,7 +223,7 @@ export default function StudentClassDetailPage() {
           modules(
             id, title, order,
             materials(id, title, type, content_url, content_text, order, created_at),
-            quizzes(id, title, xp_reward, created_at)
+            quizzes(id, title, xp_reward, order, created_at)
           )
         `)
         .eq('id', classId)
@@ -338,29 +339,33 @@ export default function StudentClassDetailPage() {
       </Link>
 
       {/* Class Header */}
-      <div className="mb-7 rounded-2xl border border-slate-200 bg-white shadow-sm p-5">
-        <div className="flex items-start gap-4">
-          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500 text-2xl font-extrabold text-white shadow-lg shadow-blue-600/20">
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
+          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-4xl font-black text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
             {cls.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold text-slate-900">{cls.name}</h1>
+            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{cls.name}</h1>
             {cls.description && (
-              <p className="mt-0.5 text-sm text-slate-500">{cls.description}</p>
+              <p className="mt-2 text-sm text-indigo-100/80 max-w-2xl leading-relaxed">{cls.description}</p>
             )}
-            <div className="mt-2 flex flex-wrap items-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               {cls.teacher && (
-                <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <GraduationCap className="h-3.5 w-3.5 text-blue-600" />
-                  <span className="text-slate-500">{cls.teacher.name}</span>
+                <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100 backdrop-blur-md">
+                  <GraduationCap className="h-4 w-4 text-blue-300" />
+                  <span>{cls.teacher.name}</span>
                 </span>
               )}
-              <span className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] text-slate-500">
-                <Hash className="h-3 w-3" />
+              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] text-indigo-100 backdrop-blur-md">
+                <Hash className="h-3 w-3 text-emerald-300" />
                 {cls.join_code}
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                <BookOpen className="h-3.5 w-3.5 text-emerald-600" />
+              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100 backdrop-blur-md">
+                <BookOpen className="h-3.5 w-3.5 text-amber-300" />
                 {allMaterials.length} materi tersedia
               </span>
             </div>
@@ -369,32 +374,34 @@ export default function StudentClassDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-6 flex space-x-1 rounded-xl bg-slate-200/50 p-1">
-        <button
-          onClick={() => setActiveTab('materi')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all',
-            activeTab === 'materi'
-              ? 'bg-white text-slate-800 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
-          )}
-        >
-          <BookOpen className="h-4 w-4" />
-          Materi
-        </button>
+      <div className="mb-8 flex items-center justify-center">
+        <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/60 bg-white/60 p-1.5 shadow-sm backdrop-blur-md">
+          <button
+            onClick={() => setActiveTab('materi')}
+            className={cn(
+              'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300',
+              activeTab === 'materi'
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
+            )}
+          >
+            <BookOpen className={cn("h-4 w-4", activeTab === 'materi' ? "text-blue-200" : "text-slate-400")} />
+            Materi Kelas
+          </button>
 
-        <button
-          onClick={() => setActiveTab('peringkat')}
-          className={cn(
-            'flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-semibold transition-all',
-            activeTab === 'peringkat'
-              ? 'bg-white text-slate-800 shadow-sm'
-              : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
-          )}
-        >
-          <Trophy className="h-4 w-4" />
-          Peringkat
-        </button>
+          <button
+            onClick={() => setActiveTab('peringkat')}
+            className={cn(
+              'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300',
+              activeTab === 'peringkat'
+                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
+            )}
+          >
+            <Trophy className={cn("h-4 w-4", activeTab === 'peringkat' ? "text-amber-200" : "text-slate-400")} />
+            Peringkat
+          </button>
+        </div>
       </div>
 
       {/* Content */}

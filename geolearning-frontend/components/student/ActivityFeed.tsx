@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from 'date-fns'
 import { CheckCircle, Bell, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import Link from 'next/link'
 
 interface ActivityItem {
   id: string
@@ -9,6 +10,7 @@ interface ActivityItem {
   subtitle?: string
   timestamp: string
   xp?: number
+  quizId?: string
 }
 
 interface ActivityFeedProps {
@@ -52,11 +54,12 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
       {items.map((item) => {
         const cfg = typeConfig[item.type]
         const Icon = cfg.icon
-        return (
+        
+        const content = (
           <div
-            key={item.id}
             className={cn(
-              'flex items-center gap-3 rounded-xl border p-3.5 transition-all hover:bg-slate-50',
+              'flex items-center gap-3 rounded-xl border p-3.5 transition-all duration-300',
+              item.quizId ? 'cursor-pointer hover:scale-[1.02] hover:-translate-y-1 hover:shadow-md hover:bg-white' : 'cursor-default hover:scale-[1.01] hover:-translate-y-0.5 hover:shadow-sm hover:bg-white',
               cfg.bg,
               cfg.border
             )}
@@ -82,6 +85,16 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
             </div>
           </div>
         )
+
+        if (item.quizId) {
+          return (
+            <Link href={`/student/quizzes/${item.quizId}`} key={item.id} className="block group">
+              {content}
+            </Link>
+          )
+        }
+
+        return <div key={item.id} className="group">{content}</div>
       })}
     </div>
   )

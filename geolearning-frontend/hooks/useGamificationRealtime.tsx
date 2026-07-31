@@ -67,6 +67,18 @@ function BadgeToast({ icon, name }: { icon: string; name: string }) {
   )
 }
 
+function NotificationToast({ message }: { message: string }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-blue-500/30 bg-[#1A1A2E] px-4 py-3 animate-pop-in">
+      <span className="text-xl leading-none">🔔</span>
+      <div>
+        <p className="text-sm font-bold text-blue-400">Pemberitahuan Baru</p>
+        <p className="text-xs text-slate-300 mt-0.5 line-clamp-2">{message}</p>
+      </div>
+    </div>
+  )
+}
+
 /**
  * useGamificationRealtime
  *
@@ -142,6 +154,23 @@ export function useGamificationRealtime(userId: string | null) {
           const name = badge?.name ?? badgeId
 
           toast.custom(() => <BadgeToast icon={icon} name={name} />, { duration: 5000 })
+        }
+      )
+
+      // ── New notifications ─────────────────────────────────────────────────
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          const message = (payload.new as { message: string }).message
+          if (message) {
+            toast.custom(() => <NotificationToast message={message} />, { duration: 6000 })
+          }
         }
       )
       .subscribe()

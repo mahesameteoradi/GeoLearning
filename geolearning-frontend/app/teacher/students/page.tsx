@@ -19,12 +19,16 @@ export default async function TeacherStudentsPage() {
 
   if (!user) redirect('/login')
 
-  const { data: rawStudents } = await supabase
+  const { data: rawStudents, error: studentsError } = await supabase
     .from('users')
-    .select('id, name, email, xp, level, current_streak, longest_streak, avatar_url')
+    .select('id, name, email, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
     .eq('role', 'STUDENT')
     .order('xp', { ascending: false })
     .limit(200)
+
+  if (studentsError) {
+    return <div>Error loading students: {studentsError.message} ({studentsError.code}) - {studentsError.details}</div>
+  }
 
   // Fetch enrollments to know which class each student is in (for teacher's classes)
   const { data: teacherClasses } = await supabase
@@ -54,11 +58,23 @@ export default async function TeacherStudentsPage() {
     }
   }
 
-  const students = (rawStudents ?? []).map((s) => ({
-    ...s,
-    level: calculateLevel(s.xp),
-    enrolledClasses: studentClassMap[s.id] ?? [],
-  }))
+  const students = (rawStudents ?? []).map((s) => {
+    const badges = (s.badges ?? []).map((ub: any) => {
+      const b = Array.isArray(ub.badge) ? ub.badge[0] : ub.badge;
+      return {
+        id: b.id,
+        display_name: b.display_name,
+        icon: b.icon
+      };
+    });
+
+    return {
+      ...s,
+      level: calculateLevel(s.xp),
+      enrolledClasses: studentClassMap[s.id] ?? [],
+      badges
+    };
+  })
 
   const avgXp = students.length > 0
     ? Math.round(students.reduce((sum, s) => sum + s.xp, 0) / students.length)

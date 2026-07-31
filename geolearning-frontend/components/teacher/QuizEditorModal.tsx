@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   X, Plus, Trash2, Loader2, ClipboardList, FileText,
   ChevronDown, ChevronUp, Check, AlertCircle, Upload,
-  Sparkles, GripVertical,
+  Sparkles, GripVertical, Download, CheckCircle, Edit3
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
@@ -41,13 +41,17 @@ interface QuizMeta {
   time_limit: number | null
   xp_reward: number
   is_published: boolean
+  order?: number
 }
 
 interface QuizEditorModalProps {
-  classes: ClassOption[]
+  classes?: ClassOption[]
   quiz: QuizMeta | null  // null = create new
   onClose: () => void
-  onSaved: () => void
+  onSaved: (newMod?: any) => void
+  classId?: string
+  existingModules?: {id: string, title: string}[]
+  nextOrderMap?: Record<string, number>
 }
 
 const EMPTY_QUESTION = (): QuestionDraft => ({
@@ -104,7 +108,7 @@ function parseTextToQuestions(text: string): QuestionDraft[] {
 
     const options: { label: string; value: string }[] = []
     let correctAnswer = 'A'
-    const explanation = ''
+    let explanation = ''
 
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i]
@@ -123,6 +127,14 @@ function parseTextToQuestions(text: string): QuestionDraft[] {
       const answerMatch = line.match(/^(?:jawaban|kunci|answer|kunci jawaban|correct)[:\s]+([A-Ea-e])/i)
       if (answerMatch) {
         correctAnswer = answerMatch[1].toUpperCase()
+        continue
+      }
+
+      // Detect explanation line: Pembahasan: xxx or Penjelasan: xxx
+      const expMatch = line.match(/^(?:pembahasan|penjelasan|explanation)[:\s]+(.+)/i)
+      if (expMatch) {
+        explanation = expMatch[1].trim()
+        continue
       }
     }
 
@@ -302,6 +314,7 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
   const [text, setText] = useState('')
   const [parsed, setParsed] = useState<QuestionDraft[]>([])
   const [showPreview, setShowPreview] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   function handleParse() {
@@ -314,17 +327,91 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
     setShowPreview(true)
   }
 
-  async function handleFileRead(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+  const [loadingFile, setLoadingFile] = useState(false)
+
+  async function processFile(file: File | undefined) {
     if (!file) return
-    if (file.name.endsWith('.txt') || file.type === 'text/plain') {
-      const content = await file.text()
-      setText(content)
-      toast.success('File TXT berhasil dibaca! Klik "Parse Soal" untuk melanjutkan.')
-    } else {
-      toast('📋 Salin teks dari PDF/DOCX dan tempelkan di kotak di bawah.', { duration: 4000 })
+
+    try {
+      setLoadingFile(true)
+      const name = file.name.toLowerCase()
+
+      if (name.endsWith('.docx') || name.endsWith('.pdf')) {
+        const formData = new FormData()
+        formData.append('file', file)
+        toast.loading('Mengekstrak teks...', { id: 'parse-doc' })
+        const res = await fetch('/api/parse-document', { method: 'POST', body: formData })
+        if (!res.ok) throw new Error('Failed to parse document')
+        const json = await res.json()
+        setText(json.text || '')
+        toast.success('File berhasil diekstrak! Klik "Parse Soal Otomatis".', { id: 'parse-doc' })
+      } else if (name.endsWith('.txt') || file.type === 'text/plain') {
+        const content = await file.text()
+        setText(content)
+        toast.success('File TXT berhasil dibaca! Klik "Parse Soal Otomatis".')
+      } else {
+        toast.error('Format file tidak didukung.')
+      }
+    } catch(err) {
+      toast.error('Terjadi kesalahan saat memproses file.', { id: 'parse-doc' })
+    } finally {
+      setLoadingFile(false)
+      if (fileRef.current) fileRef.current.value = ''
     }
-    e.target.value = ''
+  }
+
+  function handleFileRead(e: React.ChangeEvent<HTMLInputElement>) {
+    processFile(e.target.files?.[0])
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setIsDragging(false)
+    processFile(e.dataTransfer.files?.[0])
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  function handleDragLeave(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  async function downloadTemplate() {
+    try {
+      const content = `<html><body>
+        <p>1. Apa ibukota Indonesia?</p>
+        <p>A. Jakarta</p>
+        <p>B. Surabaya</p>
+        <p>C. Bandung</p>
+        <p>D. Medan</p>
+        <p>Jawaban: A</p>
+        <p>Pembahasan: Jakarta adalah ibukota negara Indonesia secara de facto dan de jure.</p>
+        <br/>
+        <p>2. Gunung tertinggi di Indonesia adalah...</p>
+        <p>A. Semeru</p>
+        <p>B. Rinjani</p>
+        <p>C. Puncak Jaya</p>
+        <p>D. Kerinci</p>
+        <p>Jawaban: C</p>
+        <p>Pembahasan: Puncak Jaya terletak di Papua dan merupakan gunung tertinggi di Indonesia.</p>
+      </body></html>`
+      
+      const blob = new Blob([content], { type: 'application/msword' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'Template_Soal_GeoLearning.doc'
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      toast.error('Gagal mengunduh template')
+    }
   }
 
   if (showPreview) {
@@ -358,26 +445,45 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
   }
 
   return (
-    <div className="rounded-xl border border-blue-300 bg-violet-50 p-4">
+    <div 
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      className={cn(
+        "rounded-xl border p-4 transition-all",
+        isDragging ? "border-blue-500 bg-blue-100/50 border-dashed border-2" : "border-blue-300 bg-violet-50"
+      )}
+    >
       <div className="mb-2 flex items-center gap-2">
         <Sparkles className="h-4 w-4 text-blue-600" />
         <p className="text-sm font-semibold text-blue-700">Import Soal dari Dokumen</p>
       </div>
       <p className="mb-3 text-[11px] text-slate-500">
-        Upload file TXT atau salin-tempel teks dari PDF/Word. Format: <code className="text-blue-600">1. Soal A. opt B. opt Jawaban: A</code>
+        Upload file (Word, PDF, TXT) atau salin-tempel langsung teksnya.
       </p>
-      <input ref={fileRef} type="file" accept=".txt,text/plain" className="hidden" onChange={handleFileRead} />
-      <button
-        onClick={() => fileRef.current?.click()}
-        className="mb-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-blue-300 py-3 text-sm text-slate-500 hover:border-blue-500 hover:text-slate-700"
-      >
-        <Upload className="h-4 w-4" />
-        Upload file .txt
-      </button>
+      <input ref={fileRef} type="file" accept=".txt,.pdf,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" className="hidden" onChange={handleFileRead} />
+      
+      <div className="grid grid-cols-2 gap-2 mb-3">
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={loadingFile}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-blue-600 bg-blue-50 py-2.5 text-xs font-bold text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+        >
+          {loadingFile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          Pilih Dokumen
+        </button>
+        <button
+          onClick={downloadTemplate}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-500 bg-emerald-50 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+        >
+          <Download className="h-4 w-4" />
+          Template Word
+        </button>
+      </div>
       <textarea
         value={text}
         onChange={e => setText(e.target.value)}
-        placeholder={`Tempel teks soal di sini...\n\nContoh format:\n1. Apa ibukota Indonesia?\nA. Jakarta\nB. Surabaya\nC. Bandung\nD. Medan\nJawaban: A\n\n2. Gunung tertinggi di Indonesia adalah...\nA. Semeru\nB. Rinjani\nC. Puncak Jaya\nD. Kerinci\nJawaban: C`}
+        placeholder={`Tempel teks soal di sini...\n\nContoh format:\n1. Apa ibukota Indonesia?\nA. Jakarta\nB. Surabaya\nC. Bandung\nD. Medan\nJawaban: A\nPembahasan: Karena letaknya di situ.`}
         rows={6}
         className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-700 placeholder-slate-700 outline-none focus:border-blue-200 mb-2"
       />
@@ -394,24 +500,39 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
-export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorModalProps) {
+export function QuizEditorModal({ classes, quiz, classId, existingModules, nextOrderMap, onClose, onSaved, onModuleAdded }: QuizEditorModalProps & { onModuleAdded?: (mod: any) => void }) {
   const supabase = createClient()
   const [saving, setSaving] = useState(false)
   const [showImport, setShowImport] = useState(false)
 
   const [form, setForm] = useState({
     title: quiz?.title ?? '',
-    class_id: quiz?.class_id ?? classes[0]?.id ?? '',
-    timeLimit: quiz?.time_limit ? quiz.time_limit.toString() : '',
+    class_id: quiz?.class_id ?? classId ?? (classes && classes.length > 0 ? classes[0].id : ''),
+    timeLimit: quiz?.time_limit ? quiz.time_limit.toString() : '30',
     xpReward: quiz?.xp_reward ? quiz.xp_reward.toString() : '100',
     is_published: quiz?.is_published ?? false,
   })
 
+  const [selectedModuleId, setSelectedModuleId] = useState<string>(existingModules?.[0]?.id || 'new')
+  const [newModuleTitle, setNewModuleTitle] = useState('')
+  const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
+  const [editedModuleTitle, setEditedModuleTitle] = useState('')
+  const [isUpdatingModule, setIsUpdatingModule] = useState(false)
+  const [order, setOrder] = useState<number>(quiz?.order ?? (nextOrderMap?.[existingModules?.[0]?.id || 'new'] ?? 1))
+
   const [questions, setQuestions] = useState<QuestionDraft[]>([])
   const [loadingQuestions, setLoadingQuestions] = useState(!!quiz)
 
+  useEffect(() => {
+    if (!quiz && selectedModuleId !== 'new' && nextOrderMap) {
+      setOrder(nextOrderMap[selectedModuleId] || 1)
+    } else if (!quiz && selectedModuleId === 'new') {
+      setOrder(1)
+    }
+  }, [selectedModuleId, quiz, nextOrderMap])
+
   // Load existing questions when editing
-  useState(() => {
+  useEffect(() => {
     if (!quiz) return
     const load = async () => {
       const { data } = await supabase
@@ -431,9 +552,45 @@ export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorM
       setLoadingQuestions(false)
     }
     load()
-  })
+  }, [quiz, supabase])
 
-  function addQuestion() {
+  async function handleSaveModuleEdit() {
+    if (!editedModuleTitle.trim() || !editingModuleId) return
+    setIsUpdatingModule(true)
+    const { error } = await supabase.from('modules').update({ title: editedModuleTitle.trim() }).eq('id', editingModuleId)
+    setIsUpdatingModule(false)
+    if (error) { toast.error('Gagal memperbarui nama bab') } 
+    else { toast.success('Nama bab diperbarui'); setEditingModuleId(null); window.location.reload() }
+  }
+
+  async function handleDeleteModule(modId: string) {
+    if (!confirm('Hapus bab ini? (Semua materi dan kuis di dalamnya akan ikut terhapus!)')) return
+    setIsUpdatingModule(true)
+    const { error } = await supabase.from('modules').delete().eq('id', modId)
+    setIsUpdatingModule(false)
+    if (error) { toast.error('Gagal menghapus bab') } 
+    else { toast.success('Bab berhasil dihapus'); window.location.reload() }
+  }
+
+  async function handleSaveNewModule() {
+    if (!newModuleTitle.trim()) return
+    setIsUpdatingModule(true)
+    const targetModuleId = crypto.randomUUID()
+    const { data: modData, error: modErr } = await supabase.from('modules').insert({
+      id: targetModuleId, class_id: classId || form.class_id, title: newModuleTitle.trim(), order: existingModules?.length || 0, updated_at: new Date().toISOString()
+    }).select().single()
+    setIsUpdatingModule(false)
+    if (modErr) {
+      toast.error('Gagal membuat bab baru')
+    } else {
+      toast.success('Bab baru berhasil ditambahkan')
+      if (onModuleAdded) onModuleAdded(modData)
+      setSelectedModuleId(modData.id)
+      setNewModuleTitle('')
+    }
+  }
+
+  const handleAddQuestion = () => {
     setQuestions(prev => [...prev, { ...EMPTY_QUESTION(), order: prev.length }])
   }
 
@@ -487,6 +644,21 @@ export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorM
       const xpReward = parseInt(form.xpReward) || 100
       
       let quizId = quiz?.id
+      let targetModuleId = quiz?.module_id
+      let newMod
+      
+      if (!quiz && existingModules) {
+        targetModuleId = selectedModuleId === 'new' ? null : selectedModuleId
+        if (!targetModuleId) {
+          if (!newModuleTitle.trim()) { toast.error("Bab / Modul baru tidak boleh kosong"); setSaving(false); return }
+          targetModuleId = crypto.randomUUID()
+          const { data: modData, error: modErr } = await supabase.from('modules').insert({
+            id: targetModuleId, class_id: classId || form.class_id, title: newModuleTitle.trim(), order: existingModules.length, updated_at: new Date().toISOString()
+          }).select().single()
+          if (modErr) throw new Error(modErr.message)
+          newMod = modData
+        }
+      }
 
       if (quizId) {
         const { error } = await supabase.from('quizzes').update({
@@ -503,11 +675,12 @@ export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorM
         const { data: newQuiz, error } = await supabase.from('quizzes').insert({
           id: crypto.randomUUID(),
           title: form.title.trim(),
-          class_id: form.class_id,
-          module_id: null,
+          class_id: classId || form.class_id,
+          module_id: targetModuleId || null,
           time_limit: timeLimitSeconds,
           xp_reward: xpReward,
           is_published: form.is_published,
+          order: order,
           updated_at: new Date().toISOString(),
         }).select('id').single()
         if (error) throw error
@@ -534,7 +707,7 @@ export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorM
       }
 
       toast.success(quiz ? 'Kuis berhasil diperbarui! ✅' : 'Kuis berhasil dibuat! 🎉')
-      onSaved()
+      onSaved(newMod)
       onClose()
     } catch (err) {
       console.error('[QuizEditor] save error:', err)
@@ -586,22 +759,87 @@ export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorM
               />
             </div>
 
-            {/* Class */}
-            <div>
+            {/* Class / Module */}
+            {!quiz && existingModules ? (
+              <>
+                <div className="flex flex-col gap-2 relative">
+                  <div className="flex items-center justify-between -mb-0.5">
+                    <label className="block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                      Bab / Modul <span className="text-red-600">*</span>
+                    </label>
+                    {selectedModuleId !== 'new' && existingModules.length > 0 && !editingModuleId && (
+                      <div className="flex shrink-0 gap-1">
+                        <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-100 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
+                        <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-100 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                      </div>
+                    )}
+                  </div>
+                  {editingModuleId ? (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        autoFocus
+                        value={editedModuleTitle}
+                        onChange={e => setEditedModuleTitle(e.target.value)}
+                        disabled={isUpdatingModule}
+                        className="flex-1 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                      />
+                      <button type="button" onClick={handleSaveModuleEdit} disabled={isUpdatingModule || !editedModuleTitle.trim()} className="rounded-xl bg-amber-500 p-2.5 text-white hover:bg-amber-600 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
+                      <button type="button" onClick={() => setEditingModuleId(null)} disabled={isUpdatingModule} className="rounded-xl bg-slate-200 p-2.5 text-slate-600 hover:bg-slate-300 disabled:opacity-50"><X className="h-4 w-4" /></button>
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedModuleId}
+                      onChange={e => setSelectedModuleId(e.target.value)}
+                      disabled={isUpdatingModule}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+                    >
+                      {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                      <option value="new">+ Tambah Bab / Modul Baru...</option>
+                    </select>
+                  )}
+                  {selectedModuleId === 'new' && (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        value={newModuleTitle}
+                        onChange={e => setNewModuleTitle(e.target.value)}
+                        required={selectedModuleId === 'new'}
+                        maxLength={120}
+                        placeholder="Ketik nama bab baru (Contoh: Bab 1)"
+                        className="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm text-blue-900 placeholder-blue-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
+                      />
+                      <button type="button" onClick={handleSaveNewModule} disabled={isUpdatingModule || !newModuleTitle.trim()} className="rounded-xl bg-blue-600 p-2.5 text-white hover:bg-blue-700 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : null}
+
+            {/* Order */}
+            <div className="sm:col-span-2">
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                Kelas <span className="text-red-600">*</span>
+                Urutan ke- <span className="text-red-600">*</span>
               </label>
-              <select
-                value={form.class_id}
-                onChange={e => setForm({ ...form, class_id: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
-              >
-                {classes.length === 0 && <option value="">Belum ada kelas</option>}
-                {classes.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              <input
+                type="number"
+                min={0}
+                value={order}
+                onChange={e => setOrder(Number(e.target.value))}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+              />
             </div>
+
+            <div className="sm:col-span-1">
+                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                  Kelas
+                </label>
+                <select
+                  value={form.class_id}
+                  disabled={true}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none cursor-not-allowed opacity-70"
+                >
+                  <option value={form.class_id}>{quiz?.class_id ? 'Kelas Kuis Ini' : 'Tidak Diketahui'}</option>
+                </select>
+              </div>
 
             {/* Default Time Limit */}
             <div>
@@ -661,7 +899,7 @@ export function QuizEditorModal({ classes, quiz, onClose, onSaved }: QuizEditorM
                   Import dari Dokumen
                 </button>
                 <button
-                  onClick={addQuestion}
+                  onClick={handleAddQuestion}
                   className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-500"
                 >
                   <Plus className="h-3 w-3" />

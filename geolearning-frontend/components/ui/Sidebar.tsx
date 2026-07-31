@@ -18,7 +18,7 @@ import {
   ClipboardList,
   User,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -59,8 +59,51 @@ export function Sidebar({ role, userName, avatarUrl }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
+  const [unreadCount, setUnreadCount] = useState(0)
 
   const navItems = role === 'TEACHER' ? teacherNav : studentNav
+
+  useEffect(() => {
+    const supabase = createClient()
+    
+    // Initial fetch
+    const fetchCount = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      
+      const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+        
+      if (count !== null) setUnreadCount(count)
+    }
+    
+    fetchCount()
+
+    // Realtime subscription
+    let isMounted = true
+    let channel: any
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user || !isMounted) return
+      channel = supabase
+        .channel(`sidebar_notifications_${Math.random()}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+          () => {
+            fetchCount() // refetch on any insert/update/delete
+          }
+        )
+        .subscribe()
+    })
+
+    return () => {
+      isMounted = false
+      if (channel) supabase.removeChannel(channel)
+    }
+  }, [])
 
   const handleLogout = async () => {
     const supabase = createClient()
@@ -119,20 +162,25 @@ export function Sidebar({ role, userName, avatarUrl }: SidebarProps) {
               href={href}
               title={collapsed ? label : undefined}
               className={cn(
-                'group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                'group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-sm',
                 active
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
               )}
             >
               {collapsed ? (
-                <span className="text-base leading-none">{emoji}</span>
+                <span className="text-base leading-none transition-transform duration-200 group-hover:scale-110">{emoji}</span>
               ) : (
                 <>
-                  <Icon className={cn('h-4 w-4 flex-shrink-0', active ? 'text-blue-100' : 'text-slate-500 group-hover:text-slate-600')} />
+                  <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110', active ? 'text-blue-100' : 'text-slate-400 group-hover:text-blue-600')} />
                   <span className="truncate">{label}</span>
                   {active && (
                     <div className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-200 flex-shrink-0" />
+                  )}
+                  {label === 'Notifikasi' && unreadCount > 0 && !active && (
+                    <div className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white flex-shrink-0">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </div>
                   )}
                 </>
               )}

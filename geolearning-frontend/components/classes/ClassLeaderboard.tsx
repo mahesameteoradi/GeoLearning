@@ -58,7 +58,7 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
         .from('users')
         .select(`
           id, name, avatar_url, equipped_badge_id,
-          badges:user_badges!user_id(id, badge_id, badge:badges(id, icon, display_name))
+          badges:user_badges!user_badges_user_id_fkey(id, badge_id, badge:badges(id, icon, display_name))
         `)
         .in('id', studentIds)
 
@@ -161,10 +161,10 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
             <div
               key={student.id}
               className={cn(
-                "flex items-center gap-4 rounded-xl border p-3 transition-all",
+                "flex items-center gap-4 rounded-xl border p-3 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md cursor-default",
                 isCurrentUser 
-                  ? "border-blue-200 bg-blue-50" 
-                  : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-sm"
+                  ? "border-blue-200 bg-blue-50 hover:bg-blue-100" 
+                  : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
               )}
             >
               {/* Rank Badge */}

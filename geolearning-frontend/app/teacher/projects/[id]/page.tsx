@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, CheckCircle, FileText, ExternalLink, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, CheckCircle, FileText, ExternalLink, Loader2, Save, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
 
@@ -62,15 +62,19 @@ export default function ProjectSubmissionsPage() {
 
       submissionsData = submissionsData.map((sub: any) => {
         let members: any[] = []
+        let groupName = ''
         if (sub.group_members) {
           try {
-            const memberIds = typeof sub.group_members === 'string' ? JSON.parse(sub.group_members) : sub.group_members
-            if (Array.isArray(memberIds)) {
-              members = memberIds.map(id => classmatesMap.get(id) || { name: 'Unknown' })
+            const parsed = typeof sub.group_members === 'string' ? JSON.parse(sub.group_members) : sub.group_members
+            if (Array.isArray(parsed)) {
+              members = parsed.map(id => classmatesMap.get(id) || { name: 'Unknown' })
+            } else if (parsed && parsed.members) {
+              groupName = parsed.name || ''
+              members = parsed.members.map((id: string) => classmatesMap.get(id) || { name: 'Unknown' })
             }
           } catch (e) {}
         }
-        return { ...sub, members }
+        return { ...sub, members, groupName }
       })
     }
 
@@ -118,15 +122,42 @@ export default function ProjectSubmissionsPage() {
         if (error) throw error
       }
 
-      toast.success('Nilai berhasil disimpan!')
-      setGradingSubId(null)
-      setScoreInput('')
-      loadData()
+        toast.success('Nilai berhasil disimpan!')
+        setGradingSubId(null)
+        setScoreInput('')
+        loadData()
     } catch (err: any) {
       toast.error(`Gagal menyimpan nilai: ${err.message}`)
     } finally {
       setSavingScore(false)
     }
+  }
+
+  function exportCSV() {
+    if (!project) return
+    const rows = [
+      ['Nama / Kelompok', 'Nilai', 'XP', 'Waktu Pengumpulan'],
+      ...submissions.map(sub => {
+        const name = project.is_group_project && sub.members?.length > 0 
+          ? `${sub.groupName ? 'Kel. ' + sub.groupName + ' ' : ''}(${(sub.members as any[]).map(m => m.name).join('; ')})`
+          : (sub.user?.name || 'Siswa')
+        return [
+          name,
+          sub.score !== null ? sub.score.toString() : 'Belum Dinilai',
+          sub.xp_earned?.toString() ?? '0',
+          new Date(sub.submitted_at).toLocaleString('id-ID'),
+        ]
+      })
+    ]
+    // Escape quotes and format as CSV
+    const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `hasil-proyek-${project.title.replace(/\s+/g, '-')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   if (loading) {
@@ -161,8 +192,18 @@ export default function ProjectSubmissionsPage() {
       </div>
 
       <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
-        <div className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm px-6 py-5">
+        <div className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm px-6 py-5 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Daftar Pengumpulan ({submissions.length})</h2>
+          
+          {submissions.length > 0 && (
+            <button
+              onClick={exportCSV}
+              className="flex items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm"
+            >
+              <Download className="h-4 w-4" />
+              Ekspor CSV
+            </button>
+          )}
         </div>
         
         {submissions.length === 0 ? (
@@ -182,7 +223,9 @@ export default function ProjectSubmissionsPage() {
                   <div>
                     {project.is_group_project && sub.members?.length > 0 ? (
                       <div>
-                        <h4 className="text-sm font-bold text-slate-800 mb-0.5">Kelompok ({(sub.members as any[]).length} orang)</h4>
+                        <h4 className="text-sm font-bold text-slate-800 mb-0.5">
+                          {sub.groupName ? `Kelompok: ${sub.groupName}` : 'Kelompok'} ({(sub.members as any[]).length} orang)
+                        </h4>
                         <p className="text-[10px] text-slate-500 mb-1 leading-tight">
                           {(sub.members as any[]).map(m => m.name).join(', ')}
                         </p>

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   description: 'Kelola kelas dan materi pembelajaran Anda',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default async function TeacherClassesPage() {
   const supabase = await createClient()
 
@@ -22,27 +24,31 @@ export default async function TeacherClassesPage() {
   const { data: rawClasses } = await supabase
     .from('classes')
     .select(`
-      id, name, description, join_code, flashcards,
+      id, name, description, join_code, flashcards, gamification_mode,
       modules(id),
-      class_students(id)
+      class_students(student_id)
     `)
     .eq('teacher_id', user.id)
     .order('created_at', { ascending: false })
 
-  // Total students across all enrolled classes (deduplicated)
-  const { count: totalStudents } = await supabase
-    .from('users')
-    .select('*', { count: 'exact', head: true })
-    .eq('role', 'STUDENT')
+  // Deduplicate students across all teacher's classes
+  const uniqueStudentIds = new Set<string>()
+  if (rawClasses) {
+    rawClasses.forEach(cls => {
+      cls.class_students.forEach((cs: any) => uniqueStudentIds.add(cs.student_id))
+    })
+  }
+  const totalStudents = uniqueStudentIds.size
 
   const classes = (rawClasses ?? []).map((cls) => ({
     id: cls.id,
     name: cls.name,
     description: cls.description,
     join_code: cls.join_code,
+    gamification_mode: cls.gamification_mode,
     flashcards: cls.flashcards,
     moduleCount: (cls.modules as { id: string }[]).length,
-    studentCount: (cls.class_students as { id: string }[]).length,
+    studentCount: (cls.class_students as { student_id: string }[]).length,
   }))
 
   const totalModules = classes.reduce((sum, c) => sum + c.moduleCount, 0)

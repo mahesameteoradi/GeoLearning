@@ -52,8 +52,22 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
         is_published: form.is_published,
         is_group_project: form.is_group_project,
         updated_at: new Date().toISOString(),
-      })
+      }).select().single()
       if (error) throw error
+
+      // Notify students
+      if (form.is_published) {
+        const { data: students } = await supabase.from('class_students').select('student_id').eq('class_id', form.class_id)
+        if (students && students.length > 0) {
+          await supabase.from('notifications').insert(
+            students.map(s => ({
+              user_id: s.student_id,
+              message: `Tugas Proyek baru ditambahkan: ${form.title.trim()}`,
+              type: 'SYSTEM'
+            }))
+          )
+        }
+      }
 
       toast.success('Tugas Proyek berhasil dibuat! 🎉')
       onSaved()

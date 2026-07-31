@@ -21,27 +21,19 @@ export default async function LandingPage() {
     data: { user },
   } = await supabase.auth.getUser()
 
+  let role = null
   if (user) {
-    // Determine role and redirect if already logged in
     const { data: profile } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
-
-    if (profile?.role === 'ADMIN') {
-      redirect('/admin')
-    } else if (profile?.role === 'TEACHER') {
-      redirect('/teacher/dashboard')
-    }
-    
-    redirect('/student/dashboard')
+    role = profile?.role || user.user_metadata?.role || 'STUDENT'
   }
 
-  // If not logged in, show landing page
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-200">
-      <Navbar />
+      <Navbar userRole={role} />
       <main className="flex-1">
         <Hero />
         <FiturSection />

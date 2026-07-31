@@ -38,7 +38,7 @@ export function LeaderboardWidget({ entries, currentUserId, className }: Leaderb
             <div
               key={entry.id}
               className={cn(
-                'flex items-center gap-2.5 rounded-xl border px-3 py-2 transition-colors',
+                'flex items-center gap-2.5 rounded-xl border px-3 py-2 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-md hover:bg-white cursor-pointer',
                 // Top 3 get subtle colored borders
                 index === 0 && 'border-amber-200 bg-amber-50',
                 index === 1 && 'border-slate-200 bg-slate-50',

@@ -2,6 +2,7 @@ import React from 'react'
 import { Map, Lock, CheckCircle2, BookOpen, ClipboardList, PlayCircle, FileText, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 
 interface MaterialItem {
   id: string
@@ -17,6 +18,7 @@ interface QuizItem {
   id: string
   title: string
   xp_reward: number
+  order: number
   created_at: string
 }
 
@@ -54,7 +56,7 @@ export function ExpeditionMap({
   const nodes: MapNode[] = []
   
   modules.forEach((mod) => {
-    let isFirstInModule = true
+    const combinedNodes: (MapNode & { order: number })[] = []
     
     // 1. Add all materials
     mod.materials?.forEach((mat) => {
@@ -62,7 +64,7 @@ export function ExpeditionMap({
       if (mat.type === 'VIDEO') icon = PlayCircle
       if (mat.type === 'INTERACTIVE_MAP') icon = Map
 
-      nodes.push({
+      combinedNodes.push({
         id: mat.id,
         type: 'material',
         title: mat.title,
@@ -70,14 +72,14 @@ export function ExpeditionMap({
         url: `/student/classes/${classId}/materials/${mat.id}`,
         icon,
         moduleTitle: mod.title,
-        isModuleStart: isFirstInModule
+        isModuleStart: false,
+        order: mat.order
       })
-      isFirstInModule = false
     })
 
     // 2. Add all quizzes
     mod.quizzes?.forEach((quiz) => {
-      nodes.push({
+      combinedNodes.push({
         id: quiz.id,
         type: 'quiz',
         title: quiz.title,
@@ -85,8 +87,19 @@ export function ExpeditionMap({
         url: `/student/quizzes/${quiz.id}`,
         icon: ClipboardList,
         moduleTitle: mod.title,
-        isModuleStart: isFirstInModule
+        isModuleStart: false,
+        order: quiz.order
       })
+    })
+
+    // Sort by order
+    combinedNodes.sort((a, b) => a.order - b.order)
+
+    // Assign module start and push to global nodes
+    let isFirstInModule = true
+    combinedNodes.forEach((node) => {
+      node.isModuleStart = isFirstInModule
+      nodes.push(node)
       isFirstInModule = false
     })
   })
@@ -113,18 +126,90 @@ export function ExpeditionMap({
           const isLeft = i % 2 === 0
           const offsetClass = isLeft ? 'mr-auto ml-4 md:ml-12' : 'ml-auto mr-4 md:mr-12'
 
-          return (
-            <div key={node.id} className="relative w-full mb-10 flex flex-col items-center group">
-              {/* Connecting line to NEXT node */}
-              {i < nodes.length - 1 && (
-                <div className={cn(
-                  "absolute top-16 w-1 -z-10 h-24",
-                  node.isCompleted ? "bg-indigo-500" : "bg-slate-200"
-                )} style={{ 
-                  transform: isLeft ? 'rotate(-25deg) translateX(30px)' : 'rotate(25deg) translateX(-30px)' 
-                }} />
+          const nodeContent = (
+            <div className="relative flex flex-col items-center group">
+              {/* ─── Animated Explorer ─── */}
+              {isCurrent && (
+                <motion.div 
+                  layoutId="explorer"
+                  className="absolute -top-6 -left-6 text-4xl z-20 drop-shadow-md pointer-events-none"
+                  animate={{ 
+                    y: [0, -10, 0],
+                    x: [0, 5, 0],
+                    rotate: [0, 10, -5, 0]
+                  }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  title="Kamu berada di sini!"
+                >
+                  🏃‍♂️
+                </motion.div>
               )}
 
+              {/* ─── Planted Flag for Completed ─── */}
+              {node.isCompleted && (
+                <motion.div
+                  initial={{ scale: 0, originY: 1, rotate: -30 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                  className={cn(
+                    "absolute z-20 pointer-events-none",
+                    node.type === 'quiz' ? "-top-4 -right-5 text-4xl drop-shadow-[0_4px_8px_rgba(251,191,36,0.5)]" : "-top-2 -right-4 text-3xl drop-shadow-sm"
+                  )}
+                  title={node.type === 'quiz' ? "Kuis selesai ditaklukkan!" : "Materi selesai ditaklukkan!"}
+                >
+                  {node.type === 'quiz' ? '🏆' : '🚩'}
+                </motion.div>
+              )}
+
+              {currentLocked ? (
+                // Locked Node
+                <div className={cn(
+                  "rounded-full border-slate-200 bg-slate-100 flex flex-col items-center justify-center text-slate-400 opacity-70",
+                  node.type === 'quiz' ? "w-24 h-24 border-8" : "w-20 h-20 border-4"
+                )}>
+                  <Lock className={cn("mb-1", node.type === 'quiz' ? "w-8 h-8" : "w-6 h-6")} />
+                </div>
+              ) : (
+                // Unlocked / Completed Node
+                <Link href={node.url}>
+                  <div className={cn(
+                    "rounded-full flex flex-col items-center justify-center transition-all hover:scale-110 hover:shadow-xl cursor-pointer shadow-md",
+                    node.type === 'quiz' ? "w-24 h-24 border-8" : "w-20 h-20 border-4",
+                    node.isCompleted 
+                      ? (node.type === 'quiz' 
+                          ? "border-amber-400 bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600 shadow-amber-400/30" 
+                          : "border-emerald-500 bg-emerald-100 text-emerald-600 shadow-emerald-500/20")
+                      : (node.type === 'quiz'
+                          ? "border-amber-500 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-amber-500/40"
+                          : "border-indigo-500 bg-indigo-500 text-white shadow-indigo-500/40"),
+                    isCurrent && "ring-4 ring-offset-2 animate-bounce-slow",
+                    isCurrent && (node.type === 'quiz' ? "ring-amber-200" : "ring-indigo-200")
+                  )}>
+                    {node.isCompleted ? (
+                      <CheckCircle2 className={cn(node.type === 'quiz' ? "w-10 h-10 text-amber-500" : "w-8 h-8")} />
+                    ) : (
+                      <node.icon className={cn(node.type === 'quiz' ? "w-10 h-10 drop-shadow-md" : "w-8 h-8")} />
+                    )}
+                  </div>
+                </Link>
+              )}
+              
+              {/* Floating Label */}
+              <div className={cn(
+                "absolute top-full mt-3 w-32 text-center text-xs font-bold transition-all left-1/2 -translate-x-1/2",
+                currentLocked ? "text-slate-400" : "text-slate-700 group-hover:text-indigo-600"
+              )}>
+                {node.title}
+              </div>
+            </div>
+          )
+
+          return (
+            <div key={node.id} className="relative w-full mb-12 flex flex-col items-center">
               {showModuleTitle && (
                 <div className="w-full text-center mb-8 mt-4">
                   <h3 className="inline-block px-4 py-1.5 rounded-full bg-slate-800 text-white font-bold text-sm shadow-md">
@@ -133,41 +218,34 @@ export function ExpeditionMap({
                 </div>
               )}
 
-              <div className={cn("relative w-full flex", isLeft ? 'justify-start' : 'justify-end')}>
-                <div className={cn("relative z-10", offsetClass)}>
-                  {currentLocked ? (
-                    // Locked Node
-                    <div className="w-20 h-20 rounded-full border-4 border-slate-200 bg-slate-100 flex flex-col items-center justify-center text-slate-400 opacity-70">
-                      <Lock className="w-6 h-6 mb-1" />
-                    </div>
-                  ) : (
-                    // Unlocked / Completed Node
-                    <Link href={node.url}>
-                      <div className={cn(
-                        "w-20 h-20 rounded-full border-4 flex flex-col items-center justify-center transition-transform hover:scale-110 hover:shadow-xl cursor-pointer shadow-md",
-                        node.isCompleted 
-                          ? "border-emerald-500 bg-emerald-100 text-emerald-600 shadow-emerald-500/20" 
-                          : "border-indigo-500 bg-indigo-500 text-white shadow-indigo-500/40",
-                        isCurrent && "ring-4 ring-indigo-200 ring-offset-2 animate-bounce-slow"
-                      )}>
-                        {node.isCompleted ? (
-                          <CheckCircle2 className="w-8 h-8" />
-                        ) : (
-                          <node.icon className="w-8 h-8" />
-                        )}
-                      </div>
-                    </Link>
-                  )}
-                  
-                  {/* Floating Label */}
-                  <div className={cn(
-                    "absolute top-full mt-3 w-32 text-center text-xs font-bold transition-all",
-                    isLeft ? "left-1/2 -translate-x-1/2" : "right-1/2 translate-x-1/2",
-                    currentLocked ? "text-slate-400" : "text-slate-700 group-hover:text-indigo-600"
-                  )}>
-                    {node.title}
-                  </div>
+              <div className="relative w-full flex">
+                
+                {/* SVG Connecting Line */}
+                {i < nodes.length - 1 && (
+                  <svg className="absolute top-1/2 left-0 w-full h-[calc(100%+3rem)] z-0 pointer-events-none overflow-visible" preserveAspectRatio="none">
+                    <line 
+                      x1={isLeft ? "25%" : "75%"} 
+                      y1="0" 
+                      x2={isLeft ? "75%" : "25%"} 
+                      y2="100%" 
+                      stroke="currentColor" 
+                      strokeWidth="4" 
+                      strokeDasharray="8 8" 
+                      className={node.isCompleted ? "text-indigo-400" : "text-slate-300"} 
+                    />
+                  </svg>
+                )}
+
+                {/* Left Side */}
+                <div className="w-1/2 flex justify-center z-10">
+                  {isLeft && nodeContent}
                 </div>
+
+                {/* Right Side */}
+                <div className="w-1/2 flex justify-center z-10">
+                  {!isLeft && nodeContent}
+                </div>
+
               </div>
             </div>
           )

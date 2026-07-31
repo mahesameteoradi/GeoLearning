@@ -1,44 +1,78 @@
+'use client'
 import Link from 'next/link'
 import { ShieldCheck, Mail } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 export default function UntukGuruSection() {
   return (
-    <section id="untuk-guru" className="py-24 bg-white border-y border-slate-100">
+    <section id="untuk-guru" className="py-24 bg-white border-y border-slate-100 overflow-hidden">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-3xl overflow-hidden relative shadow-2xl">
+        <motion.div 
+          initial={{ opacity: 0, y: 50, scale: 0.95 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, type: "spring", stiffness: 100, damping: 20 }}
+          className="bg-gradient-to-br from-blue-600 to-indigo-800 rounded-[2.5rem] overflow-hidden relative shadow-2xl shadow-blue-900/20"
+        >
           {/* Decorative shapes */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500 rounded-full blur-3xl opacity-30 -translate-y-1/2 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-900 rounded-full blur-3xl opacity-30 translate-y-1/2 -translate-x-1/4" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-blue-400 rounded-full blur-3xl opacity-30 -translate-y-1/2 translate-x-1/4 mix-blend-overlay" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-indigo-900 rounded-full blur-3xl opacity-30 translate-y-1/2 -translate-x-1/4 mix-blend-overlay" />
           
           <div className="relative p-10 md:p-16 flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/3 flex justify-center">
-              <div className="w-32 h-32 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
-                <ShieldCheck className="w-16 h-16 text-white" />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.5, rotate: -20 }}
+              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.6, type: "spring" }}
+              className="md:w-1/3 flex justify-center"
+            >
+              <div className="w-32 h-32 bg-white/10 rounded-[2rem] flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
+                <ShieldCheck className="w-16 h-16 text-white drop-shadow-md" />
               </div>
-            </div>
+            </motion.div>
             <div className="md:w-2/3 text-center md:text-left text-white">
-              <h2 className="text-3xl md:text-4xl font-extrabold mb-6">Mengapa Tidak Ada Tombol Daftar?</h2>
-              <p className="text-blue-100 text-lg mb-10 leading-relaxed max-w-2xl">
+              <motion.h2 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="text-3xl md:text-4xl font-extrabold mb-6 tracking-tight"
+              >
+                Mengapa Tidak Ada Tombol Daftar?
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4, duration: 0.5 }}
+                className="text-blue-100 text-lg mb-10 leading-relaxed max-w-2xl font-medium"
+              >
                 Untuk menjaga keamanan dan eksklusivitas lingkungan belajar, platform kami <strong>tidak melayani pendaftaran akun mandiri</strong>. Semua akun diprovisioning (dibuatkan) secara resmi oleh pihak Sekolah atau Guru Anda.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+              </motion.p>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
+              >
                 <Link 
                   href="/login"
-                  className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold transition-all hover:bg-blue-50 hover:shadow-xl hover:shadow-blue-900/20"
+                  className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-bold transition-all hover:bg-blue-50 hover:shadow-xl hover:shadow-blue-900/20 hover:-translate-y-1"
                 >
                   Sudah punya akun? Masuk
                 </Link>
                 <a 
                   href="mailto:admin@sekolah.edu"
-                  className="flex items-center justify-center gap-2 bg-blue-700/50 text-white border border-blue-500 px-8 py-4 rounded-xl font-bold transition-all hover:bg-blue-700"
+                  className="flex items-center justify-center gap-2 bg-blue-700/50 backdrop-blur-sm text-white border border-blue-400/50 px-8 py-4 rounded-2xl font-bold transition-all hover:bg-blue-700 hover:border-blue-400 hover:-translate-y-1"
                 >
                   <Mail className="w-5 h-5" />
-                  Hubungi Admin Sekolah
+                  Hubungi Admin
                 </a>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   )

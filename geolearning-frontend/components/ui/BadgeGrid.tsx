@@ -54,9 +54,9 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
             title={`${badge.display_name}: ${badge.description}`}
             className={cn(
               // No scale transform — use border-color change instead (no composite layer)
-              'group relative flex flex-col items-center gap-1 rounded-xl p-2.5 transition-colors duration-150',
+              'group relative flex flex-col items-center gap-1 rounded-xl p-2.5 transition-all duration-300',
               isEarned
-                ? 'cursor-pointer border border-slate-200 bg-slate-100 hover:border-blue-200 hover:bg-blue-50'
+                ? 'cursor-pointer border border-slate-200 bg-slate-100 hover:border-blue-300 hover:bg-blue-50 hover:scale-110 hover:-translate-y-1 hover:shadow-md hover:z-10'
                 : 'cursor-default border border-white/[0.04] bg-transparent opacity-25 grayscale'
             )}
           >

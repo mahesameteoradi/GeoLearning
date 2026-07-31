@@ -2,15 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { BookMarked, Users, BookOpen, Copy, Check, Plus, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { createClient } from '@/lib/supabase/client'
 import { CreateClassModal } from '@/components/teacher/CreateClassModal'
+import { EditClassModal } from '@/components/teacher/EditClassModal'
 import toast from 'react-hot-toast'
+import { BookMarked, Users, BookOpen, Copy, Check, Plus, TrendingUp, Trash2, Edit2 } from 'lucide-react'
 
 interface ClassItem {
   id: string
   name: string
   description: string | null
+  gamification_mode?: string
   join_code: string
   flashcards?: any
   moduleCount: number
@@ -52,6 +55,28 @@ function CopyableCode({ code }: { code: string }) {
 
 export function ClassesClient({ classes, teacherId, totalStudents, totalModules }: ClassesClientProps) {
   const [showModal, setShowModal] = useState(false)
+  const [editingClass, setEditingClass] = useState<ClassItem | null>(null)
+  const [isDeleting, setIsDeleting] = useState<string | null>(null)
+
+  const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!confirm(`Apakah Anda yakin ingin menghapus kelas "${name}"? Semua data di dalamnya akan terhapus.`)) return
+    
+    setIsDeleting(id)
+    const supabase = createClient()
+    const { error } = await supabase.from('classes').delete().eq('id', id)
+    
+    if (error) {
+      toast.error('Gagal menghapus kelas')
+      console.error(error)
+      setIsDeleting(null)
+    } else {
+      toast.success('Kelas berhasil dihapus')
+      window.location.reload()
+    }
+  }
 
   return (
     <>
@@ -105,11 +130,33 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
 
               {/* Header */}
               <div className="mb-4 flex items-start justify-between relative z-10">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 text-lg font-black text-white shadow-lg shadow-indigo-600/20">
-                  {cls.name.charAt(0).toUpperCase()}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 text-lg font-black text-white shadow-lg shadow-indigo-600/20">
+                    {cls.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col gap-1 mt-0.5">
+                  <CopyableCode code={cls.join_code} />
                 </div>
-                <CopyableCode code={cls.join_code} />
               </div>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setEditingClass(cls); }}
+                  disabled={isDeleting === cls.id}
+                  className="p-1.5 text-slate-400 opacity-0 transition-all hover:bg-blue-50 hover:text-blue-600 rounded-md group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
+                  title="Edit Kelas"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={(e) => handleDelete(e, cls.id, cls.name)}
+                  disabled={isDeleting === cls.id}
+                  className="p-1.5 text-slate-400 opacity-0 transition-all hover:bg-red-50 hover:text-red-600 rounded-md group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
+                  title="Hapus Kelas"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
 
               <h3 className="mb-1.5 line-clamp-1 text-lg font-bold text-slate-900 relative z-10">
                 {cls.name}
@@ -156,6 +203,13 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
       {/* Create Modal */}
       {showModal && (
         <CreateClassModal onClose={() => setShowModal(false)} teacherId={teacherId} />
+      )}
+
+      {editingClass && (
+        <EditClassModal 
+          onClose={() => setEditingClass(null)} 
+          classData={editingClass} 
+        />
       )}
     </>
   )

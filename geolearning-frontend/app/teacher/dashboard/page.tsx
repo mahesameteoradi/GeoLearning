@@ -3,12 +3,15 @@ import { createClient } from '@/lib/supabase/server'
 import { ClassCard } from '@/components/teacher/ClassCard'
 import { StudentProgressTable } from '@/components/teacher/StudentProgressTable'
 import { BarChart3, BookMarked, Users, AlertTriangle } from 'lucide-react'
+import { InteractiveBackground } from '@/components/ui/InteractiveBackground'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'GeoLearning — Teacher Dashboard',
   description: 'Manage your classes and monitor student progress',
 }
+
+export const dynamic = 'force-dynamic'
 
 export default async function TeacherDashboardPage() {
   const supabase = await createClient()
@@ -31,7 +34,7 @@ export default async function TeacherDashboardPage() {
   const { data: classes } = await supabase
     .from('classes')
     .select(`
-      id, name, description, join_code, flashcards,
+      id, name, description, join_code, flashcards, gamification_mode,
       modules(id),
       class_students(
         student:users!class_students_student_id_fkey(id, name, email, xp, current_streak, avatar_url)
@@ -66,7 +69,9 @@ export default async function TeacherDashboardPage() {
     : 0
 
   return (
-    <div className="min-h-full p-5 lg:p-7">
+    <div className="relative min-h-full p-5 lg:p-7 overflow-hidden bg-slate-50/50">
+      <InteractiveBackground />
+      <div className="relative z-10">
       {/* ─── Verification Warning ──────────────────────────── */}
       {profile.verification_status === 'UNVERIFIED' && (
         <div className="mb-6 rounded-2xl bg-amber-50 border border-amber-200 p-5 flex items-start gap-4">
@@ -180,6 +185,7 @@ export default async function TeacherDashboardPage() {
                   studentCount={studentCount}
                   moduleCount={(cls.modules as { id: string }[]).length}
                   avgXp={classAvgXp}
+                  gamificationMode={cls.gamification_mode}
                 />
               )
             })}
@@ -193,6 +199,7 @@ export default async function TeacherDashboardPage() {
           📊 Progres Siswa
         </h2>
         <StudentProgressTable students={allStudents ?? []} />
+      </div>
       </div>
     </div>
   )

@@ -5,24 +5,29 @@ import { Sparkles, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
-const GEOGRAPHY_FLASHCARDS = [
-  { question: 'Apa ibu kota negara Jepang?', answer: 'Tokyo' },
-  { question: 'Sungai terpanjang di dunia adalah?', answer: 'Sungai Nil' },
-  { question: 'Benua terbesar di dunia?', answer: 'Benua Asia' },
-  { question: 'Negara mana yang memiliki bentuk seperti sepatu bot?', answer: 'Italia' },
-  { question: 'Gunung tertinggi di dunia?', answer: 'Gunung Everest' },
-  { question: 'Lautan mana yang merupakan lautan terbesar?', answer: 'Samudra Pasifik' },
-  { question: 'Apa nama gurun terluas di dunia?', answer: 'Gurun Sahara' },
-]
+
 
 export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: string, customFlashcards?: { question: string, answer: string }[] }) {
-  const flashcards = customFlashcards.length > 0 ? customFlashcards : GEOGRAPHY_FLASHCARDS
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
   const [claimed, setClaimed] = useState(false)
   const [claiming, setClaiming] = useState(false)
 
+  if (!customFlashcards || customFlashcards.length === 0) {
+    return (
+      <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-8 shadow-sm relative overflow-hidden flex flex-col items-center justify-center text-center h-[240px]">
+        <Sparkles className="h-10 w-10 text-indigo-300 mb-4 opacity-50" />
+        <h2 className="text-sm font-bold uppercase tracking-widest text-indigo-600 mb-2">
+          Tebak Cepat (Flashcard)
+        </h2>
+        <p className="text-xs text-indigo-500/80 max-w-xs">
+          Belum ada flashcard yang dibuat oleh gurumu. Flashcard akan muncul di sini saat tersedia.
+        </p>
+      </div>
+    )
+  }
 
+  const flashcards = customFlashcards
   const card = flashcards[currentIndex] || flashcards[0]
 
   const handleNext = () => {
@@ -39,20 +44,21 @@ export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: str
     try {
       const supabase = createClient()
       
-      // Get current XP
-      const { data: user } = await supabase
-        .from('users')
-        .select('xp')
-        .eq('id', userId)
-        .single()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        // Add 10 XP via backend Gamification API
+        await fetch('http://localhost:3001/v1/gamification/award-xp', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            userId,
+            xpAmount: 10
+          })
+        })
         
-      if (user) {
-        // Add 10 XP
-        await supabase
-          .from('users')
-          .update({ xp: user.xp + 10 })
-          .eq('id', userId)
-          
         toast.success('+10 XP dari Flashcard Harian!', { icon: '✨' })
         setClaimed(true)
       }

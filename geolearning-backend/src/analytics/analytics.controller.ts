@@ -88,7 +88,7 @@ export class AnalyticsController {
     
     // Use raw query with ::text cast because of Postgres UUID mismatch issues
     const users: any[] = await this.prisma.$queryRaw`
-      SELECT id, name, level, xp 
+      SELECT id, name, level, xp, avatar_url 
       FROM users 
       WHERE id::text = ${userId}
     `;
@@ -101,7 +101,8 @@ export class AnalyticsController {
       id: users[0].id,
       name: users[0].name,
       level: users[0].level,
-      xp: Number(users[0].xp)
+      xp: Number(users[0].xp),
+      avatar_url: users[0].avatar_url
     };
   }
 

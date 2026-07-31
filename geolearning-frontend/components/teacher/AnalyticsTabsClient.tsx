@@ -137,7 +137,7 @@ function OverallTab({ classes, students, quizAttempts }: any) {
           { label: 'Quiz Selesai', value: completedAttempts, icon: BookOpen, color: 'text-blue-600', border: 'border-blue-300', bg: 'bg-blue-50' },
           { label: 'Rata-rata Score', value: `${avgScore}%`, icon: BarChart3, color: 'text-emerald-600', border: 'border-emerald-200', bg: 'bg-emerald-50' },
         ].map(({ label, value, icon: Icon, color, border, bg }) => (
-          <div key={label} className={`rounded-2xl border ${border} ${bg} p-4`}>
+          <div key={label} className={`rounded-2xl border ${border} ${bg} p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-${color.replace('text-', '')}/10`}>
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-500">{label}</p>
@@ -182,12 +182,12 @@ function ClassTab({ classes, students, quizAttempts }: any) {
       {classData && (
         <>
           <div className="grid grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-amber-200">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Rata-rata XP Kelas</p>
               <p className="mt-2 text-3xl font-black text-amber-500">{avgXp}</p>
               <p className="text-sm text-slate-500">Dari {classStudents.length} siswa</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:border-blue-200">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Rata-rata Kuis Kelas</p>
               <p className="mt-2 text-3xl font-black text-blue-500">{avgScore}%</p>
               <p className="text-sm text-slate-500">Dari {classQuizzes.length} pengerjaan</p>

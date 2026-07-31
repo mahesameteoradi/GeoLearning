@@ -15,6 +15,7 @@ interface Student {
   longest_streak: number
   avatar_url: string | null
   enrolledClasses?: string[]
+  badges?: { id: string, display_name: string, icon: string }[]
 }
 
 interface StudentSearchTableProps {
@@ -127,10 +128,10 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                       key={s.id}
                       onClick={() => setSelectedStudent(isSelected ? null : s)}
                       className={cn(
-                        'group cursor-pointer transition-all duration-300',
+                        'group cursor-pointer transition-all duration-300 hover:shadow-sm',
                         isSelected
-                          ? 'bg-indigo-50/60'
-                          : 'hover:bg-indigo-50/40'
+                          ? 'bg-indigo-50/80'
+                          : 'hover:bg-indigo-50/60'
                       )}
                     >
                       <td className="px-5 py-4 text-sm font-bold text-slate-600 transition-colors group-hover:text-indigo-600">
@@ -138,8 +139,12 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800">
-                            {s.name.charAt(0).toUpperCase()}
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800 overflow-hidden relative">
+                            {s.avatar_url ? (
+                              <img src={s.avatar_url} alt={s.name} className="h-full w-full object-cover" />
+                            ) : (
+                              s.name.charAt(0).toUpperCase()
+                            )}
                           </div>
                           <div>
                             <p className="font-medium text-slate-800 truncate max-w-[150px]">{s.name}</p>
@@ -213,7 +218,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
       {/* Detail Drawer */}
       {selectedStudent && (
         <div className="w-72 flex-shrink-0 animate-slide-in">
-          <div className="sticky top-0 rounded-2xl border border-slate-200 bg-white p-5">
+          <div className="sticky top-0 rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-lg">
             {/* Header */}
             <div className="mb-4 flex items-start justify-between">
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Detail Siswa</p>
@@ -227,8 +232,12 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
 
             {/* Avatar + Name */}
             <div className="mb-4 flex flex-col items-center text-center">
-              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xl font-extrabold text-slate-900 shadow-lg shadow-blue-600/20">
-                {selectedStudent.name.charAt(0).toUpperCase()}
+              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xl font-extrabold text-slate-900 shadow-lg shadow-blue-600/20 overflow-hidden relative">
+                {selectedStudent.avatar_url ? (
+                  <img src={selectedStudent.avatar_url} alt={selectedStudent.name} className="h-full w-full object-cover" />
+                ) : (
+                  selectedStudent.name.charAt(0).toUpperCase()
+                )}
               </div>
               <h3 className="font-bold text-slate-800">{selectedStudent.name}</h3>
               <p className="mt-0.5 text-xs text-slate-500">{selectedStudent.email}</p>
@@ -262,7 +271,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                 { label: 'Streak', value: `${selectedStudent.current_streak} hari`, color: 'text-orange-600' },
                 { label: 'Best Streak', value: `${selectedStudent.longest_streak} hari`, color: 'text-slate-500' },
               ].map(({ label, value, color }) => (
-                <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center">
+                <div key={label} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-sm hover:border-blue-200">
                   <p className="text-[10px] text-slate-600">{label}</p>
                   <p className={`mt-0.5 text-sm font-bold ${color}`}>{value}</p>
                 </div>
@@ -283,6 +292,28 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
             <div className="mt-1 flex justify-between text-[10px] text-slate-700">
               <span>Lv. {selectedStudent.level}</span>
               <span>{xpForLevel(selectedStudent.level + 1).toLocaleString()} XP</span>
+            </div>
+
+            {/* Badges */}
+            <div className="mt-6 border-t border-slate-100 pt-5">
+              <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">Pencapaian Badges</p>
+              {(selectedStudent.badges ?? []).length > 0 ? (
+                <div className="grid grid-cols-4 gap-2">
+                  {(selectedStudent.badges ?? []).map((badge) => (
+                    <div 
+                      key={badge.id}
+                      className="group flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm"
+                      title={badge.display_name}
+                    >
+                      <span className="text-xl leading-none">{badge.icon}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
+                  <p className="text-[11px] text-slate-600">Belum ada badge yang diraih</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

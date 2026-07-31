@@ -64,13 +64,14 @@ export class AnalyticsService {
         u.name as nama, 
         u.level, 
         u.xp, 
+        u.avatar_url,
         COALESCE(AVG(qa.score), 0) as rata_rata_skor, 
         COUNT(qa.id) as jumlah_kuis_selesai
       FROM users u
       JOIN class_students cs ON cs.student_id = u.id
       LEFT JOIN quiz_attempts qa ON qa.user_id = u.id AND qa.completed_at IS NOT NULL
       WHERE cs.class_id::text = ${classId}
-      GROUP BY u.id, u.name, u.level, u.xp
+      GROUP BY u.id, u.name, u.level, u.xp, u.avatar_url
     `;
     return data.map(d => {
       const avgScore = parseFloat(d.rata_rata_skor);
@@ -79,6 +80,7 @@ export class AnalyticsService {
         nama: d.nama,
         level: d.level,
         xp: Number(d.xp),
+        avatar_url: d.avatar_url,
         rata_rata_skor: avgScore,
         jumlah_kuis_selesai: Number(d.jumlah_kuis_selesai),
         status: avgScore >= 70 ? 'baik' : (avgScore >= 50 ? 'perlu dipantau' : 'perlu perhatian')
@@ -120,8 +122,10 @@ export class AnalyticsService {
       orderBy: { earned_at: 'asc' }
     });
     return badges.map(b => ({
+      badge_id: b.badge.id,
       badge_name: b.badge.display_name,
-      earned_at: b.earned_at
+      earned_at: b.earned_at,
+      icon: b.badge.icon
     }));
   }
 

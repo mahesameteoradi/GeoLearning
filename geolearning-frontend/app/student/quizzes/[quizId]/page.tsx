@@ -3,10 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import {
-  Clock, Zap, ChevronRight, CheckCircle, XCircle,
-  Trophy, Star, ArrowLeft, Loader2, AlertTriangle,
-} from 'lucide-react'
+import { CheckCircle, Clock, Zap, AlertTriangle, ArrowRight, Loader2, Play, MapPin, Search, ChevronRight, XCircle, Shield, ArrowLeft, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import toast from 'react-hot-toast'
 import dynamic from 'next/dynamic'
@@ -150,12 +147,16 @@ function ResultScreen({
   xpEarned,
   totalQuestions,
   correctCount,
+  questions,
+  answers,
   onBack,
 }: {
   score: number
   xpEarned: number
   totalQuestions: number
   correctCount: number
+  questions?: Question[]
+  answers?: Record<string, string>
   onBack: () => void
 }) {
   useEffect(() => {
@@ -219,14 +220,69 @@ function ResultScreen({
               </div>
             ))}
           </div>
+          
+          {/* Detailed Question Review */}
+          {questions && answers && (
+            <div className="mt-12 space-y-4 text-left">
+              <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-2 text-center">Pembahasan Kuis</h2>
+              {questions.map((q, idx) => {
+                 const studentAns = answers[q.id]
+                 const isMap = q.type === 'MAP_PINPOINT'
+                 let isCorrect = false
+                 if (isMap) {
+                    try {
+                       const parsed = JSON.parse(studentAns || '{}')
+                       isCorrect = (parsed.score || 0) > 0
+                    } catch(e){}
+                 } else {
+                    isCorrect = studentAns === q.correct_answer
+                 }
+                 return (
+                    <div key={q.id} className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                       <div className="flex items-start justify-between gap-4">
+                         <h3 className="font-semibold text-white leading-relaxed"><span className="text-indigo-300 mr-2">{idx+1}.</span> {q.text}</h3>
+                         {isCorrect ? <CheckCircle className="text-emerald-400 shrink-0 h-6 w-6 mt-0.5" /> : <XCircle className="text-rose-400 shrink-0 h-6 w-6 mt-0.5" />}
+                       </div>
+                       
+                       <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                         <div className="rounded-xl bg-white/5 p-3.5 border border-white/5 shadow-inner">
+                            <p className="text-[11px] uppercase tracking-wider font-bold text-white/50 mb-1.5">Jawaban Kamu</p>
+                            <p className={cn("text-sm font-medium", isCorrect ? "text-emerald-300" : "text-rose-300")}>
+                               {isMap ? (studentAns ? 'Pin di peta' : 'Tidak dijawab') : (studentAns || 'Tidak dijawab')}
+                            </p>
+                         </div>
+                         <div className="rounded-xl bg-white/5 p-3.5 border border-white/5 shadow-inner">
+                            <p className="text-[11px] uppercase tracking-wider font-bold text-white/50 mb-1.5">Jawaban Benar</p>
+                            <p className="text-sm font-medium text-emerald-300">
+                               {isMap ? 'Lokasi target' : q.correct_answer}
+                            </p>
+                         </div>
+                       </div>
+                       
+                       {q.explanation && (
+                         <div className="mt-5 rounded-xl bg-indigo-500/20 border border-indigo-400/30 p-4 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400"></div>
+                            <p className="text-[11px] font-bold text-indigo-200 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                              <span>💡</span> Penjelasan Guru
+                            </p>
+                            <p className="text-sm text-indigo-100/90 leading-relaxed font-medium">{q.explanation}</p>
+                         </div>
+                       )}
+                    </div>
+                 )
+              })}
+            </div>
+          )}
 
-          <button
-            onClick={onBack}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-bold text-indigo-900 shadow-xl shadow-black/20 hover:bg-slate-100 transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Kembali ke Daftar Kuis
-          </button>
+          <div className="mt-10 flex flex-col gap-3 pb-12">
+            <button
+              onClick={onBack}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-bold text-indigo-900 shadow-xl shadow-black/20 hover:bg-slate-100 hover:scale-105 transition-all duration-300"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali ke Daftar Kuis
+            </button>
+          </div>
         </div>
       </div>
     </>
@@ -245,9 +301,10 @@ export default function QuizPlayerPage() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [selectedOption, setSelectedOption] = useState<string | null>(null)
   const [mapAnswer, setMapAnswer] = useState<{lat: number, lng: number} | null>(null)
-  const [answers, setAnswers] = useState<Record<string, string>>({})  // questionId → selected JSON
+  const [answers, setAnswers] = useState<Record<string, string>>({})
 
   const [timeLeft, setTimeLeft] = useState(0)
+  const [currentTotalTime, setCurrentTotalTime] = useState(0)
   const [attemptId, setAttemptId] = useState<string | null>(null)
   const [result, setResult] = useState<{ score: number; xpEarned: number; correctCount: number } | null>(null)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
@@ -258,6 +315,11 @@ export default function QuizPlayerPage() {
   const [timeBonusActive, setTimeBonusActive] = useState(false)
   const [praiseText, setPraiseText] = useState('Mantap!')
 
+  const [protections, setProtections] = useState(0)
+  const [retryQueue, setRetryQueue] = useState<Question[]>([])
+  const [nextQuestionBonus, setNextQuestionBonus] = useState(0)
+  const [retriedIds, setRetriedIds] = useState<Set<string>>(new Set())
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   // Load quiz data
@@ -266,21 +328,6 @@ export default function QuizPlayerPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setState('error'); return }
       setUserId(user.id)
-
-      // Check if already completed
-      const { data: existing } = await supabase
-        .from('quiz_attempts')
-        .select('id, score, xp_earned, completed_at')
-        .eq('quiz_id', quizId)
-        .eq('user_id', user.id)
-        .not('completed_at', 'is', null)
-        .maybeSingle()
-
-      if (existing?.completed_at) {
-        setState('already_done')
-        setResult({ score: existing.score, xpEarned: existing.xp_earned, correctCount: 0 })
-        return
-      }
 
       const { data: q } = await supabase
         .from('quizzes')
@@ -296,9 +343,40 @@ export default function QuizPlayerPage() {
 
       const sorted = [...(q.questions as Question[])].sort((a, b) => a.order - b.order)
       setQuiz({ ...q, questions: sorted })
+
+      // Check if already completed
+      const { data: existing } = await supabase
+        .from('quiz_attempts')
+        .select('id, score, xp_earned, completed_at, answers')
+        .eq('quiz_id', quizId)
+        .eq('user_id', user.id)
+        .not('completed_at', 'is', null)
+        .maybeSingle()
+
+      if (existing?.completed_at) {
+        let correctCount = 0
+        const ansObj = (existing.answers as Record<string, string>) || {}
+        for (const question of sorted) {
+           const studentAns = ansObj[question.id]
+           if (question.type === 'MAP_PINPOINT') {
+              try {
+                const parsed = JSON.parse(studentAns || '{}')
+                if (parsed.score > 0) correctCount++
+              } catch(e){}
+           } else {
+              if (studentAns === question.correct_answer) correctCount++
+           }
+        }
+        setAnswers(ansObj)
+        setResult({ score: existing.score, xpEarned: existing.xp_earned, correctCount })
+        setState('already_done')
+        return
+      }
       
       const firstQ = sorted[0]
-      setTimeLeft(firstQ?.duration ?? q.time_limit ?? 0)
+      const t = firstQ?.duration ?? q.time_limit ?? 0
+      setTimeLeft(t)
+      setCurrentTotalTime(t)
       setState('ready')
     }
     load()
@@ -318,7 +396,11 @@ export default function QuizPlayerPage() {
     setAttemptId(data.id)
     setState('playing')
     playSound('start')
-    if (quiz.time_limit) setTimeLeft(quiz.time_limit)
+    
+    const firstQ = quiz.questions[0]
+    const initialTime = firstQ?.duration ?? quiz.time_limit ?? 0
+    setTimeLeft(initialTime)
+    setCurrentTotalTime(initialTime)
   }, [quiz, userId, supabase])
 
   // Timer
@@ -400,10 +482,14 @@ export default function QuizPlayerPage() {
       setPraiseText(praises[Math.min(newStreak - 1, praises.length - 1)])
 
       // Time Bonus mechanic
-      if (newStreak > 1 && newStreak % 3 === 0 && quiz?.time_limit) {
-        setTimeBonusActive(true)
-        setTimeLeft(t => t + 10) // +10s bonus!
-        setTimeout(() => setTimeBonusActive(false), 2000)
+      if (newStreak > 1 && newStreak % 3 === 0) {
+        setNextQuestionBonus(10)
+      }
+
+      // Protection mechanic
+      if (newStreak > 1 && newStreak % 5 === 0) {
+        setProtections(p => p + 1)
+        toast.success('🛡️ Perlindungan Didapat! Kesalahan tidak akan langsung menghapus poin.')
       }
 
       if (newStreak > 1) {
@@ -415,6 +501,13 @@ export default function QuizPlayerPage() {
       setStreak(0)
       setShake(true)
       setTimeout(() => setShake(false), 400)
+      
+      if (protections > 0) {
+        setProtections(p => p - 1)
+        toast.success('🛡️ Perlindungan Aktif! Pertanyaan akan diulang di akhir.')
+        setRetryQueue(prev => [...prev, q])
+        setRetriedIds(prev => new Set(prev).add(q.id))
+      }
     }
 
     // Auto advance after 3 seconds (Quizizz style) only for multiple choice
@@ -437,64 +530,51 @@ export default function QuizPlayerPage() {
     let totalXp = 0
     let maxTotalPoints = 0
 
-    for (const q of quiz.questions) {
+    const uniqueQuestions = Array.from(new Map(quiz.questions.map(q => [q.id, q])).values())
+    for (const q of uniqueQuestions) {
       const qPoints = q.points ?? quiz.xp_reward ?? 100
       maxTotalPoints += qPoints
 
       if (q.type === 'MAP_PINPOINT') {
         try {
           const answerObj = JSON.parse(finalAnswers[q.id] || '{}')
-          if (answerObj.score > 0) correct++
-          totalXp += (answerObj.score || 0)
+          if (answerObj.score > 0) {
+            correct++
+            totalXp += retriedIds.has(q.id) ? (answerObj.score || 0) * 0.5 : (answerObj.score || 0)
+          }
         } catch (e) {}
       } else {
         if (finalAnswers[q.id] === q.correct_answer) {
           correct++
-          totalXp += qPoints
+          totalXp += retriedIds.has(q.id) ? qPoints * 0.5 : qPoints
         }
       }
     }
-    const score = maxTotalPoints > 0 ? (totalXp / maxTotalPoints) * 100 : 0
-    const xpEarned = totalXp
+    const rawScore = maxTotalPoints > 0 ? (totalXp / maxTotalPoints) * 100 : 0
+    const score = Math.round(rawScore)
+    const xpEarned = Math.round(totalXp)
 
-    const { error } = await supabase.from('quiz_attempts').update({
-      score,
-      xp_earned: xpEarned,
-      answers: finalAnswers,
-      completed_at: new Date().toISOString(),
-    }).eq('id', attemptId)
-
-    if (error) console.error('[QuizPlayer] submit error:', error)
-    
-    // Call gamification backend to award XP, calculate streaks, and unlock badges
-    if (xpEarned > 0) {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (session) {
-          const { count } = await supabase
-            .from('quiz_attempts')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', userId)
-            .not('completed_at', 'is', null)
-
-          await fetch('http://localhost:3001/v1/gamification/award-xp', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify({
-              userId,
-              xpAmount: xpEarned,
-              quizAttemptId: attemptId,
-              quizScore: score,
-              isFirstQuiz: count === 1
-            })
-          })
-        }
-      } catch (err) {
-        console.error('Failed to trigger gamification:', err)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      const res = await fetch('/api/quizzes/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          attemptId,
+          userId,
+          score,
+          xpEarned,
+          finalAnswers,
+          accessToken: session?.access_token
+        })
+      })
+      const result = await res.json()
+      if (!result.success) {
+        console.error('[QuizPlayer] API submit error:', result.error)
       }
+    } catch (err) {
+      console.error('Failed to submit quiz:', err)
     }
 
     setResult({ score, xpEarned, correctCount: correct })
@@ -505,20 +585,45 @@ export default function QuizPlayerPage() {
   
   const handleNext = useCallback(() => {
     if (!quiz) return
+    let nextQ: Question | undefined;
+    let nextIdx = currentIndex;
+
     if (currentIndex < quiz.questions.length - 1) {
-      const nextIdx = currentIndex + 1
+      nextIdx = currentIndex + 1
+      nextQ = quiz.questions[nextIdx]
       setCurrentIndex(nextIdx)
-      setSelectedOption(null)
-      setMapAnswer(null)
-      setIsCorrect(null)
-      setState('playing')
-      const nextQ = quiz.questions[nextIdx]
-      setTimeLeft(nextQ.duration ?? quiz.time_limit ?? 0)
+    } else if (retryQueue.length > 0) {
+      nextQ = retryQueue[0]
+      setRetryQueue(prev => prev.slice(1))
+      
+      setQuiz(prev => {
+        if (!prev) return prev
+        return { ...prev, questions: [...prev.questions, nextQ!] }
+      })
+      
+      nextIdx = currentIndex + 1
+      setCurrentIndex(nextIdx)
     } else {
       clearInterval(timerRef.current!)
       handleSubmit()
+      return
     }
-  }, [quiz, currentIndex, handleSubmit])
+
+    setSelectedOption(null)
+    setMapAnswer(null)
+    setIsCorrect(null)
+    setState('playing')
+    
+    let newTime = nextQ.duration ?? quiz.time_limit ?? 0
+    if (nextQuestionBonus > 0) {
+      newTime += nextQuestionBonus
+      setTimeBonusActive(true)
+      setTimeout(() => setTimeBonusActive(false), 2000)
+      setNextQuestionBonus(0)
+    }
+    setCurrentTotalTime(newTime)
+    setTimeLeft(newTime)
+  }, [quiz, currentIndex, handleSubmit, retryQueue, nextQuestionBonus])
 
   useEffect(() => {
     handleNextRef.current = handleNext
@@ -546,28 +651,16 @@ export default function QuizPlayerPage() {
     )
   }
 
-  if (state === 'already_done' && result) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950">
-        <div className="flex flex-col items-center gap-4">
-          <CheckCircle className="h-16 w-16 text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.8)]" />
-          <h1 className="text-2xl font-black text-white">Kuis Sudah Dikerjakan</h1>
-          <p className="text-purple-200">Nilaimu: <span className="text-3xl font-black text-amber-400">{result.score.toFixed(0)}%</span></p>
-          <button onClick={() => router.push('/student/quizzes')} className="mt-4 rounded-xl bg-white px-8 py-3.5 text-sm font-bold text-indigo-900 hover:bg-slate-100 transition-colors shadow-xl">
-            Kembali ke Daftar Kuis
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (state === 'finished' && result) {
+  if ((state === 'already_done' || state === 'finished') && result) {
+    const uniqueQuestions = quiz ? Array.from(new Map(quiz.questions.map(q => [q.id, q])).values()) : []
     return (
       <ResultScreen
         score={result.score}
         xpEarned={result.xpEarned}
-        totalQuestions={quiz?.questions.length ?? 0}
+        totalQuestions={uniqueQuestions.length}
         correctCount={result.correctCount}
+        questions={uniqueQuestions}
+        answers={answers}
         onBack={() => router.push('/student/quizzes')}
       />
     )
@@ -588,7 +681,7 @@ export default function QuizPlayerPage() {
           </div>
           
           <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-left text-sm text-purple-100 backdrop-blur-md shadow-xl">
-            <p className="font-bold text-white mb-3 text-base flex items-center gap-2">🕹️ Cara Bermain:</p>
+            <p className="font-bold text-white mb-3 text-base flex items-center gap-2">📢 Pengumuman & Cara Bermain:</p>
             <ul className="space-y-2.5">
               <li className="flex items-start gap-2">👉 <span>Pilih satu jawaban yang paling tepat.</span></li>
               <li className="flex items-start gap-2">🔥 <span>Raih <b>Streak (3x berturut-turut)</b> untuk <b>Bonus Waktu +10 Detik!</b></span></li>
@@ -612,10 +705,13 @@ export default function QuizPlayerPage() {
   // Playing / reviewing
   if (!quiz) return null
   const currentQ = quiz.questions[currentIndex]
-  const progress = ((currentIndex + 1) / quiz.questions.length) * 100
+  const uniqueQ = Array.from(new Map(quiz.questions.map(q => [q.id, q])).values())
+  const totalSoal = uniqueQ.length
+  const displayIndex = Math.min(currentIndex + 1, totalSoal)
+  const progress = (displayIndex / totalSoal) * 100
 
-  // Royalty free upbeat 8-bit game music loop
-  const BGM_URL = "https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b0c7443c.mp3?filename=8-bit-arcade-138828.mp3"
+  // Royalty free upbeat chill lofi track for better quiz experience
+  const BGM_URL = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950 p-4 relative overflow-hidden">
@@ -675,11 +771,19 @@ export default function QuizPlayerPage() {
         <div className="mb-6 space-y-4">
           {/* Progress */}
           <div className="flex items-center justify-between text-sm font-bold text-purple-200">
-            <span className="bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">Soal {currentIndex + 1} / {quiz.questions.length}</span>
-            <span className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/50 px-3 py-1 rounded-full backdrop-blur-sm">
-              <Zap className="h-4 w-4" />
-              +{quiz.xp_reward} XP
-            </span>
+            <span className="bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">Soal {displayIndex} / {totalSoal}</span>
+            <div className="flex items-center gap-2">
+              {protections > 0 && (
+                <span className="flex items-center gap-1.5 bg-blue-500/20 text-blue-300 border border-blue-500/50 px-3 py-1 rounded-full backdrop-blur-sm shadow-[0_0_10px_rgba(59,130,246,0.3)]">
+                  <Shield className="h-4 w-4" />
+                  {protections}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/50 px-3 py-1 rounded-full backdrop-blur-sm">
+                <Zap className="h-4 w-4" />
+                +{quiz.xp_reward} XP
+              </span>
+            </div>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-white/10 shadow-inner">
             <div
@@ -688,9 +792,9 @@ export default function QuizPlayerPage() {
             />
           </div>
           {/* Timer */}
-          {quiz.time_limit && timeLeft > 0 && (
+          {currentTotalTime > 0 && timeLeft > 0 && (
             <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/5">
-              <TimerBar seconds={timeLeft} total={quiz.time_limit} />
+              <TimerBar seconds={timeLeft} total={currentTotalTime} />
             </div>
           )}
         </div>

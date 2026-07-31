@@ -12,29 +12,30 @@ const InteractiveMapEditorClient = dynamic(
 )
 
 interface Props {
-  moduleId: string
-  title: string
-  description?: string
+  existingModules: {id: string, title: string}[]
+  defaultModuleId: string
+  nextOrderMap?: Record<string, number>
+  defaultTitle: string
   onClose: () => void
   onSuccess: (mat: any) => void
 }
 
-export function InteractiveMapEditorModal({ moduleId, title, description, onClose, onSuccess }: Props) {
+export function InteractiveMapEditorModal({ existingModules, defaultModuleId, nextOrderMap, defaultTitle, onClose, onSuccess }: Props) {
   const [saving, setSaving] = useState(false)
 
-  async function handleSave(data: InteractiveMapData) {
+  async function handleSave(data: InteractiveMapData, meta: { title: string, moduleId: string, order: number }) {
     setSaving(true)
     const supabase = createClient()
     
     // Save to database
     const { data: mat, error } = await supabase.from('materials').insert({
       id: crypto.randomUUID(),
-      module_id: moduleId,
-      title: title,
+      module_id: meta.moduleId,
+      title: meta.title.trim(),
       type: 'INTERACTIVE_MAP',
       content_url: null,
       content_text: JSON.stringify(data),
-      order: 0,
+      order: meta.order,
       updated_at: new Date().toISOString(),
     }).select().single()
 
@@ -54,7 +55,14 @@ export function InteractiveMapEditorModal({ moduleId, title, description, onClos
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
       <div className="relative">
-        <InteractiveMapEditorClient onSave={handleSave} onCancel={onClose} />
+        <InteractiveMapEditorClient 
+          existingModules={existingModules}
+          defaultModuleId={defaultModuleId}
+          nextOrderMap={nextOrderMap}
+          defaultTitle={defaultTitle}
+          onSave={handleSave} 
+          onCancel={onClose} 
+        />
         
         {saving && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-[500] flex items-center justify-center rounded-2xl">

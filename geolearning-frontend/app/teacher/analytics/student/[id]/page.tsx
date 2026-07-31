@@ -63,9 +63,15 @@ export default async function StudentDetailAnalyticsPage({ params }: { params: P
             <Link href="/teacher/analytics" className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-110 text-white">
               <ArrowLeft className="h-5 w-5" />
             </Link>
-            <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm drop-shadow-md">
-              <UserIcon className="h-8 w-8 text-white" />
-            </div>
+            {student.avatar_url ? (
+              <div className="h-16 w-16 flex-shrink-0 rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner drop-shadow-md overflow-hidden relative">
+                <img src={student.avatar_url} alt={student.name} className="h-full w-full object-cover" />
+              </div>
+            ) : (
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm drop-shadow-md">
+                <UserIcon className="h-8 w-8 text-white" />
+              </div>
+            )}
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
                 {student.name}

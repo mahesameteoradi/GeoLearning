@@ -29,7 +29,8 @@ export default async function TeacherClassDetailPage({
       id, name, description, join_code,
       modules(
         id, class_id, title, order,
-        materials(id, module_id, title, type, content_url, content_text, order, created_at)
+        materials(id, module_id, title, type, content_url, content_text, order, created_at),
+        quizzes(id, module_id, title, time_limit, xp_reward, order, is_published, created_at)
       )
     `)
     .eq('id', classId)
@@ -38,29 +39,13 @@ export default async function TeacherClassDetailPage({
 
   if (error || !cls) redirect('/teacher/classes')
 
-  // Sort materials by created_at descending (newest first)
+  // Sort materials and quizzes by order
   const sortedCls = {
     ...cls,
-    modules: (cls.modules ?? []).map((mod: {
-      id: string
-      class_id: string
-      title: string
-      order: number
-      materials: {
-        id: string
-        module_id: string
-        title: string
-        type: string
-        content_url: string | null
-        content_text: string | null
-        order: number
-        created_at: string
-      }[]
-    }) => ({
+    modules: (cls.modules ?? []).map((mod: any) => ({
       ...mod,
-      materials: [...(mod.materials ?? [])].sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      ),
+      materials: [...(mod.materials ?? [])].sort((a, b) => a.order - b.order),
+      quizzes: [...(mod.quizzes ?? [])].sort((a, b) => a.order - b.order),
     })),
   }
 

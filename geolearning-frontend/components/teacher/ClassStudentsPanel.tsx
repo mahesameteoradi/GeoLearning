@@ -157,14 +157,14 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
           )}
           <button 
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-50 hover:shadow-sm active:scale-95"
           >
             <UserPlus className="h-4 w-4" />
             Tambah Siswa
           </button>
           <button 
             onClick={() => setShowImportModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all duration-200 hover:bg-blue-700 hover:shadow-blue-600/40 hover:-translate-y-0.5 active:scale-95"
           >
             <UploadCloud className="h-4 w-4" />
             Import Siswa
@@ -209,7 +209,7 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((s, idx) => (
-                  <tr key={s.id} className={`hover:bg-slate-50/50 ${selectedStudents.includes(s.id) ? 'bg-blue-50/30' : ''}`}>
+                  <tr key={s.id} className={`transition-colors duration-200 hover:bg-slate-100 ${selectedStudents.includes(s.id) ? 'bg-blue-50/30' : ''}`}>
                     <td className="px-5 py-3">
                       <input 
                         type="checkbox" 

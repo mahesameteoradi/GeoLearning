@@ -26,6 +26,7 @@ interface QuizCard {
     xp_earned: number
     completed_at: string | null
   } | null
+  isLocked: boolean
 }
 
 function Skeleton({ className }: { className?: string }) {
@@ -51,10 +52,10 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
 
   return (
     <div className={cn(
-      'group relative rounded-2xl border bg-white p-5 transition-all',
+      'group relative rounded-2xl border bg-white p-5 transition-all duration-300 cursor-pointer hover:-translate-y-1.5 hover:shadow-xl hover:scale-[1.02]',
       done
-        ? 'border-emerald-200 hover:border-emerald-200'
-        : 'border-slate-200 hover:border-blue-300 hover:shadow-lg hover:shadow-violet-900/10'
+        ? 'border-emerald-200 hover:border-emerald-300 hover:shadow-emerald-900/10'
+        : 'border-slate-200 hover:border-blue-300 hover:shadow-blue-900/10'
     )}>
       {/* Badge */}
       <div className="mb-3 flex items-center gap-2">
@@ -96,7 +97,7 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
       </div>
 
       {/* Score or CTA */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between relative z-10">
         {done ? (
           <div>
             <p className={`text-2xl font-bold tabular-nums ${scoreColor}`}>
@@ -112,19 +113,33 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
           <p className="text-xs text-slate-600">Belum dikerjakan</p>
         )}
 
-        <Link
-          href={`/student/quizzes/${quiz.id}`}
-          className={cn(
-            'flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-colors',
-            done
-              ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-50'
-              : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20'
-          )}
-        >
-          {done ? 'Lihat Detail' : 'Mulai Kuis'}
-          <ChevronRight className="h-3.5 w-3.5" />
-        </Link>
+        {quiz.isLocked && !done ? (
+          <div className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
+            <Lock className="h-3.5 w-3.5" />
+            Materi Belum Selesai
+          </div>
+        ) : (
+          <Link
+            href={`/student/quizzes/${quiz.id}`}
+            className={cn(
+              'flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300',
+              done
+                ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 group-hover:scale-105'
+                : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20 group-hover:scale-105 group-hover:shadow-blue-500/30'
+            )}
+          >
+            {done ? 'Lihat Detail' : 'Mulai Kuis'}
+            <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+          </Link>
+        )}
       </div>
+      
+      {/* Make the whole card clickable by placing a transparent link over it */}
+      {!quiz.isLocked && (
+        <Link href={`/student/quizzes/${quiz.id}`} className="absolute inset-0 z-0 rounded-2xl">
+          <span className="sr-only">Go to quiz</span>
+        </Link>
+      )}
     </div>
   )
 }
@@ -163,7 +178,7 @@ export default function StudentQuizzesPage() {
     const { data: rawQuizzes } = await supabase
       .from('quizzes')
       .select(`
-        id, title, class_id, time_limit, xp_reward, created_at,
+        id, title, class_id, module_id, time_limit, xp_reward, created_at,
         questions(id)
       `)
       .in('class_id', classIds)
@@ -185,16 +200,34 @@ export default function StudentQuizzesPage() {
       attemptMap[a.quiz_id] = { score: a.score ?? 0, xp_earned: a.xp_earned ?? 0, completed_at: a.completed_at }
     }
 
-    const mapped: QuizCard[] = (rawQuizzes ?? []).map(q => ({
-      id: q.id,
-      title: q.title,
-      class_name: q.class_id ? (classMap[q.class_id] ?? 'Kelas') : 'Kelas',
-      question_count: (q.questions as { id: string }[]).length,
-      time_limit: q.time_limit,
-      xp_reward: q.xp_reward,
-      created_at: q.created_at,
-      attempt: attemptMap[q.id] ?? null,
-    }))
+    // Material completions logic
+    const moduleIds = Array.from(new Set((rawQuizzes ?? []).map(q => q.module_id).filter(Boolean)))
+    const { data: materials } = moduleIds.length > 0 
+      ? await supabase.from('materials').select('id, module_id').in('module_id', moduleIds)
+      : { data: [] }
+    
+    const { data: completions } = await supabase.from('material_completions').select('material_id').eq('user_id', user.id)
+    const completedSet = new Set((completions ?? []).map(c => c.material_id))
+
+    const mapped: QuizCard[] = (rawQuizzes ?? []).map(q => {
+      let isLocked = false
+      if (q.module_id && materials) {
+        const modMats = materials.filter(m => m.module_id === q.module_id)
+        isLocked = modMats.length > 0 && modMats.some(m => !completedSet.has(m.id))
+      }
+
+      return {
+        id: q.id,
+        title: q.title,
+        class_name: q.class_id ? (classMap[q.class_id] ?? 'Kelas') : 'Kelas',
+        question_count: (q.questions as { id: string }[]).length,
+        time_limit: q.time_limit,
+        xp_reward: q.xp_reward,
+        created_at: q.created_at,
+        attempt: attemptMap[q.id] ?? null,
+        isLocked,
+      }
+    })
 
     setQuizzes(mapped)
     setLoading(false)
@@ -207,14 +240,23 @@ export default function StudentQuizzesPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
-      <div className="mb-6">
-        <h1 className="flex items-center gap-2 text-xl font-bold text-slate-900">
-          <ClipboardList className="h-5 w-5 text-blue-600" />
-          Kuis
-        </h1>
-        <p className="mt-0.5 text-sm text-slate-500">
-          Kerjakan kuis dari gurumu dan kumpulkan XP!
-        </p>
+      {/* ── Page Header ──────────────────────────────────────────────────── */}
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+            <Zap className="h-8 w-8 text-amber-300" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Kuis & Ujian</h1>
+            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+              Kerjakan kuis dari gurumu, uji kemampuanmu, dan kumpulkan banyak XP!
+            </p>
+          </div>
+        </div>
       </div>
 
       {loading && (

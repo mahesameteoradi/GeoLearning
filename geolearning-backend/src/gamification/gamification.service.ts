@@ -273,6 +273,30 @@ export class GamificationService {
         // Single user project
         xpResult = await this.awardXP(submission.user_id, xpEarned, { source: 'project', referenceId: submissionId });
       }
+
+      // Create notification
+      const message = `Tugas Proyek "${submission.assignment.title}" telah dinilai! Anda mendapatkan skor ${score} dan +${xpEarned} XP.`;
+      if (groupMembers.length > 0) {
+        await Promise.all(
+          groupMembers.map(memberId => 
+            this.prisma.notification.create({
+              data: {
+                user_id: memberId,
+                message,
+                type: 'ACHIEVEMENT',
+              }
+            })
+          )
+        );
+      } else {
+        await this.prisma.notification.create({
+          data: {
+            user_id: submission.user_id,
+            message,
+            type: 'ACHIEVEMENT',
+          }
+        });
+      }
     }
 
     return {

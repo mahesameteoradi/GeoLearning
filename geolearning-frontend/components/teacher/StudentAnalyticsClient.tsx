@@ -275,9 +275,16 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
               {badgeTimeline.length > 0 ? (
                 <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar">
                   {badgeTimeline.map((b, i) => (
-                    <div key={i} className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 text-center transition-all hover:bg-indigo-50 hover:shadow-md">
+                    <div 
+                      key={i} 
+                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 text-center transition-all hover:bg-indigo-50 hover:shadow-md"
+                    >
                       <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-inner">
-                        <Award className="h-6 w-6" />
+                        {b.icon ? (
+                          <span className="text-2xl leading-none">{b.icon}</span>
+                        ) : (
+                          <Award className="h-6 w-6" />
+                        )}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-800 line-clamp-2">{b.badge_name}</p>

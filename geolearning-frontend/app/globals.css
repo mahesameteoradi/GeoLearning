@@ -75,9 +75,14 @@ body {
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.animate-slide-in  { animation: slide-in 0.2s ease-out forwards; }
-.animate-fade-out  { animation: fade-out 0.18s ease-in forwards; }
-.animate-pop-in    { animation: pop-in 0.2s ease-out forwards; }
+.animate-slide-in  { animation: slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-fade-out  { animation: fade-out 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.animate-pop-in    { animation: pop-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+/* ─── Premium Smooth Transitions ───────────────────────────────── */
+.transition-all, .transition-transform, .transition-shadow, .transition-colors, .transition {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
 
 /* ─── Card Surface ───────────────────────────────────── */
 .card {

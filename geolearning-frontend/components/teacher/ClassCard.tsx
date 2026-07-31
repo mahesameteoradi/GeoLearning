@@ -21,6 +21,7 @@ interface ClassCardProps {
   studentCount: number
   moduleCount: number
   avgXp?: number
+  gamificationMode?: string
   className?: string
 }
 
@@ -33,6 +34,7 @@ export function ClassCard({
   studentCount,
   moduleCount,
   avgXp = 0,
+  gamificationMode = 'STANDARD',
   className,
 }: ClassCardProps) {
   const [isEditing, setIsEditing] = useState(false)
@@ -92,6 +94,8 @@ export function ClassCard({
     setCards(currentCards)
   }
 
+
+
   return (
     <div
       className={cn(
@@ -103,12 +107,15 @@ export function ClassCard({
       <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-50 to-blue-50 blur-3xl transition-all duration-500 group-hover:bg-indigo-100 group-hover:scale-150" />
 
       <div className="mb-3 flex items-start justify-between relative z-10">
-        <Link href={`/teacher/classes/${id}`} className="hover:underline">
-          <h3 className="line-clamp-1 text-base font-bold text-slate-900">{name}</h3>
-        </Link>
-        <code className="ml-2 flex-shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-mono text-slate-500">
-          {joinCode}
-        </code>
+        <div className="flex flex-col">
+          <Link href={`/teacher/classes/${id}`} className="hover:underline">
+            <h3 className="line-clamp-1 text-base font-bold text-slate-900 pr-12">{name}</h3>
+          </Link>
+          <code className="mt-1 w-fit flex-shrink-0 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-mono text-slate-500">
+            {joinCode}
+          </code>
+        </div>
+
       </div>
 
       {/* Reminder Section */}
@@ -221,6 +228,8 @@ export function ClassCard({
           <span className="text-[10px] text-slate-500">Avg XP</span>
         </div>
       </div>
+
+
     </div>
   )
 }

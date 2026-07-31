@@ -86,6 +86,19 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
     setLastRefreshed(new Date())
   }, [quiz.id, supabase])
 
+  const handleResetAttempt = async (attemptId: string, studentName: string) => {
+    if (!confirm(`Hapus nilai dan reset kuis untuk ${studentName}? Siswa dapat mengerjakan ulang kuis ini.`)) return
+    
+    try {
+      const { error } = await supabase.from('quiz_attempts').delete().eq('id', attemptId)
+      if (error) throw error
+      import('react-hot-toast').then((m) => m.default.success(`Kuis ${studentName} berhasil direset`))
+      loadAttempts()
+    } catch (err) {
+      import('react-hot-toast').then((m) => m.default.error('Gagal mereset kuis'))
+    }
+  }
+
   useEffect(() => {
     loadAttempts()
 
@@ -257,6 +270,7 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                       <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-600">XP</th>
                       <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-widest text-slate-600">Waktu</th>
                       <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-slate-600">Selesai</th>
+                      <th className="px-4 py-2.5 text-right text-[10px] font-semibold uppercase tracking-widest text-slate-600">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.04]">
@@ -283,6 +297,15 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                           {a.completed_at
                             ? formatDistanceToNow(new Date(a.completed_at), { addSuffix: true, locale: idLocale })
                             : '—'}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleResetAttempt(a.id, a.student_name)}
+                            title="Reset kuis siswa ini"
+                            className="inline-flex items-center justify-center rounded-lg bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition-colors"
+                          >
+                            <RefreshCw className="h-3.5 w-3.5" />
+                          </button>
                         </td>
                       </tr>
                     ))}

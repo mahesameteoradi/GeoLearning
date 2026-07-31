@@ -46,22 +46,36 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {sorted.map((student, idx) => {
+            {sorted.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-12 text-center">
+                  <div className="flex flex-col items-center justify-center text-slate-400">
+                    <Flame className="h-8 w-8 mb-3 opacity-20" />
+                    <p className="text-sm font-semibold text-slate-500">Belum ada progres siswa</p>
+                    <p className="text-xs mt-1">Undang siswa ke kelas Anda untuk melihat progres mereka di sini.</p>
+                  </div>
+                </td>
+              </tr>
+            ) : sorted.map((student, idx) => {
               const level = calculateLevel(student.xp)
               const progress = levelProgressPercent(student.xp)
 
               return (
                 <tr
                   key={student.id}
-                  className="group transition-all duration-300 hover:bg-indigo-50/40"
+                  className="group relative z-0 transition-all duration-300 hover:z-10 hover:scale-[1.01] hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] cursor-default"
                 >
                   <td className="px-5 py-4 text-center text-sm font-bold text-slate-500 transition-colors group-hover:text-indigo-600">
                     {idx + 1}
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800">
-                        {student.name.charAt(0).toUpperCase()}
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-500 text-sm font-bold text-white shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:shadow-md group-hover:shadow-indigo-500/30 overflow-hidden relative">
+                        {student.avatar_url ? (
+                          <img src={student.avatar_url} alt={student.name} className="h-full w-full object-cover" />
+                        ) : (
+                          student.name.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <div>
                         <p className="font-medium text-slate-800">{student.name}</p>

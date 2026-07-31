@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -33,7 +33,11 @@ export interface InteractiveMapData {
 
 interface ClientProps {
   initialData?: InteractiveMapData
-  onSave: (data: InteractiveMapData) => void
+  existingModules: {id: string, title: string}[]
+  defaultModuleId: string
+  nextOrderMap?: Record<string, number>
+  defaultTitle: string
+  onSave: (data: InteractiveMapData, meta: { title: string, moduleId: string, order: number }) => void
   onCancel: () => void
 }
 
@@ -46,16 +50,25 @@ function MapEventsHandler({ onMapClick }: { onMapClick: (lat: number, lng: numbe
   return null
 }
 
-export default function InteractiveMapEditorClient({ initialData, onSave, onCancel }: ClientProps) {
+export default function InteractiveMapEditorClient({ initialData, existingModules, defaultModuleId, nextOrderMap, defaultTitle, onSave, onCancel }: ClientProps) {
   const [markers, setMarkers] = useState<MapMarker[]>(initialData?.markers || [])
   const [center] = useState(initialData?.center || { lat: -0.7893, lng: 113.9213 })
   const [zoom] = useState(initialData?.zoom || 5)
+  const [mapTitle, setMapTitle] = useState(defaultTitle)
+  const [moduleId, setModuleId] = useState(defaultModuleId)
+  const [order, setOrder] = useState(nextOrderMap?.[defaultModuleId] ?? 1)
   const mapRef = useRef<L.Map | null>(null)
   
   const [editingMarkerId, setEditingMarkerId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [editImg, setEditImg] = useState('')
+
+  useEffect(() => {
+    if (nextOrderMap) {
+      setOrder(nextOrderMap[moduleId] || 1)
+    }
+  }, [moduleId, nextOrderMap])
 
   const handleMapClick = useCallback((lat: number, lng: number) => {
     const newMarker: MapMarker = {
@@ -98,6 +111,10 @@ export default function InteractiveMapEditorClient({ initialData, onSave, onCanc
       center: currentMap ? { lat: currentMap.getCenter().lat, lng: currentMap.getCenter().lng } : center,
       zoom: currentMap ? currentMap.getZoom() : zoom,
       markers
+    }, {
+      title: mapTitle,
+      moduleId,
+      order
     })
   }
 
@@ -138,11 +155,30 @@ export default function InteractiveMapEditorClient({ initialData, onSave, onCanc
       {/* Sidebar Area */}
       <div className="w-full md:w-80 flex flex-col border-l border-slate-200 bg-white z-10">
         <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-          <h2 className="font-bold text-slate-800">Pin Peta ({markers.length})</h2>
+          <h2 className="font-bold text-slate-800">Detail & Pin Peta</h2>
           <button onClick={onCancel} className="p-1 hover:bg-slate-200 rounded-lg text-slate-500"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="space-y-3 pb-4 border-b border-slate-200">
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Judul Peta <span className="text-red-500">*</span></label>
+              <input value={mapTitle} onChange={e => setMapTitle(e.target.value)} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" />
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Bab / Modul <span className="text-red-500">*</span></label>
+              <select value={moduleId} onChange={e => setModuleId(e.target.value)} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white">
+                {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Urutan ke- <span className="text-red-500">*</span></label>
+              <input type="number" min={0} value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" />
+            </div>
+          </div>
+
+          <h3 className="font-bold text-slate-700 text-sm">Daftar Pin ({markers.length})</h3>
+
           {editingMarkerId ? (
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
               <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
@@ -192,7 +228,7 @@ export default function InteractiveMapEditorClient({ initialData, onSave, onCanc
         </div>
 
         <div className="p-4 border-t border-slate-200 bg-white">
-          <button onClick={handleSaveAll} disabled={!!editingMarkerId || markers.length === 0} 
+          <button onClick={handleSaveAll} disabled={!!editingMarkerId || !mapTitle.trim()} 
             className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 disabled:opacity-50 transition-all">
             Simpan Peta Interaktif
           </button>

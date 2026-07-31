@@ -4,21 +4,12 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { BookMarked, Clock, CheckCircle, ArrowRight, Zap, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import toast from 'react-hot-toast'
+import Link from 'next/link'
 
 export default function StudentProjectsPage() {
   const supabase = createClient()
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  const [selectedProject, setSelectedProject] = useState<any>(null)
-  const [fileUrl, setFileUrl] = useState('')
-  const [notes, setNotes] = useState('')
-  const [submitting, setSubmitting] = useState(false)
-  const [classmates, setClassmates] = useState<any[]>([])
-  const [selectedMembers, setSelectedMembers] = useState<string[]>([])
-  const [loadingClassmates, setLoadingClassmates] = useState(false)
-  const [currentUser, setCurrentUser] = useState<any>(null)
 
   const loadData = async () => {
     setLoading(true)
@@ -49,8 +40,9 @@ export default function StudentProjectsPage() {
           if (s.user_id === user.id) return true;
           if (s.group_members) {
             try {
-              const members = typeof s.group_members === 'string' ? JSON.parse(s.group_members) : s.group_members;
-              if (Array.isArray(members) && members.includes(user.id)) return true;
+              const parsed = typeof s.group_members === 'string' ? JSON.parse(s.group_members) : s.group_members;
+              if (Array.isArray(parsed) && parsed.includes(user.id)) return true;
+              if (parsed && parsed.members && Array.isArray(parsed.members) && parsed.members.includes(user.id)) return true;
             } catch (e) {}
           }
           return false;
@@ -69,67 +61,47 @@ export default function StudentProjectsPage() {
 
   useEffect(() => {
     loadData()
-    supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user))
   }, [])
-
-  const handleSelectProject = async (proj: any) => {
-    setSelectedProject(proj)
-    setSelectedMembers(currentUser ? [currentUser.id] : [])
-    if (proj.is_group_project && proj.class_id) {
-      setLoadingClassmates(true)
-      const { data } = await supabase
-        .from('class_students')
-        .select('student:users(id, name)')
-        .eq('class_id', proj.class_id)
-      
-      const students = data?.map(d => Array.isArray(d.student) ? d.student[0] : d.student).filter(s => s && s.id !== currentUser?.id) || []
-      setClassmates(students)
-      setLoadingClassmates(false)
-    }
-  }
-
-  const handleSubmit = async () => {
-    if (!fileUrl.trim()) {
-      toast.error('Masukkan URL file/dokumen tugas Anda')
-      return
-    }
-
-    setSubmitting(true)
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      const { error } = await supabase.from('project_submissions').insert({
-        id: crypto.randomUUID(),
-        assignment_id: selectedProject.id,
-        user_id: user?.id,
-        file_url: fileUrl.trim(),
-        notes: notes.trim(),
-        group_members: selectedProject.is_group_project ? JSON.stringify(selectedMembers) : null,
-      })
-      if (error) throw error
-
-      toast.success('Tugas berhasil dikumpulkan! 🎉')
-      setSelectedProject(null)
-      setFileUrl('')
-      setNotes('')
-      setSelectedMembers([])
-      loadData()
-    } catch (err: any) {
-      toast.error(`Gagal mengumpulkan: ${err.message}`)
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-extrabold text-slate-800">Tugas Proyek</h1>
-        <p className="text-sm text-slate-500 mt-1">Kerjakan dan kumpulkan tugas proyek dari gurumu.</p>
+      {/* ── Page Header ──────────────────────────────────────────────────── */}
+      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+        
+        <div className="relative z-10 flex items-center gap-6">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+            <FileText className="h-8 w-8 text-blue-200" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Tugas Proyek</h1>
+            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+              Kerjakan dan kumpulkan tugas proyek dari gurumu. Jangan sampai terlewat tenggat waktu!
+            </p>
+          </div>
+        </div>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center text-sm text-slate-500">Memuat data tugas...</div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden min-h-[220px]">
+              <div className="flex items-start justify-between mb-4">
+                <div className="h-6 w-24 bg-slate-200 rounded-lg animate-pulse" />
+                <div className="h-6 w-20 bg-slate-200 rounded-lg animate-pulse" />
+              </div>
+              <div className="h-6 w-3/4 bg-slate-200 rounded-md mb-2 animate-pulse" />
+              <div className="h-4 w-full bg-slate-100 rounded-md mb-2 animate-pulse" />
+              <div className="h-4 w-2/3 bg-slate-100 rounded-md mb-4 animate-pulse" />
+              <div className="mt-auto flex items-center justify-between">
+                <div className="h-6 w-20 bg-slate-100 rounded-md animate-pulse" />
+                <div className="h-8 w-24 bg-slate-200 rounded-xl animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : projects.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
           <BookMarked className="mx-auto mb-3 h-10 w-10 text-slate-700" />
@@ -143,27 +115,28 @@ export default function StudentProjectsPage() {
             const isLate = proj.deadline && !sub && new Date() > new Date(proj.deadline)
 
             return (
-              <div key={proj.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col">
-                <div className="flex items-start justify-between mb-3">
+              <div key={proj.id} className="group relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col transition-all duration-300 cursor-pointer hover:-translate-y-1.5 hover:shadow-xl hover:scale-[1.02] hover:border-blue-300">
+                <div className="flex items-start justify-between mb-3 relative z-10">
                   <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wider bg-slate-100 px-2 py-1 rounded-md">
                     {proj.class?.name || 'Unknown Class'}
                   </span>
                   <div className="flex items-center gap-2">
                     {proj.is_group_project && (
-                      <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-md">
+                      <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-md border border-violet-100">
                         Kelompok
                       </span>
                     )}
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
+                    <div className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
                       <Zap className="h-3 w-3" />
                       Max {proj.xp_reward} XP
                     </div>
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-1">{proj.title}</h3>
-                <p className="text-xs text-slate-500 line-clamp-2 mb-4 flex-1">{proj.description}</p>
                 
-                <div className="space-y-2 mb-5">
+                <h3 className="text-lg font-bold text-slate-800 mb-1 relative z-10 line-clamp-2">{proj.title}</h3>
+                <p className="text-xs text-slate-500 line-clamp-2 mb-4 flex-1 relative z-10">{proj.description}</p>
+                
+                <div className="space-y-2 mb-5 relative z-10">
                   <div className="flex items-center gap-2 text-xs text-slate-600">
                     <Clock className={cn("h-4 w-4", isLate ? "text-red-500" : "text-blue-500")} />
                     <span className={cn(isLate && "text-red-600 font-semibold")}>
@@ -172,133 +145,49 @@ export default function StudentProjectsPage() {
                   </div>
                 </div>
 
-                {sub ? (
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-                        <CheckCircle className="h-4 w-4" /> Dikumpulkan
-                      </span>
-                      {sub.score !== null ? (
-                        <span className="text-xs font-bold text-amber-600 bg-white px-2 py-0.5 rounded-md shadow-sm">
-                          Nilai: {sub.score} / 100
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-medium text-emerald-600 bg-emerald-100/50 px-2 py-0.5 rounded-md">
-                          Menunggu Penilaian
-                        </span>
-                      )}
+                <div className="relative z-10 flex items-center justify-between mt-auto">
+                  {sub ? (
+                    <div className="flex flex-col gap-1 w-full">
+                       <div className="flex items-center justify-between w-full">
+                         <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
+                           <CheckCircle className="h-3.5 w-3.5" /> Terkumpul
+                         </span>
+                         {sub.score !== null ? (
+                           <span className="text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
+                             Nilai: {sub.score}
+                           </span>
+                         ) : (
+                           <span className="text-[10px] font-semibold text-slate-500">
+                             Menunggu Penilaian
+                           </span>
+                         )}
+                       </div>
                     </div>
-                    {sub.xp_earned > 0 && (
-                      <p className="text-[11px] text-emerald-600 font-semibold mb-2">Kamu mendapat +{sub.xp_earned} XP!</p>
+                  ) : (
+                    <p className="text-xs text-slate-500 italic">Belum dikerjakan</p>
+                  )}
+                  
+                  <Link
+                    href={`/student/projects/${proj.id}`}
+                    className={cn(
+                      'ml-auto flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300',
+                      sub
+                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 group-hover:scale-105'
+                        : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20 group-hover:scale-105 group-hover:shadow-blue-500/30'
                     )}
-                    <a href={sub.file_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
-                      <FileText className="h-3.5 w-3.5" /> Lihat File Saya
-                    </a>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => handleSelectProject(proj)}
-                    className="w-full rounded-xl bg-blue-50 py-2.5 text-sm font-semibold text-blue-600 hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
                   >
-                    Kumpulkan Tugas <ArrowRight className="h-4 w-4" />
-                  </button>
-                )}
+                    Lihat Detail
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </div>
+                
+                {/* Clickable Card Link */}
+                <Link href={`/student/projects/${proj.id}`} className="absolute inset-0 z-0 rounded-2xl">
+                  <span className="sr-only">Detail {proj.title}</span>
+                </Link>
               </div>
             )
           })}
-        </div>
-      )}
-
-      {/* Submission Modal */}
-      {selectedProject && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-12"
-          style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
-        >
-          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white shadow-2xl">
-            <div className="p-6">
-              <h2 className="text-lg font-bold text-slate-800 mb-1">Kumpulkan: {selectedProject.title}</h2>
-              <p className="text-xs text-slate-500 mb-5">{selectedProject.description}</p>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">Link File Tugas (PDF/Doc/Drive) <span className="text-red-500">*</span></label>
-                  <input
-                    type="url"
-                    value={fileUrl}
-                    onChange={e => setFileUrl(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-blue-500 focus:outline-none"
-                    placeholder="https://drive.google.com/..."
-                  />
-                  <p className="text-[10px] text-slate-600 mt-1">Upload file ke Google Drive / platform lain dan masukkan link-nya di sini.</p>
-                </div>
-
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">Catatan untuk Guru (Opsional)</label>
-                  <textarea
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    rows={3}
-                    className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none"
-                    placeholder="Ada hal yang ingin disampaikan ke guru?"
-                  />
-                </div>
-
-                {selectedProject.is_group_project && (
-                  <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">Anggota Kelompok</label>
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 max-h-40 overflow-y-auto">
-                      {loadingClassmates ? (
-                        <p className="text-xs text-slate-500">Memuat daftar teman sekelas...</p>
-                      ) : classmates.length === 0 ? (
-                        <p className="text-xs text-slate-500">Tidak ada teman sekelas lain.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          <label className="flex items-center gap-2 text-sm text-slate-800">
-                            <input type="checkbox" checked disabled className="rounded text-blue-600" />
-                            <span>{currentUser?.name} (Kamu)</span>
-                          </label>
-                          {classmates.map(c => (
-                            <label key={c.id} className="flex items-center gap-2 text-sm text-slate-800">
-                              <input 
-                                type="checkbox" 
-                                className="rounded text-blue-600 focus:ring-blue-500"
-                                checked={selectedMembers.includes(c.id)}
-                                onChange={e => {
-                                  if (e.target.checked) {
-                                    setSelectedMembers([...selectedMembers, c.id])
-                                  } else {
-                                    setSelectedMembers(selectedMembers.filter(id => id !== c.id))
-                                  }
-                                }}
-                              />
-                              <span>{c.name}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 pt-6">
-                <button
-                  onClick={() => { setSelectedProject(null); setFileUrl(''); setNotes(''); }}
-                  className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {submitting ? 'Mengumpulkan...' : 'Kumpulkan Tugas'}
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
       )}
     </div>

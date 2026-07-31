@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Users, BookOpen, BarChart3, AlertCircle } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts'
+import { Users, BookOpen, BarChart3, AlertCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { RadialBarChart, RadialBar, Legend, PolarAngleAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
+import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
 
 interface ClassData {
@@ -129,27 +130,66 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Topic Performance Bar Chart */}
             <div className="lg:col-span-1 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
-              <h3 className="mb-5 font-bold text-slate-800">Performa per Topik (Rata-rata Skor)</h3>
-              <div className="h-64">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="font-bold text-slate-800">Performa per Topik</h3>
+                <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">Rata-rata Skor</span>
+              </div>
+              <div className="h-[320px] w-full">
                 {topicPerformance.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={topicPerformance} layout="vertical" margin={{ top: 5, right: 20, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                      <XAxis type="number" domain={[0, 100]} hide />
-                      <YAxis dataKey="topic" type="category" width={80} tick={{ fontSize: 11, fill: '#64748b' }} />
-                      <RechartsTooltip 
-                        cursor={{ fill: '#f8fafc' }}
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    <RadialBarChart 
+                      cx="50%" 
+                      cy="45%" 
+                      innerRadius={topicPerformance.length === 1 ? "60%" : "30%"} 
+                      outerRadius="100%" 
+                      barSize={topicPerformance.length === 1 ? 24 : 16} 
+                      data={topicPerformance.map(item => {
+                        const score = Number(item.rata_rata_skor)
+                        let fill = "#6366f1"
+                        if (score >= 85) fill = "#10b981"
+                        else if (score >= 70) fill = "#3b82f6"
+                        else if (score >= 50) fill = "#f59e0b"
+                        else fill = "#ef4444"
+                        return { ...item, fill }
+                      })}
+                    >
+                      <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+                      <RadialBar
+                        background={{ fill: '#f1f5f9' }}
+                        dataKey="rata_rata_skor"
+                        cornerRadius={10}
+                        isAnimationActive={true}
+                        animationDuration={1500}
+                        animationEasing="ease-out"
                       />
-                      <Bar dataKey="rata_rata_skor" name="Rata-rata Skor" radius={[0, 4, 4, 0]}>
-                        {topicPerformance.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.rata_rata_skor < 70 ? '#ef4444' : '#3b82f6'} />
-                        ))}
-                      </Bar>
-                    </BarChart>
+                      <Legend 
+                        iconSize={10} 
+                        layout="horizontal" 
+                        verticalAlign="bottom" 
+                        align="center"
+                        wrapperStyle={{ fontSize: '11px', fontWeight: '600', paddingTop: '20px' }}
+                      />
+                      <RechartsTooltip
+                        cursor={{ fill: 'transparent' }}
+                        contentStyle={{ 
+                          borderRadius: '16px', 
+                          border: 'none', 
+                          boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+                          padding: '12px 16px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        itemStyle={{ fontWeight: '900', fontSize: '15px' }}
+                        labelStyle={{ color: '#64748b', fontWeight: '600', marginBottom: '4px' }}
+                        formatter={(value: any) => [`${Number(value || 0).toFixed(1)}%`, 'Skor']}
+                      />
+                    </RadialBarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-slate-500">Belum ada data pengerjaan kuis.</div>
+                  <div className="flex h-full flex-col items-center justify-center text-slate-400 space-y-3">
+                    <BarChart3 className="h-10 w-10 opacity-20" />
+                    <p className="text-sm">Belum ada data performa kuis.</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -175,7 +215,18 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
                   <tbody className="divide-y divide-slate-100">
                     {students.map((s) => (
                       <tr key={s.user_id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-5 py-3 font-medium text-slate-800">{s.nama}</td>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-500 text-xs font-bold text-white shadow-sm overflow-hidden relative">
+                              {s.avatar_url ? (
+                                <img src={s.avatar_url} alt={s.nama} className="h-full w-full object-cover" />
+                              ) : (
+                                s.nama.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <span className="font-medium text-slate-800">{s.nama}</span>
+                          </div>
+                        </td>
                         <td className="px-5 py-3 text-center text-slate-600">{s.level}</td>
                         <td className="px-5 py-3 text-right font-bold text-amber-500">{s.xp}</td>
                         <td className="px-5 py-3 text-right font-medium text-slate-700">{s.rata_rata_skor.toFixed(1)}%</td>
