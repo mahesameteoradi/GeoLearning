@@ -1,17 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import { ValidationPipe, VersioningType, INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import express from 'express';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
+export async function bootstrapApp(app: INestApplication) {
   // ─── Global Validation Pipe ───────────────────────────────────────────────
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,       // Strip unknown properties from DTOs
-      forbidNonWhitelisted: true, // Throw error on unknown properties
-      transform: true,       // Auto-transform payloads to DTO instances
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
@@ -52,18 +52,38 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
-
-    console.log(
-      `📖 Swagger UI available at: http://localhost:${process.env.PORT ?? 3000}/api/docs`,
-    );
   }
 
-  // ─── Start Server ─────────────────────────────────────────────────────────
-  const port = process.env.PORT ?? 3000;
-  await app.listen(port);
-
-  console.log(`🚀 GeoLearning Backend running on: http://localhost:${port}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV ?? 'development'}`);
+  return app;
 }
 
-bootstrap();
+// ─── VERCEL SERVERLESS HANDLER ─────────────────────────────────────────────
+let cachedServer: express.Express;
+
+export default async function handler(req: any, res: any) {
+  if (!cachedServer) {
+    const server = express();
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
+    await bootstrapApp(app);
+    await app.init();
+    cachedServer = server;
+  }
+  return cachedServer(req, res);
+}
+
+// ─── LOCAL DEVELOPMENT SERVER ──────────────────────────────────────────────
+// Only start the HTTP server if we are NOT running on Vercel
+if (!process.env.VERCEL) {
+  async function bootstrapLocal() {
+    const app = await NestFactory.create(AppModule);
+    await bootstrapApp(app);
+    
+    const port = process.env.PORT ?? 3001;
+    await app.listen(port);
+    
+    console.log(`🚀 GeoLearning Backend running on: http://localhost:${port}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV ?? 'development'}`);
+  }
+  
+  bootstrapLocal();
+}
