@@ -119,20 +119,7 @@ export function EditClassModal({ onClose, classData }: EditClassModalProps) {
             />
           </div>
 
-          {/* Gamification Mode */}
-          <div>
-            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-              Pengaturan Gamifikasi <span className="text-red-600">*</span>
-            </label>
-            <select
-              value={form.gamification_mode}
-              onChange={(e) => setForm({ ...form, gamification_mode: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
-            >
-              <option value="STANDARD">Mode Standar (Normal XP)</option>
-              <option value="COMPETITIVE">Mode Kompetitif (Bonus XP + Syarat Ketat)</option>
-            </select>
-          </div>
+
 
           {/* Actions */}
           <div className="flex gap-2.5 pt-1">

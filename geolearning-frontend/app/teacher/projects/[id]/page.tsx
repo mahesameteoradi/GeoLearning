@@ -97,16 +97,28 @@ export default function ProjectSubmissionsPage() {
       // API call to backend to grade submission via gamification logic
       const token = (await supabase.auth.getSession()).data.session?.access_token
       
-      const res = await fetch(`http://localhost:3001/v1/gamification/project/${subId}/grade`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ score: scoreInput })
-      })
+      let backendSuccess = false;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1'
 
-      if (!res.ok) {
+      try {
+        const res = await fetch(`${apiUrl}/gamification/project/${subId}/grade`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ score: Number(scoreInput) })
+        })
+        if (res.ok) {
+          backendSuccess = true;
+        } else {
+          console.warn('Backend returned error:', await res.text());
+        }
+      } catch (fetchErr) {
+        console.warn('Backend unavailable, falling back to direct DB update', fetchErr)
+      }
+
+      if (!backendSuccess) {
         // Fallback if backend route isn't set up yet, we will just update DB
         const calculatedXp = Math.round(project.xp_reward * (Number(scoreInput) / 100))
         
@@ -122,10 +134,10 @@ export default function ProjectSubmissionsPage() {
         if (error) throw error
       }
 
-        toast.success('Nilai berhasil disimpan!')
-        setGradingSubId(null)
-        setScoreInput('')
-        loadData()
+      toast.success('Nilai berhasil disimpan!')
+      setGradingSubId(null)
+      setScoreInput('')
+      loadData()
     } catch (err: any) {
       toast.error(`Gagal menyimpan nilai: ${err.message}`)
     } finally {
