@@ -40,10 +40,10 @@ export default function Navbar({ userRole }: { userRole?: string | null }) {
         <div className="hidden md:flex items-center gap-8">
           <div className="flex items-center gap-6">
             {links.map((link) => (
-              <a key={link.name} href={link.href} className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors relative group">
+              <Link key={link.name} href={link.href} className="text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors relative group">
                 {link.name}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full rounded-full"></span>
-              </a>
+              </Link>
             ))}
           </div>
           <Link 
@@ -76,14 +76,17 @@ export default function Navbar({ userRole }: { userRole?: string | null }) {
             <div className="px-4 py-6 space-y-5 shadow-lg">
               <div className="flex flex-col gap-4">
                 {links.map((link) => (
-                  <a 
+                  <Link 
                     key={link.name} 
                     href={link.href} 
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => {
+                      // Slight delay to allow navigation to trigger before unmounting
+                      setTimeout(() => setIsOpen(false), 100)
+                    }}
                     className="text-lg font-semibold text-slate-600 hover:text-blue-600"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 ))}
                 <div className="pt-4 border-t border-slate-100">
                   <Link 

@@ -38,7 +38,7 @@ export function LeaderboardWidget({ entries, currentUserId, className }: Leaderb
             <div
               key={entry.id}
               className={cn(
-                'flex items-center gap-2.5 rounded-xl border px-3 py-2 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-md hover:bg-white cursor-pointer',
+                'flex items-center gap-1.5 sm:gap-2.5 rounded-xl border px-2 sm:px-3 py-2 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-md hover:bg-white cursor-pointer',
                 // Top 3 get subtle colored borders
                 index === 0 && 'border-amber-200 bg-amber-50',
                 index === 1 && 'border-slate-200 bg-slate-50',
@@ -70,7 +70,7 @@ export function LeaderboardWidget({ entries, currentUserId, className }: Leaderb
               </div>
 
               {/* XP */}
-              <span className="text-right text-[11px] font-bold tabular-nums text-amber-600">
+              <span className="flex-shrink-0 text-right text-[10px] sm:text-[11px] font-bold tabular-nums text-amber-600">
                 {entry.xp.toLocaleString()}
                 <span className="ml-0.5 font-normal text-slate-600">xp</span>
               </span>

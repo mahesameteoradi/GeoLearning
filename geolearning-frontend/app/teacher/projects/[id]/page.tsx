@@ -211,8 +211,8 @@ export default function ProjectSubmissionsPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {submissions.map((sub, i) => (
-              <div key={sub.id} className="flex items-center justify-between p-6 transition-colors hover:bg-indigo-50/30 group">
-                <div className="flex items-center gap-4">
+              <div key={sub.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 md:p-6 transition-colors hover:bg-indigo-50/30 group">
+                <div className="flex items-start md:items-center gap-3 md:gap-4">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600 overflow-hidden">
                     {sub.user?.avatar_url ? (
                       <img src={sub.user.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -245,7 +245,7 @@ export default function ProjectSubmissionsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex flex-wrap items-center gap-3 md:gap-6 w-full md:w-auto">
                   <a 
                     href={sub.file_url}
                     target="_blank"
