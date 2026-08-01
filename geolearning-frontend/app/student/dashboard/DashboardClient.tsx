@@ -215,7 +215,7 @@ export function DashboardClient() {
         }
 
         // Step 2: Fetch all data in PARALLEL (not serial!)
-        const [profileRes, attemptsRes, notifsRes, leaderboardRes, enrolledRes, interventionsRes, materialRes, projectRes] = await Promise.all([
+        const [profileRes, attemptsRes, notifsRes, enrolledRes, interventionsRes, materialRes, projectRes] = await Promise.all([
           supabase
             .from('users')
             .select(`
@@ -241,13 +241,6 @@ export function DashboardClient() {
             .select('id, message, type, created_at')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false })
-            .limit(5),
-
-          supabase
-            .from('users')
-            .select('id, name, xp, avatar_url, current_streak')
-            .eq('role', 'STUDENT')
-            .order('xp', { ascending: false })
             .limit(5),
 
           // Fetch enrolled class IDs to exclude from available list and get their flashcards
@@ -362,7 +355,6 @@ export function DashboardClient() {
         }))
 
         setNotifications(notifItems)
-        setLeaderboard(leaderboardRes.data ?? [])
 
         // Parse interventions
         const activeInterventions = (interventionsRes.data ?? []).map((i: any) => ({
@@ -376,6 +368,30 @@ export function DashboardClient() {
 
         // Fetch available classes (not yet enrolled)
         const enrolledIds = (enrolledRes.data ?? []).map((r) => r.class_id)
+        
+        // --- Leaderboard logic ---
+        let leaderboardData: LeaderboardEntry[] = []
+        if (enrolledIds.length > 0) {
+          const { data: classMatesRes } = await supabase
+            .from('class_students')
+            .select('student_id')
+            .in('class_id', enrolledIds)
+            
+          const classmateIds = Array.from(new Set((classMatesRes ?? []).map(c => c.student_id)))
+          
+          if (classmateIds.length > 0) {
+            const { data: topStudents } = await supabase
+              .from('users')
+              .select('id, name, xp, avatar_url, current_streak')
+              .eq('role', 'STUDENT')
+              .in('id', classmateIds)
+              .order('xp', { ascending: false })
+              .limit(5)
+              
+            leaderboardData = topStudents ?? []
+          }
+        }
+        setLeaderboard(leaderboardData)
         
         // Extract flashcards from enrolled classes
         const customCards: {question:string, answer:string}[] = []
