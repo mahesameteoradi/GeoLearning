@@ -53,9 +53,10 @@ interface SidebarProps {
   role: 'STUDENT' | 'TEACHER' | 'ADMIN'
   userName: string
   avatarUrl?: string | null
+  onNavClick?: () => void
 }
 
-export function Sidebar({ role, userName, avatarUrl }: SidebarProps) {
+export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
@@ -160,6 +161,7 @@ export function Sidebar({ role, userName, avatarUrl }: SidebarProps) {
             <Link
               key={href}
               href={href}
+              onClick={onNavClick}
               title={collapsed ? label : undefined}
               className={cn(
                 'group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-sm',

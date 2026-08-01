@@ -86,9 +86,9 @@ function Skeleton({ className }: { className?: string }) {
 
 function DashboardSkeleton() {
   return (
-    <div className="min-h-full p-5 lg:p-7 space-y-5">
+    <div className="min-h-full p-3 md:p-5 lg:p-7 space-y-5">
       {/* Hero Header skeleton */}
-      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 md:p-5">
         <div className="flex items-center gap-4">
           <Skeleton className="h-24 w-24 rounded-full flex-shrink-0" />
           <div className="flex-1 space-y-3">
@@ -503,7 +503,7 @@ export function DashboardClient() {
   const greeting = getGreeting()
 
   return (
-    <div className="min-h-full p-5 lg:p-7 relative">
+    <div className="min-h-full p-3 md:p-5 lg:p-7 relative overflow-x-hidden">
       
       {/* ─── Interactive Cursor Glow ─────────────────────────────────────── */}
       <motion.div

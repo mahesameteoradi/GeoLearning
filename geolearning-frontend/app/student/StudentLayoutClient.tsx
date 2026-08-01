@@ -10,16 +10,15 @@ interface StudentLayoutClientProps {
   children: React.ReactNode
 }
 
+import { AppLayoutClient } from '@/components/layout/AppLayoutClient'
+
 export function StudentLayoutClient({ userId, userName, avatarUrl, children }: StudentLayoutClientProps) {
   // Subscribe to real-time XP/badge changes
   useGamificationRealtime(userId)
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100">
-      <Sidebar role="STUDENT" userName={userName} avatarUrl={avatarUrl} />
-      <main className="flex-1 overflow-y-auto">
-        {children}
-      </main>
-    </div>
+    <AppLayoutClient role="STUDENT" userName={userName} avatarUrl={avatarUrl}>
+      {children}
+    </AppLayoutClient>
   )
 }

@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/ui/Sidebar'
 
+import { AppLayoutClient } from '@/components/layout/AppLayoutClient'
+
 export default async function TeacherLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
@@ -22,9 +24,8 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-100">
-      <Sidebar role={profile.role} userName={profile.name} avatarUrl={profile.avatar_url} />
-      <main className="flex-1 overflow-y-auto">{children}</main>
-    </div>
+    <AppLayoutClient role={profile.role} userName={profile.name} avatarUrl={profile.avatar_url}>
+      {children}
+    </AppLayoutClient>
   )
 }
