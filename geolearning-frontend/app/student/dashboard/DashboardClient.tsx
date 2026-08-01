@@ -39,11 +39,14 @@ interface Profile {
 
 interface AttemptItem {
   id: string
-  type: 'quiz'
+  type: 'quiz' | 'material' | 'project'
   title: string
   subtitle: string
   timestamp: string
   xp: number
+  quizId?: string
+  projectId?: string
+  materialId?: string
 }
 
 interface NotifItem {
@@ -212,7 +215,7 @@ export function DashboardClient() {
         }
 
         // Step 2: Fetch all data in PARALLEL (not serial!)
-        const [profileRes, attemptsRes, notifsRes, leaderboardRes, enrolledRes, interventionsRes] = await Promise.all([
+        const [profileRes, attemptsRes, notifsRes, leaderboardRes, enrolledRes, interventionsRes, materialRes, projectRes] = await Promise.all([
           supabase
             .from('users')
             .select(`
@@ -227,7 +230,7 @@ export function DashboardClient() {
 
           supabase
             .from('quiz_attempts')
-            .select('id, score, xp_earned, completed_at, quiz:quizzes(title)')
+            .select('id, score, xp_earned, completed_at, quiz_id, quiz:quizzes(title)')
             .eq('user_id', user.id)
             .not('completed_at', 'is', null)
             .order('completed_at', { ascending: false })
@@ -261,7 +264,23 @@ export function DashboardClient() {
             .from('interventions')
             .select('id, note, type, created_at, teacher:users!interventions_teacher_id_fkey(name)')
             .eq('student_id', user.id)
+            .order('created_at', { ascending: false }),
+
+          // Fetch material completions
+          supabase
+            .from('material_completions')
+            .select('id, created_at, material_id, material:materials(title)')
+            .eq('user_id', user.id)
             .order('created_at', { ascending: false })
+            .limit(5),
+
+          // Fetch project submissions
+          supabase
+            .from('project_submissions')
+            .select('id, submitted_at, assignment_id, xp_earned, score, project_assignment:project_assignments(title)')
+            .eq('user_id', user.id)
+            .order('submitted_at', { ascending: false })
+            .limit(5)
         ])
 
         if (profileRes.error) throw new Error(profileRes.error.message)
@@ -285,13 +304,14 @@ export function DashboardClient() {
 
         setProfile({ ...rawProfile, badges: earnedBadges })
 
-        // Quiz attempts → ActivityFeed items
-        const attemptItems: AttemptItem[] = (attemptsRes.data ?? []).map((a: {
+        // 3. Process activity items (quizzes, materials, projects)
+        const quizItems: AttemptItem[] = (attemptsRes.data ?? []).map((a: {
           id: string
           score: number
           xp_earned: number
           completed_at: string
           quiz: { title: string }[] | { title: string } | null
+          quiz_id: string
         }) => ({
           id: a.id,
           type: 'quiz',
@@ -299,7 +319,36 @@ export function DashboardClient() {
           subtitle: `Score: ${Math.round(a.score)}%`,
           timestamp: a.completed_at,
           xp: a.xp_earned,
+          quizId: a.quiz_id,
         }))
+
+        // Material completions → ActivityFeed items
+        const materialItems: AttemptItem[] = (materialRes.data ?? []).map((m: any) => ({
+          id: m.id,
+          type: 'material',
+          title: (Array.isArray(m.material) ? m.material[0] : m.material)?.title ?? 'Materi',
+          subtitle: 'Membaca Materi',
+          timestamp: m.created_at,
+          xp: 15,
+          materialId: m.material_id,
+        }))
+
+        // Project submissions → ActivityFeed items
+        const projectItems: AttemptItem[] = (projectRes.data ?? []).map((p: any) => ({
+          id: p.id,
+          type: 'project',
+          title: (Array.isArray(p.project_assignment) ? p.project_assignment[0] : p.project_assignment)?.title ?? 'Tugas Proyek',
+          subtitle: p.score !== null ? `Nilai: ${p.score}` : 'Menunggu Penilaian',
+          timestamp: p.submitted_at,
+          xp: p.xp_earned || 0,
+          projectId: p.assignment_id,
+        }))
+
+        const allAttempts = [...quizItems, ...materialItems, ...projectItems]
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+          .slice(0, 5)
+
+        setAttempts(allAttempts)
 
         const notifItems: NotifItem[] = (notifsRes.data ?? []).map((n: {
           id: string
@@ -312,7 +361,6 @@ export function DashboardClient() {
           timestamp: n.created_at,
         }))
 
-        setAttempts(attemptItems)
         setNotifications(notifItems)
         setLeaderboard(leaderboardRes.data ?? [])
 
@@ -448,7 +496,6 @@ export function DashboardClient() {
 
   const activityItems = [
     ...attempts,
-    ...notifications,
   ]
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 6)

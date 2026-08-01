@@ -5,12 +5,14 @@ import Link from 'next/link'
 
 interface ActivityItem {
   id: string
-  type: 'quiz' | 'notification' | 'badge'
+  type: 'quiz' | 'notification' | 'badge' | 'material' | 'project'
   title: string
   subtitle?: string
   timestamp: string
   xp?: number
   quizId?: string
+  projectId?: string
+  materialId?: string
 }
 
 interface ActivityFeedProps {
@@ -36,6 +38,18 @@ const typeConfig = {
     bg: 'bg-amber-50',
     border: 'border-amber-200',
     iconColor: 'text-amber-600',
+  },
+  material: {
+    icon: BookOpen,
+    bg: 'bg-blue-50',
+    border: 'border-blue-200',
+    iconColor: 'text-blue-600',
+  },
+  project: {
+    icon: CheckCircle,
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-200',
+    iconColor: 'text-indigo-600',
   },
 }
 
@@ -89,6 +103,13 @@ export function ActivityFeed({ items, className }: ActivityFeedProps) {
         if (item.quizId) {
           return (
             <Link href={`/student/quizzes/${item.quizId}`} key={item.id} className="block group">
+              {content}
+            </Link>
+          )
+        }
+        if (item.projectId) {
+          return (
+            <Link href={`/student/projects/${item.projectId}`} key={item.id} className="block group">
               {content}
             </Link>
           )
