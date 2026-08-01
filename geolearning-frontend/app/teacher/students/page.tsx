@@ -19,17 +19,6 @@ export default async function TeacherStudentsPage() {
 
   if (!user) redirect('/login')
 
-  const { data: rawStudents, error: studentsError } = await supabase
-    .from('users')
-    .select('id, name, email, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
-    .eq('role', 'STUDENT')
-    .order('xp', { ascending: false })
-    .limit(200)
-
-  if (studentsError) {
-    return <div>Error loading students: {studentsError.message} ({studentsError.code}) - {studentsError.details}</div>
-  }
-
   // Fetch enrollments to know which class each student is in (for teacher's classes)
   const { data: teacherClasses } = await supabase
     .from('classes')
@@ -45,6 +34,20 @@ export default async function TeacherStudentsPage() {
         .select('student_id, class_id')
         .in('class_id', teacherClassIds)
     : { data: [] }
+
+  const studentIds = Array.from(new Set((enrollments ?? []).map(e => e.student_id)))
+
+  const { data: rawStudents, error: studentsError } = studentIds.length > 0 ? await supabase
+    .from('users')
+    .select('id, name, email, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
+    .eq('role', 'STUDENT')
+    .in('id', studentIds)
+    .order('xp', { ascending: false })
+    .limit(200) : { data: [], error: null }
+
+  if (studentsError) {
+    return <div>Error loading students: {studentsError.message}</div>
+  }
 
   // Build a map: student_id → class names they're enrolled in (teacher's classes)
   const studentClassMap: Record<string, string[]> = {}

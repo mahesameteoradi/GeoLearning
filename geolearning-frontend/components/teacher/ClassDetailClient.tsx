@@ -772,6 +772,14 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
         </div>
       )}
 
+      {activeTab === 'siswa' && (
+        <ClassStudentsPanel classId={cls.id} />
+      )}
+
+      {activeTab === 'peringkat' && (
+        <ClassLeaderboard classId={cls.id} />
+      )}
+
       {/* Upload Modal */}
       {(showModal || editingMaterial) && (
         <UploadMaterialModal 
