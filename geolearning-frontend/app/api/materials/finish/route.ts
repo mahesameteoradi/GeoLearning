@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
   try {
-    const { userId, materialId, materialTitle } = await req.json()
+    const { userId, materialId, materialTitle, materialType } = await req.json()
 
     // Using service role key to bypass RLS and perform admin operations
     const supabase = createClient(
@@ -36,26 +36,29 @@ export async function POST(req: Request) {
     }
 
     // Award XP
-    const xpAmount = 15
-    await supabase.from('xp_logs').insert({
-      user_id: userId,
-      amount: xpAmount,
-      source: 'MATERIAL_READ',
-      description: `Membaca materi: ${materialTitle}`
-    })
+    const xpAmount = materialType === 'INTERACTIVE_MAP' ? 0 : 15
+    
+    if (xpAmount > 0) {
+      await supabase.from('xp_logs').insert({
+        user_id: userId,
+        amount: xpAmount,
+        source: 'MATERIAL_READ',
+        description: `Membaca materi: ${materialTitle}`
+      })
 
-    // Update User XP
-    const { data: userData } = await supabase
-      .from('users')
-      .select('xp')
-      .eq('id', userId)
-      .single()
-
-    if (userData) {
-      await supabase
+      // Update User XP
+      const { data: userData } = await supabase
         .from('users')
-        .update({ xp: userData.xp + xpAmount })
+        .select('xp')
         .eq('id', userId)
+        .single()
+
+      if (userData) {
+        await supabase
+          .from('users')
+          .update({ xp: userData.xp + xpAmount })
+          .eq('id', userId)
+      }
     }
 
     return NextResponse.json({ success: true, xpEarned: xpAmount })

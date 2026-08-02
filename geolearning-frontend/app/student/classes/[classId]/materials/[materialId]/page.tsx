@@ -98,7 +98,8 @@ export default function MaterialReaderPage() {
           body: JSON.stringify({
             userId: user.id,
             materialId: materialId,
-            materialTitle: material.title
+            materialTitle: material.title,
+            materialType: material.type
           })
         })
         const result = await res.json()
@@ -220,7 +221,7 @@ export default function MaterialReaderPage() {
                 )}
               >
                 <Sparkles className={cn("w-5 h-5", hasOpenedLink ? "text-yellow-400" : "text-slate-400")} />
-                Selesai Membaca & Dapatkan XP
+                {material.type === 'INTERACTIVE_MAP' ? 'Tandai Selesai Eksplorasi' : 'Selesai Membaca & Dapatkan XP'}
               </button>
               {!hasOpenedLink && (
                 <p className="mt-4 text-sm font-semibold text-rose-500 animate-pulse">
