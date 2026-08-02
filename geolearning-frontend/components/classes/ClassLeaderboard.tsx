@@ -143,7 +143,7 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm overflow-hidden">
       <div className="flex items-center gap-3 mb-6">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
           <Trophy className="h-5 w-5" />
@@ -161,7 +161,7 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
             <div
               key={student.id}
               className={cn(
-                "flex items-center gap-4 rounded-xl border p-3 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md cursor-default",
+                "flex items-center gap-2 sm:gap-4 rounded-xl border p-2 sm:p-3 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md cursor-default overflow-hidden",
                 isCurrentUser 
                   ? "border-blue-200 bg-blue-50 hover:bg-blue-100" 
                   : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
@@ -176,7 +176,7 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
               </div>
 
               {/* Avatar & Info */}
-              <div className="flex flex-1 items-center gap-3 min-w-0">
+              <div className="flex flex-1 items-center gap-2 sm:gap-3 min-w-0">
                 <AvatarDisplay
                   name={student.name}
                   xp={student.xp}

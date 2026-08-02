@@ -623,7 +623,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   }, {} as Record<string, number>)
 
   return (
-    <div className="min-h-full p-5 lg:p-7">
+    <div className="min-h-full p-3 sm:p-5 lg:p-7">
       {/* Back */}
       <Link href="/teacher/classes" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-700">
         <ArrowLeft className="h-4 w-4" />Kembali ke Daftar Kelas
