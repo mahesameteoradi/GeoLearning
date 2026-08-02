@@ -57,6 +57,62 @@ export class AnalyticsService {
     }));
   }
 
+  async getQuizQuestionStats(classId: string) {
+    // Get all quizzes for this class with their questions and attempt answers
+    const data: any[] = await this.prisma.$queryRaw`
+      SELECT 
+        q.id as quiz_id,
+        q.title as quiz_title,
+        qs.id as question_id,
+        qs.text as question_text,
+        COUNT(qaa.id) as total_attempts,
+        SUM(CASE WHEN qaa.is_correct THEN 1 ELSE 0 END) as correct_count
+      FROM quizzes q
+      JOIN questions qs ON qs.quiz_id = q.id
+      JOIN quiz_attempt_answers qaa ON qaa.question_id = qs.id
+      JOIN quiz_attempts qa ON qa.id = qaa.attempt_id AND qa.completed_at IS NOT NULL
+      WHERE q.class_id::text = ${classId}
+      GROUP BY q.id, q.title, qs.id, qs.text
+      ORDER BY q.title, correct_count DESC
+    `;
+
+    // Group by quiz
+    const quizMap = new Map<string, any>();
+    for (const row of data) {
+      if (!quizMap.has(row.quiz_id)) {
+        quizMap.set(row.quiz_id, {
+          quiz_id: row.quiz_id,
+          quiz_title: row.quiz_title,
+          questions: []
+        });
+      }
+      const total = Number(row.total_attempts);
+      const correct = Number(row.correct_count);
+      quizMap.get(row.quiz_id).questions.push({
+        question_id: row.question_id,
+        question_text: row.question_text,
+        total_attempts: total,
+        correct_count: correct,
+        incorrect_count: total - correct,
+        correct_rate: total > 0 ? Math.round((correct / total) * 100) : 0
+      });
+    }
+
+    return Array.from(quizMap.values()).map(quiz => {
+      const questions = quiz.questions;
+      if (questions.length === 0) return { ...quiz, most_correct: null, most_incorrect: null };
+      const sorted = [...questions].sort((a: any, b: any) => b.correct_rate - a.correct_rate);
+      return {
+        quiz_id: quiz.quiz_id,
+        quiz_title: quiz.quiz_title,
+        total_questions: questions.length,
+        most_correct: sorted[0],
+        most_incorrect: sorted[sorted.length - 1],
+        all_questions: sorted
+      };
+    });
+  }
+
   async getClassStudents(classId: string) {
     const data: any[] = await this.prisma.$queryRaw`
       SELECT 

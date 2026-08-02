@@ -46,6 +46,12 @@ export class AnalyticsController {
     return this.analyticsService.getTopicPerformance(classId);
   }
 
+  @Get('class/:classId/quiz-question-stats')
+  async getQuizQuestionStats(@Req() req: any, @Param('classId') classId: string) {
+    await this.validateClassOwnership(req.user.id, classId);
+    return this.analyticsService.getQuizQuestionStats(classId);
+  }
+
   @Get('class/:classId/students')
   async getClassStudents(@Req() req: any, @Param('classId') classId: string) {
     await this.validateClassOwnership(req.user.id, classId);
