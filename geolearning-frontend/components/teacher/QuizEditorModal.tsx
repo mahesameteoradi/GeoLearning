@@ -175,6 +175,43 @@ function QuestionCard({
   onDelete: () => void
 }) {
   const [collapsed, setCollapsed] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar')
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran maksimal 2MB')
+      return
+    }
+
+    setIsUploading(true)
+    const supabase = createClient()
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+    const path = `quiz-materials/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('class-materials')
+      .upload(path, file, { cacheControl: '3600', upsert: false })
+
+    if (uploadError) {
+      toast.error(`Gagal mengunggah gambar: ${uploadError.message}`)
+      setIsUploading(false)
+      return
+    }
+
+    const { data } = supabase.storage.from('class-materials').getPublicUrl(path)
+    onChange({...question, options: {...question.options, clue_gambar_url: data.publicUrl}})
+    setIsUploading(false)
+    toast.success('Gambar clue berhasil diunggah')
+  }
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50">
@@ -270,9 +307,16 @@ function QuestionCard({
           ) : (
             <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">
               <div className="grid grid-cols-2 gap-3">
-                <label className="block text-[10px] font-semibold text-slate-600">URL Gambar Clue (Opsional)
-                  <input value={question.options.clue_gambar_url || ''} onChange={e => onChange({...question, options: {...question.options, clue_gambar_url: e.target.value}})} className="w-full mt-1 rounded border px-2 py-1.5 outline-none focus:border-blue-500" placeholder="https://..." />
-                </label>
+                <div>
+                  <label className="block text-[10px] font-semibold text-slate-600">Gambar Clue (Opsional)</label>
+                  <div className="mt-1 flex gap-2">
+                    <input value={question.options.clue_gambar_url || ''} onChange={e => onChange({...question, options: {...question.options, clue_gambar_url: e.target.value}})} className="flex-1 min-w-0 rounded border px-2 py-1.5 outline-none focus:border-blue-500 text-xs" placeholder="URL https://..." />
+                    <label className="flex-shrink-0 cursor-pointer flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-1.5 rounded transition" title="Unggah Gambar">
+                      {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploading} />
+                    </label>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <label className="block text-[10px] font-semibold text-slate-600">Toleransi Sempurna (m)
                     <input type="number" value={question.options.radius_toleransi_meter || 0} onChange={e => onChange({...question, options: {...question.options, radius_toleransi_meter: parseInt(e.target.value) || 0}})} className="w-full mt-1 rounded border px-2 py-1.5 outline-none focus:border-blue-500" />
