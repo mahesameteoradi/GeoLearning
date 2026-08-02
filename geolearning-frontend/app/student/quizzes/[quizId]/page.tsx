@@ -928,13 +928,6 @@ export default function QuizPlayerPage() {
             </div>
           )}
 
-          {/* Explanation after answer */}
-          {state === 'reviewing' && currentQ.explanation && (
-            <div className="mt-4 rounded-xl border border-cyan-200 bg-cyan-50 px-4 py-3">
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-cyan-600 mb-1">💡 Pembahasan</p>
-              <p className="text-xs text-slate-500">{currentQ.explanation}</p>
-            </div>
-          )}
         </div>
 
         {state === 'reviewing' && currentQ.type === 'MULTIPLE_CHOICE' && (

@@ -168,7 +168,7 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
         : "flex h-[90vh] md:h-[85vh] w-[95vw] max-w-7xl flex-col md:flex-row overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-2xl relative"
     }>
       {/* Map Area */}
-      <div className="flex-1 relative bg-slate-100 z-0 min-h-[50vh] md:min-h-0 md:h-full w-full">
+      <div className="relative bg-slate-100 z-0 h-[50vh] md:h-full md:flex-1 w-full shrink-0">
         <MapContainer
           center={currentCenter}
           zoom={currentZoom}

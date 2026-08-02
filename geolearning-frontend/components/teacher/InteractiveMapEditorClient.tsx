@@ -152,9 +152,9 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
   }
 
   return (
-    <div className="flex h-[80vh] w-[90vw] max-w-6xl flex-col md:flex-row overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-2xl">
+    <div className="flex h-[90vh] md:h-[80vh] w-[95vw] md:w-[90vw] max-w-6xl flex-col md:flex-row overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-2xl">
       {/* Map Area */}
-      <div className="flex-1 relative bg-slate-100 z-0">
+      <div className="relative bg-slate-100 z-0 h-[50vh] md:h-full md:flex-1 shrink-0">
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={zoom}
