@@ -56,6 +56,13 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
   const [tourMode, setTourMode] = useState(false)
   const [tourIndex, setTourIndex] = useState(0)
   const [isFlying, setIsFlying] = useState(false)
+  const [flightAngle, setFlightAngle] = useState(90) // Default pointing East
+
+  function calculateBearing(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const dx = lng2 - lng1
+    const dy = lat2 - lat1
+    return Math.atan2(dx, dy) * (180 / Math.PI)
+  }
 
   // Track discovered pins to prevent calling API repeatedly in same session
   const [discoveredPins, setDiscoveredPins] = useState<Set<string>>(new Set())
@@ -143,6 +150,7 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
       const nextIdx = tourIndex + 1
       setTourIndex(nextIdx)
       const marker = data.markers[nextIdx]
+      setFlightAngle(calculateBearing(currentCenter[0], currentCenter[1], marker.lat, marker.lng))
       setCurrentCenter([marker.lat, marker.lng])
       handleMarkerClick(marker.id)
     } else {
@@ -156,6 +164,7 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
       const prevIdx = tourIndex - 1
       setTourIndex(prevIdx)
       const marker = data.markers[prevIdx]
+      setFlightAngle(calculateBearing(currentCenter[0], currentCenter[1], marker.lat, marker.lng))
       setCurrentCenter([marker.lat, marker.lng])
       handleMarkerClick(marker.id)
     }
@@ -204,8 +213,8 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
         
         {/* Plane Animation Overlay */}
         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[400] pointer-events-none transition-all duration-500 ${isFlying && tourMode ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
-          <div className="animate-bounce">
-            <Plane className="h-16 w-16 text-blue-600 drop-shadow-[0_10px_8px_rgba(0,0,0,0.5)] -rotate-45" fill="currentColor" />
+          <div className="animate-pulse" style={{ transform: `rotate(${flightAngle - 45}deg)`, transition: 'transform 0.5s ease-in-out' }}>
+            <Plane className="h-20 w-20 text-slate-200 stroke-slate-500 drop-shadow-[0_15px_15px_rgba(0,0,0,0.6)]" fill="#e2e8f0" strokeWidth={1.5} />
           </div>
         </div>
         

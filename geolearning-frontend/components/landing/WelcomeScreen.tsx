@@ -16,16 +16,16 @@ export default function WelcomeScreen() {
       return
     }
 
-    // Start fade out after 3 seconds
+    // Start fade out after 2 seconds
     const fadeTimer = setTimeout(() => {
       setIsFading(true)
-    }, 3000)
+    }, 2000)
 
-    // Completely remove after 3.5 seconds (allowing 500ms for fade out transition)
+    // Completely remove after 2.5 seconds (allowing 500ms for fade out transition)
     const removeTimer = setTimeout(() => {
       setShow(false)
       sessionStorage.setItem('hasSeenWelcome', 'true')
-    }, 3500)
+    }, 2500)
 
     return () => {
       clearTimeout(fadeTimer)
@@ -61,7 +61,7 @@ export default function WelcomeScreen() {
         
         {/* Loading bar */}
         <div className="w-48 h-1 bg-slate-800 rounded-full mt-6 overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-blue-500 to-amber-500 animate-[pulse_1s_ease-in-out_infinite]" style={{ width: '100%', transformOrigin: 'left', animation: 'scale-x 3s ease-out forwards' }} />
+          <div className="h-full bg-gradient-to-r from-blue-500 to-amber-500 animate-[pulse_1s_ease-in-out_infinite]" style={{ width: '100%', transformOrigin: 'left', animation: 'scale-x 2s ease-out forwards' }} />
         </div>
       </div>
       
