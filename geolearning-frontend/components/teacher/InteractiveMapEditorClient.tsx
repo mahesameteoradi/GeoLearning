@@ -4,7 +4,9 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { MapPin, X, Plus, Image as ImageIcon, Trash2 } from 'lucide-react'
+import { MapPin, X, Plus, Image as ImageIcon, Trash2, UploadCloud, Loader2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import toast from 'react-hot-toast'
 
 // Fix missing marker icons in leaflet
 const icon = L.icon({
@@ -74,6 +76,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
   const [editDesc, setEditDesc] = useState('')
   const [editFact, setEditFact] = useState('')
   const [editImg, setEditImg] = useState('')
+  const [isUploadingImg, setIsUploadingImg] = useState(false)
   const [editXp, setEditXp] = useState(5)
   const [baseMapId, setBaseMapId] = useState(initialData?.baseMapId || 'satellite')
 
@@ -117,6 +120,42 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
       xpReward: editXp
     } : m))
     setEditingMarkerId(null)
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar')
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran gambar maksimal 2MB')
+      return
+    }
+
+    setIsUploadingImg(true)
+    const supabase = createClient()
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+    const path = `map-pins/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('class-materials')
+      .upload(path, file, { cacheControl: '3600', upsert: false })
+
+    if (uploadError) {
+      toast.error(`Gagal mengunggah gambar: ${uploadError.message}`)
+      setIsUploadingImg(false)
+      return
+    }
+
+    const { data } = supabase.storage.from('class-materials').getPublicUrl(path)
+    setEditImg(data.publicUrl)
+    setIsUploadingImg(false)
+    toast.success('Gambar berhasil diunggah')
   }
 
   function deleteMarker(id: string) {
@@ -187,8 +226,8 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
       </div>
 
       {/* Sidebar Area */}
-      <div className="w-full md:w-80 flex flex-col border-l border-slate-200 bg-white z-10">
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+      <div className="w-full md:w-80 flex flex-col border-t md:border-t-0 md:border-l border-slate-200 bg-white z-10 flex-1 md:flex-none min-h-0">
+        <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
           <h2 className="font-bold text-slate-800">Detail & Pin Peta</h2>
           <button onClick={onCancel} className="p-1 hover:bg-slate-200 rounded-lg text-slate-500"><X className="h-5 w-5" /></button>
         </div>
@@ -238,8 +277,19 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
                   <textarea value={editFact} onChange={e => setEditFact(e.target.value)} rows={2} placeholder="Tahukah kamu..." className="w-full resize-none rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-blue-50/50" />
                 </div>
                 <div>
-                  <label className="text-[10px] font-semibold uppercase text-blue-700">URL Gambar (Opsional)</label>
-                  <input value={editImg} onChange={e => setEditImg(e.target.value)} placeholder="https://..." className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
+                  <label className="text-[10px] font-semibold uppercase text-blue-700">Gambar Lokasi (Opsional)</label>
+                  <div className="mt-1 flex gap-2">
+                    <input value={editImg} onChange={e => setEditImg(e.target.value)} placeholder="URL https://..." className="flex-1 rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500 min-w-0" />
+                    <label className="flex-shrink-0 cursor-pointer flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded-lg transition" title="Unggah Gambar">
+                      {isUploadingImg ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploadingImg} />
+                    </label>
+                  </div>
+                  {editImg && (
+                    <div className="mt-2 relative rounded-lg overflow-hidden border border-slate-200 h-24 bg-slate-100">
+                      <img src={editImg} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="text-[10px] font-semibold uppercase text-blue-700">Hadiah XP</label>
