@@ -7,6 +7,7 @@ import { id as idLocale } from 'date-fns/locale'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface ForumReply {
   id: string
@@ -44,6 +45,7 @@ function PostCard({
   onReplyAdded: (postId: string, reply: ForumReply) => void
   onReplyDeleted: (postId: string, replyId: string) => void
 }) {
+  const { confirm } = useConfirm()
   const [expanded, setExpanded] = useState(false)
   const [replyText, setReplyText] = useState('')
   const [sendingReply, setSendingReply] = useState(false)
@@ -77,7 +79,13 @@ function PostCard({
   }
 
   const handleDeleteReply = async (replyId: string) => {
-    if (!confirm('Hapus balasan ini?')) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Balasan',
+      message: 'Hapus balasan ini?',
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     setDeletingReplyId(replyId)
     const supabase = createClient()
     const { error } = await supabase.from('forum_replies').delete().eq('id', replyId)

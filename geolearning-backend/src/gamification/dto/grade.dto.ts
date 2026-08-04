@@ -1,4 +1,4 @@
-import { IsNumber, Min, Max } from 'class-validator';
+import { IsNumber, Min, Max, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class GradeProjectDto {
@@ -7,4 +7,9 @@ export class GradeProjectDto {
   @Min(0)
   @Max(100)
   score: number;
+
+  @ApiProperty({ description: 'Feedback for the project submission', required: false })
+  @IsOptional()
+  @IsString()
+  feedback?: string;
 }

@@ -4,6 +4,8 @@ import { ArrowLeft, User as UserIcon } from 'lucide-react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { StudentAnalyticsClient } from '../../../../../components/teacher/StudentAnalyticsClient'
+import { getLevelMeaning, calculateLevel } from '@/lib/utils/level'
+import { Shield } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'GeoLearning — Detail Siswa',
@@ -73,18 +75,33 @@ export default async function StudentDetailAnalyticsPage({ params }: { params: P
               </div>
             )}
             <div>
-              <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
+              <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm flex items-center gap-3">
                 {student.name}
               </h1>
-              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed mb-3">
                 Detail perkembangan skor dan performa belajar siswa.
               </p>
+              
+              {/* Level Meaning / Pemaknaan Level */}
+              {(() => {
+                const dynamicLevel = calculateLevel(student.xp || 0)
+                const meaning = getLevelMeaning(dynamicLevel)
+                return (
+                  <div className={`inline-flex items-start gap-2.5 rounded-xl border ${meaning.color} bg-white px-3 py-2.5 shadow-sm backdrop-blur-sm`}>
+                    <Shield className="h-5 w-5 mt-0.5 flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-sm font-bold uppercase tracking-wider">{meaning.title} (Level {dynamicLevel})</span>
+                      <span className="text-xs font-medium opacity-90 max-w-sm mt-0.5">{meaning.description}</span>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
           </div>
         </div>
       </div>
 
-      <StudentAnalyticsClient studentId={resolvedParams.id} />
+      <StudentAnalyticsClient studentId={resolvedParams.id} studentData={student} />
     </div>
   )
 }

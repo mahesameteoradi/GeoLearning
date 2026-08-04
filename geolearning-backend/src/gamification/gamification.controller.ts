@@ -68,7 +68,7 @@ export class GamificationController {
     @Body() dto: GradeProjectDto,
     @CurrentUser() user: SupabaseUser,
   ) {
-    return this.gamification.gradeProject(user.id, submissionId, dto.score);
+    return this.gamification.gradeProject(user.id, submissionId, dto.score, dto.feedback);
   }
 
   /**

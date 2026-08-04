@@ -68,19 +68,40 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
         return
       }
 
-      // 2. Fetch quiz attempts for this class
-      const { data: classQuizzes } = await supabase
+      // 2. Fetch quizzes for this class (by class_id or via modules)
+      const { data: classModules } = await supabase
+        .from('modules')
+        .select('id')
+        .eq('class_id', classId)
+      
+      const moduleIds = classModules?.map(m => m.id) || []
+      
+      let classQuizzesFromModules: { id: string }[] = []
+      if (moduleIds.length > 0) {
+        const { data } = await supabase
+          .from('quizzes')
+          .select('id')
+          .in('module_id', moduleIds)
+        if (data) classQuizzesFromModules = data
+      }
+
+      const { data: classQuizzesDirect } = await supabase
         .from('quizzes')
         .select('id')
         .eq('class_id', classId)
       
-      const quizIds = classQuizzes?.map(q => q.id) || []
+      const allQuizIds = new Set([
+        ...classQuizzesFromModules.map(q => q.id),
+        ...(classQuizzesDirect?.map(q => q.id) || [])
+      ])
       
-      let quizAttempts: { user_id: string, xp_earned: number }[] = []
+      const quizIds = Array.from(allQuizIds)
+      
+      let quizAttempts: { user_id: string, quiz_id: string, xp_earned: number }[] = []
       if (quizIds.length > 0) {
         const { data } = await supabase
           .from('quiz_attempts')
-          .select('user_id, xp_earned')
+          .select('user_id, quiz_id, xp_earned')
           .in('quiz_id', quizIds)
         if (data) quizAttempts = data
       }
@@ -104,7 +125,16 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
 
       // 4. Calculate actual XP per student and sort
       const processed = usersData.map((u: any) => {
-        const qXp = quizAttempts.filter(q => q.user_id === u.id).reduce((sum, q) => sum + (q.xp_earned || 0), 0)
+        const userQuizzes = quizAttempts.filter(q => q.user_id === u.id)
+        const maxXpPerQuiz = new Map<string, number>()
+        for (const q of userQuizzes) {
+          const currentMax = maxXpPerQuiz.get(q.quiz_id) || 0
+          if ((q.xp_earned || 0) > currentMax) {
+            maxXpPerQuiz.set(q.quiz_id, q.xp_earned || 0)
+          }
+        }
+        const qXp = Array.from(maxXpPerQuiz.values()).reduce((sum, xp) => sum + xp, 0)
+        
         const pXp = projectSubmissions.filter(p => p.user_id === u.id).reduce((sum, p) => sum + (p.xp_earned || 0), 0)
         const classXp = qXp + pXp
 

@@ -223,7 +223,7 @@ export class GamificationService {
   /**
    * Grades a project submission and awards calculated XP.
    */
-  async gradeProject(teacherId: string, submissionId: string, score: number): Promise<any> {
+  async gradeProject(teacherId: string, submissionId: string, score: number, feedback?: string): Promise<any> {
     const submission = await this.prisma.projectSubmission.findUnique({
       where: { id: submissionId },
       include: { assignment: true },
@@ -255,6 +255,7 @@ export class GamificationService {
       where: { id: submissionId },
       data: {
         score,
+        feedback,
         xp_earned: xpEarned,
         graded_at: new Date(),
       },

@@ -210,9 +210,12 @@ const UPLOAD_TABS: { key: UploadTab; label: string; icon: React.ElementType; acc
   { key: 'link',  label: 'Link',       icon: LinkIcon,     accept: '',                     dbType: 'LINK'  },
 ]
 
+import { useConfirm } from '@/components/ui/ConfirmProvider'
+
 function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, onSuccess, onModuleAdded, editMaterial }: {
   classId: string; existingModules: {id: string, title: string}[]; nextOrderMap?: Record<string, number>; onClose: () => void; onSuccess: (mat: MaterialItem, newModule?: any, isUpdate?: boolean) => void; onModuleAdded: (mod: any) => void; editMaterial?: CourseItem | null
 }) {
+  const { confirm } = useConfirm()
   const [tab, setTab] = useState<UploadTab>(() => {
     if (editMaterial) {
       if (editMaterial.type === 'VIDEO') return 'video'
@@ -262,7 +265,13 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
   }
 
   async function handleDeleteModule(modId: string) {
-    if (!confirm('Hapus bab ini? (Semua materi dan kuis di dalamnya akan ikut terhapus!)')) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Bab',
+      message: 'Hapus bab ini? (Semua materi dan kuis di dalamnya akan ikut terhapus!)',
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     setIsUpdatingModule(true)
     const supabase = createClient()
     const { error } = await supabase.from('modules').delete().eq('id', modId)
@@ -506,6 +515,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherId: string }) {
+  const { confirm } = useConfirm()
   const initialItems: CourseItem[] = cls.modules.flatMap(m => [
     ...m.materials.map(mat => ({ ...mat, itemType: 'material' as CourseItemType })),
     ...(m.quizzes || []).map(q => ({ ...q, itemType: 'quiz' as CourseItemType }))
@@ -600,7 +610,13 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
       return
     }
     
-    if (!confirm('Hapus materi ini?')) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Materi',
+      message: 'Hapus materi ini?',
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     const supabase = createClient()
     if (storageUrl?.includes('supabase')) {
       const pathMatch = storageUrl.match(/class-materials\/(.+)$/)

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
 import { CreatePostModal } from '@/components/teacher/CreatePostModal'
 import toast from 'react-hot-toast'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -54,6 +55,7 @@ function PostCard({
   onReplyAdded: (postId: string, reply: ForumReply) => void
   onReplyDeleted: (postId: string, replyId: string) => void
 }) {
+  const { confirm } = useConfirm()
   const [expanded, setExpanded] = useState(false)
   const [replyText, setReplyText] = useState('')
   const [sendingReply, setSendingReply] = useState(false)
@@ -91,7 +93,13 @@ function PostCard({
   }
 
   const handleDeletePost = async () => {
-    if (!confirm(`Hapus post "${post.title}"?`)) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Diskusi',
+      message: `Hapus post "${post.title}"?`,
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     setDeletingPost(true)
     const supabase = createClient()
     const { error } = await supabase.from('forum_posts').delete().eq('id', post.id)
@@ -105,7 +113,13 @@ function PostCard({
   }
 
   const handleDeleteReply = async (replyId: string) => {
-    if (!confirm('Hapus balasan ini?')) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Balasan',
+      message: 'Hapus balasan ini?',
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     setDeletingReplyId(replyId)
     const supabase = createClient()
     const { error } = await supabase.from('forum_replies').delete().eq('id', replyId)

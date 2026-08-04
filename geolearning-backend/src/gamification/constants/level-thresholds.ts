@@ -1,15 +1,15 @@
 /**
  * Level Thresholds — Quadratic XP Progression Curve
  *
- * Formula: level = floor(sqrt(xp / 100)) + 1
+ * Formula: level = floor(sqrt(xp / 25)) + 1
  *
- * XP checkpoints:
+ * XP checkpoints (Lebih Cepat / Mudah):
  *   Level 1  →    0 XP
- *   Level 2  →  100 XP  (needs 100 more)
- *   Level 3  →  400 XP  (needs 300 more)
- *   Level 5  → 1600 XP  (needs 900 more)
- *   Level 10 → 8100 XP  (needs 2700 more)
- *   Level 20 → 36100 XP
+ *   Level 2  →   25 XP  (needs 25 more)
+ *   Level 3  →  100 XP  (needs 75 more)
+ *   Level 5  →  400 XP  (needs 300 more)
+ *   Level 10 → 2025 XP  (needs 1625 more)
+ *   Level 20 → 9025 XP
  *
  * Each level requires progressively more XP — rewards sustained engagement.
  */
@@ -23,7 +23,7 @@ export const MAX_LEVEL = 100;
  */
 export function calculateLevel(xp: number): number {
   if (xp < 0) return 1;
-  const level = Math.floor(Math.sqrt(xp / 100)) + 1;
+  const level = Math.floor(Math.sqrt(xp / 25)) + 1;
   return Math.min(level, MAX_LEVEL);
 }
 
@@ -33,7 +33,7 @@ export function calculateLevel(xp: number): number {
  */
 export function xpForLevel(level: number): number {
   if (level <= 1) return 0;
-  return Math.pow(level - 1, 2) * 100;
+  return Math.pow(level - 1, 2) * 25;
 }
 
 /**

@@ -32,6 +32,7 @@ interface QuizItem {
   id: string
   title: string
   xp_reward: number
+  passing_score: number | null
   order: number
   created_at: string
 }
@@ -191,6 +192,7 @@ export default function StudentClassDetailPage() {
   const [viewingMap, setViewingMap] = useState<MaterialItem | null>(null)
   const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
   const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(new Set())
+  const [unlockedModuleIds, setUnlockedModuleIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const supabase = createClient()
@@ -223,7 +225,7 @@ export default function StudentClassDetailPage() {
           modules(
             id, title, order,
             materials(id, title, type, content_url, content_text, order, created_at),
-            quizzes(id, title, xp_reward, order, created_at)
+            quizzes(id, title, xp_reward, passing_score, order, created_at)
           )
         `)
         .eq('id', classId)
@@ -242,12 +244,54 @@ export default function StudentClassDetailPage() {
       
       const { data: attempts } = await supabase
         .from('quiz_attempts')
-        .select('quiz_id')
+        .select('quiz_id, score')
         .eq('user_id', user.id)
         .not('completed_at', 'is', null)
 
+      // Fetch module unlocks (Teacher overrides)
+      const { data: unlocks } = await supabase
+        .from('module_unlocks')
+        .select('module_id')
+        .eq('user_id', user.id)
+
       const completedMaterialIds = new Set((completions ?? []).map(c => c.material_id))
-      const completedQuizIds = new Set((attempts ?? []).map(a => a.quiz_id))
+      const unlockedModuleIds = new Set((unlocks ?? []).map(u => u.module_id))
+      
+      // Calculate max score per quiz
+      const maxScores: Record<string, number> = {}
+      ;(attempts ?? []).forEach(a => {
+        if (!maxScores[a.quiz_id] || a.score > maxScores[a.quiz_id]) {
+          maxScores[a.quiz_id] = a.score
+        }
+      })
+
+      // We determine completed quizzes based on their passing_score
+      const completedQuizIds = new Set<string>()
+      
+      // We need to iterate through all quizzes to check their passing_score
+      ;(classData.modules ?? []).forEach((m: any) => {
+        (m.quizzes ?? []).forEach((q: any) => {
+          const maxScore = maxScores[q.id]
+          const isPassed = maxScore !== undefined && maxScore >= (q.passing_score || 0)
+          
+          // Also mark as passed if the module it belongs to is manually unlocked?
+          // Actually, the teacher override is meant to unlock the *next* module.
+          // The visual representation in ExpeditionMap:
+          // A node is completed if it's in `completedQuizzes`.
+          // If a student hasn't passed the quiz, it won't be completed, so the NEXT node will be locked.
+          // BUT wait! If the teacher unlocked the NEXT module, how does ExpeditionMap know?
+          // ExpeditionMap just linearly locks everything after the first uncompleted node.
+          
+          // So if a quiz is not passed, but the teacher unlocked the NEXT module, we should probably 
+          // treat the quiz as "completed" for the sake of the map progression, OR we modify ExpeditionMap
+          // to understand module unlocks.
+          
+          // Let's modify ExpeditionMap to accept `unlockedModules`.
+          if (isPassed) {
+            completedQuizIds.add(q.id)
+          }
+        })
+      })
 
       const teacher = Array.isArray(classData.teacher)
         ? classData.teacher[0]
@@ -270,6 +314,7 @@ export default function StudentClassDetailPage() {
       setAllMaterials(flat)
       setCompletedMaterials(completedMaterialIds)
       setCompletedQuizzes(completedQuizIds)
+      setUnlockedModuleIds(unlockedModuleIds)
       setLoading(false)
     }
 
@@ -374,12 +419,12 @@ export default function StudentClassDetailPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mb-8 flex items-center justify-center">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-slate-200/60 bg-white/60 p-1.5 shadow-sm backdrop-blur-md">
+      <div className="mb-8 flex items-center justify-center px-4">
+        <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl flex items-center gap-1.5 rounded-full border border-slate-200/60 bg-white/60 p-1.5 shadow-sm backdrop-blur-md">
           <button
             onClick={() => setActiveTab('materi')}
             className={cn(
-              'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300',
+              'w-1/2 flex justify-center items-center gap-2 rounded-full px-4 sm:px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300',
               activeTab === 'materi'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
@@ -392,7 +437,7 @@ export default function StudentClassDetailPage() {
           <button
             onClick={() => setActiveTab('peringkat')}
             className={cn(
-              'flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold transition-all duration-300',
+              'w-1/2 flex justify-center items-center gap-2 rounded-full px-4 sm:px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300',
               activeTab === 'peringkat'
                 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]'
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
@@ -425,6 +470,7 @@ export default function StudentClassDetailPage() {
               modules={cls.modules} 
               completedMaterials={completedMaterials}
               completedQuizzes={completedQuizzes}
+              unlockedModules={unlockedModuleIds}
               classId={classId}
             />
           </div>

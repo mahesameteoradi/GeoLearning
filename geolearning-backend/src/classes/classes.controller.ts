@@ -53,4 +53,16 @@ export class ClassesController {
     }
     return this.classesService.bulkRemoveStudents(classId, body.studentIds);
   }
+
+  @Post(':classId/students/:studentId/unlock-module')
+  async unlockModule(
+    @Param('classId') classId: string,
+    @Param('studentId') studentId: string,
+    @Body() body: { module_id: string; note: string; teacher_id: string },
+  ) {
+    if (!body.module_id || !body.teacher_id) {
+      throw new BadRequestException('module_id and teacher_id are required');
+    }
+    return this.classesService.unlockModule(classId, studentId, body.module_id, body.teacher_id, body.note);
+  }
 }

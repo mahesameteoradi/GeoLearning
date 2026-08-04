@@ -8,6 +8,9 @@ import {
   ResponsiveContainer, Cell, LabelList,
 } from 'recharts'
 import Link from 'next/link'
+import { format } from 'date-fns'
+import { id } from 'date-fns/locale'
+import { calculateLevel } from '@/lib/utils/level'
 
 interface ClassData {
   id: string
@@ -489,7 +492,7 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
                               <span className="font-medium text-slate-800">{s.nama}</span>
                             </div>
                           </td>
-                          <td className="px-5 py-3 text-center text-slate-500 font-semibold">{s.level}</td>
+                          <td className="px-5 py-3 text-center text-slate-500 font-semibold">{calculateLevel(s.xp || 0)}</td>
                           <td className="px-5 py-3 text-right font-bold text-amber-500">{s.xp.toLocaleString()}</td>
                           <td className="px-5 py-3 text-right">
                             <div className="flex items-center justify-end gap-2">

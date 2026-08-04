@@ -6,6 +6,7 @@ import { MessageBubble, ChatMessage } from './MessageBubble'
 import { Send, Loader2, X, CornerUpLeft, SmilePlus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 const PAGE_SIZE = 40
 
@@ -16,6 +17,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ roomId, roomName, userId }: ChatPanelProps) {
+  const { confirm } = useConfirm()
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
@@ -126,7 +128,13 @@ export function ChatPanel({ roomId, roomName, userId }: ChatPanelProps) {
 
   // ─── Delete message ────────────────────────────────────────────────────────
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus pesan ini?')) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Pesan',
+      message: 'Hapus pesan ini?',
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     const { error } = await supabase.from('chat_messages').delete().eq('id', id)
     if (error) toast.error('Gagal menghapus pesan')
   }

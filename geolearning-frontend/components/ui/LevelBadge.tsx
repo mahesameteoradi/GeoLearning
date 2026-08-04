@@ -1,4 +1,4 @@
-﻿import { cn } from '@/lib/utils/cn'
+import { cn } from '@/lib/utils/cn'
 import { calculateLevel } from '@/lib/utils/level'
 
 interface LevelBadgeProps {
@@ -9,7 +9,7 @@ interface LevelBadgeProps {
 }
 
 export function LevelBadge({ xp, level: levelProp, size = 'sm', className }: LevelBadgeProps) {
-  const level = levelProp ?? (xp !== undefined ? calculateLevel(xp) : 1)
+  const level = levelProp ?? (xp !== undefined ? calculateLevel(xp) : 0)
 
   const colorClass =
     level >= 50

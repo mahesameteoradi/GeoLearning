@@ -7,8 +7,10 @@ import { CreateProjectModal } from '@/components/teacher/CreateProjectModal'
 import { EditProjectModal } from '@/components/teacher/EditProjectModal'
 import { cn } from '@/lib/utils/cn'
 import toast from 'react-hot-toast'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function TeacherProjectsPage() {
+  const { confirm } = useConfirm()
   const supabase = createClient()
   const [projects, setProjects] = useState<any[]>([])
   const [classes, setClasses] = useState<any[]>([])
@@ -47,7 +49,13 @@ export default function TeacherProjectsPage() {
   }, [])
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus tugas "${title}"?`)) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Tugas',
+      message: `Apakah Anda yakin ingin menghapus tugas "${title}"?`,
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     
     setDeletingId(id)
     try {

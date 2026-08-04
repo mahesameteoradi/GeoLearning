@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   keywords: ['geografi', 'pembelajaran', 'pendidikan', 'kuis', 'XP', 'badge', 'siswa', 'guru'],
 }
 
+import { ConfirmProvider } from '@/components/ui/ConfirmProvider'
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id" className={plusJakarta.variable} data-scroll-behavior="smooth">
@@ -25,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body suppressHydrationWarning className="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased" style={{ fontFamily: 'var(--font-jakarta, "Plus Jakarta Sans", system-ui, sans-serif)' }}>
-        {children}
+        <ConfirmProvider>
+          {children}
+        </ConfirmProvider>
 
         {/* Global toast provider */}
         <Toaster

@@ -34,11 +34,13 @@ export function ExpeditionMap({
   modules,
   completedMaterials,
   completedQuizzes,
+  unlockedModules,
   classId
 }: { 
   modules: ModuleItem[],
   completedMaterials: Set<string>,
   completedQuizzes: Set<string>,
+  unlockedModules: Set<string>,
   classId: string
 }) {
   // Flatten everything into a single linear sequence
@@ -50,6 +52,7 @@ export function ExpeditionMap({
     url: string
     icon: React.ElementType
     moduleTitle: string
+    moduleId: string
     isModuleStart: boolean
   }
 
@@ -72,6 +75,7 @@ export function ExpeditionMap({
         url: `/student/classes/${classId}/materials/${mat.id}`,
         icon,
         moduleTitle: mod.title,
+        moduleId: mod.id,
         isModuleStart: false,
         order: mat.order
       })
@@ -87,6 +91,7 @@ export function ExpeditionMap({
         url: `/student/quizzes/${quiz.id}`,
         icon: ClipboardList,
         moduleTitle: mod.title,
+        moduleId: mod.id,
         isModuleStart: false,
         order: quiz.order
       })
@@ -109,11 +114,17 @@ export function ExpeditionMap({
   let isLocked = false
 
   return (
-    <div className="relative py-12 flex flex-col items-center">
-      <div className="w-full max-w-md">
+    <div className="relative py-12 flex flex-col items-center overflow-hidden w-full px-4 sm:px-6">
+      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
         {nodes.map((node, i) => {
+          // If a new module starts and it is manually unlocked by teacher, remove the lock!
+          if (node.isModuleStart && unlockedModules.has(node.moduleId)) {
+            isLocked = false
+          }
+
           // If we hit a locked flag from previous nodes, this node is locked
           const currentLocked = isLocked
+          
           // If this node is NOT completed, all subsequent nodes will be locked
           if (!node.isCompleted) {
             isLocked = true

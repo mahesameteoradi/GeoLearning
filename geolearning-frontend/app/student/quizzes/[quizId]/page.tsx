@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { CheckCircle, Clock, Zap, AlertTriangle, ArrowRight, Loader2, Play, MapPin, Search, ChevronRight, XCircle, Shield, ArrowLeft, Trophy } from 'lucide-react'
+import { CheckCircle, Clock, Zap, AlertTriangle, ArrowRight, Loader2, Play, MapPin, Search, ChevronRight, XCircle, Shield, ArrowLeft, Trophy, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import toast from 'react-hot-toast'
 import dynamic from 'next/dynamic'
@@ -75,6 +75,7 @@ interface Question {
   points: number | null
   duration: number | null
   order: number
+  image_url: string | null
 }
 
 interface QuizData {
@@ -82,6 +83,7 @@ interface QuizData {
   title: string
   time_limit: number | null
   xp_reward: number
+  passing_score: number | null
   questions: Question[]
 }
 
@@ -149,6 +151,8 @@ function ResultScreen({
   correctCount,
   questions,
   answers,
+  passingScore,
+  onRetry,
   onBack,
 }: {
   score: number
@@ -157,6 +161,8 @@ function ResultScreen({
   correctCount: number
   questions?: Question[]
   answers?: Record<string, string>
+  passingScore?: number
+  onRetry?: () => void
   onBack: () => void
 }) {
   useEffect(() => {
@@ -275,6 +281,15 @@ function ResultScreen({
           )}
 
           <div className="mt-10 flex flex-col gap-3 pb-12">
+            {onRetry && score < (passingScore || 0) && (
+              <button
+                onClick={onRetry}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Coba Lagi
+              </button>
+            )}
             <button
               onClick={onBack}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-bold text-indigo-900 shadow-xl shadow-black/20 hover:bg-slate-100 hover:scale-105 transition-all duration-300"
@@ -332,8 +347,8 @@ export default function QuizPlayerPage() {
       const { data: q } = await supabase
         .from('quizzes')
         .select(`
-          id, title, time_limit, xp_reward,
-          questions(id, text, type, options, correct_answer, explanation, points, duration, order)
+          id, title, time_limit, xp_reward, passing_score,
+          questions(id, text, type, options, correct_answer, explanation, points, duration, order, image_url)
         `)
         .eq('id', quizId)
         .eq('is_published', true)
@@ -344,18 +359,19 @@ export default function QuizPlayerPage() {
       const sorted = [...(q.questions as Question[])].sort((a, b) => a.order - b.order)
       setQuiz({ ...q, questions: sorted })
 
-      // Check if already completed
-      const { data: existing } = await supabase
+      // Check if already completed (get the best attempt)
+      const { data: existingList } = await supabase
         .from('quiz_attempts')
         .select('id, score, xp_earned, completed_at, answers')
         .eq('quiz_id', quizId)
         .eq('user_id', user.id)
         .not('completed_at', 'is', null)
-        .maybeSingle()
+        .order('score', { ascending: false })
 
-      if (existing?.completed_at) {
+      if (existingList && existingList.length > 0) {
+        const bestAttempt = existingList[0]
         let correctCount = 0
-        const ansObj = (existing.answers as Record<string, string>) || {}
+        const ansObj = (bestAttempt.answers as Record<string, string>) || {}
         for (const question of sorted) {
            const studentAns = ansObj[question.id]
            if (question.type === 'MAP_PINPOINT') {
@@ -368,7 +384,10 @@ export default function QuizPlayerPage() {
            }
         }
         setAnswers(ansObj)
-        setResult({ score: existing.score, xpEarned: existing.xp_earned, correctCount })
+        setResult({ score: bestAttempt.score, xpEarned: bestAttempt.xp_earned, correctCount })
+        
+        // If max score is below passing score, allow retry (state: already_done)
+        // We handle retry UI inside ResultScreen based on score < passingScore
         setState('already_done')
         return
       }
@@ -629,6 +648,24 @@ export default function QuizPlayerPage() {
     handleNextRef.current = handleNext
   }, [handleNext])
 
+  const handleRetry = useCallback(() => {
+    setResult(null)
+    setAnswers({})
+    setState('ready')
+    setCurrentIndex(0)
+    setStreak(0)
+    setProtections(0)
+    setRetryQueue([])
+    setRetriedIds(new Set())
+    setAttemptId(null)
+    if (quiz) {
+      const firstQ = quiz.questions[0]
+      const initialTime = firstQ?.duration ?? quiz.time_limit ?? 0
+      setTimeLeft(initialTime)
+      setCurrentTotalTime(initialTime)
+    }
+  }, [quiz])
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   if (state === 'loading') {
@@ -661,6 +698,8 @@ export default function QuizPlayerPage() {
         correctCount={result.correctCount}
         questions={uniqueQuestions}
         answers={answers}
+        passingScore={quiz?.passing_score || 0}
+        onRetry={handleRetry}
         onBack={() => router.push('/student/quizzes')}
       />
     )
@@ -766,7 +805,7 @@ export default function QuizPlayerPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-xl relative z-10 pt-4">
+      <div className="mx-auto w-full max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl relative z-10 pt-4">
         {/* Header */}
         <div className="mb-6 space-y-4">
           {/* Progress */}
@@ -807,6 +846,12 @@ export default function QuizPlayerPage() {
           <p className="mb-8 text-lg font-bold leading-relaxed text-slate-800 text-center">
             {currentQ.text}
           </p>
+
+          {currentQ.image_url && (
+            <div className="flex justify-center mb-8">
+              <img src={currentQ.image_url} alt="Soal" className="rounded-xl max-h-64 object-contain shadow-md border border-slate-200" />
+            </div>
+          )}
 
           {/* Options */}
           {currentQ.type === 'MULTIPLE_CHOICE' ? (

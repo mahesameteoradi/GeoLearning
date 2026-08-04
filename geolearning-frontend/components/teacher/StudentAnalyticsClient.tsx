@@ -3,16 +3,18 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AreaChart, Area, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
-import { Award, AlertCircle, CheckCircle, AlertTriangle, Plus, X } from 'lucide-react'
+import { Award, AlertCircle, CheckCircle, AlertTriangle, Plus, X, Info } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { ALL_BADGES } from '@/components/ui/BadgeGrid'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 
-export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
+export function StudentAnalyticsClient({ studentId, studentData }: { studentId: string, studentData?: any }) {
   const [scoreTrend, setScoreTrend] = useState<any[]>([])
   const [xpTrend, setXpTrend] = useState<any[]>([])
   const [badgeTimeline, setBadgeTimeline] = useState<any[]>([])
   const [topicBreakdown, setTopicBreakdown] = useState<any[]>([])
+  const [moduleProgress, setModuleProgress] = useState<any[]>([])
   const [interventions, setInterventions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [timeRange, setTimeRange] = useState<'7' | '30' | 'all'>('all')
@@ -43,12 +45,13 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1'
         const headers = { Authorization: `Bearer ${token}` }
 
-        const [stRes, xpRes, btRes, tbRes, inRes] = await Promise.all([
+        const [stRes, xpRes, btRes, tbRes, inRes, mpRes] = await Promise.all([
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/score-trend`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/xp-trend`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/badge-timeline`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/topic-breakdown`, { headers }),
-          fetch(`${apiUrl}/teacher/analytics/student/${studentId}/interventions`, { headers })
+          fetch(`${apiUrl}/teacher/analytics/student/${studentId}/interventions`, { headers }),
+          fetch(`${apiUrl}/teacher/analytics/student/${studentId}/module-progress`, { headers })
         ])
 
         if (isMounted) {
@@ -57,6 +60,7 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
           if (btRes.ok) setBadgeTimeline(await btRes.json())
           if (tbRes.ok) setTopicBreakdown(await tbRes.json())
           if (inRes.ok) setInterventions(await inRes.json())
+          if (mpRes.ok) setModuleProgress(await mpRes.json())
         }
       } catch (error) {
         console.error('Error fetching student analytics:', error)
@@ -153,6 +157,96 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
 
   return (
     <div className="space-y-6">
+      {/* Kemampuan & Keaktifan Summary */}
+      {(() => {
+        // Hitung Kemampuan & Keaktifan dari moduleProgress
+        let totalKemampuan = 0;
+        let totalRead = 0;
+        let totalMaterials = 0;
+        let validModules = 0;
+
+        moduleProgress.forEach(mod => {
+          totalKemampuan += mod.kemampuan;
+          totalRead += mod.materials_read;
+          totalMaterials += mod.materials_total;
+          if (mod.quizzes_total > 0 || mod.materials_total > 0) validModules++;
+        });
+
+        const avgScore = validModules > 0 ? Math.round(totalKemampuan / validModules) : 0;
+        const keaktifan = totalMaterials > 0 ? Math.round((totalRead / totalMaterials) * 100) : 0;
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Kemampuan Siswa</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-blue-600">{avgScore}</span>
+                  <span className="text-lg font-bold text-slate-400">%</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">Rata-rata dari kuis di semua bab</p>
+              </div>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-inner">
+                <Award className="h-8 w-8" />
+              </div>
+            </div>
+            
+            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Tingkat Keaktifan</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-emerald-500">{keaktifan}</span>
+                  <span className="text-lg font-bold text-slate-400">%</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">Materi yang telah dibuka</p>
+              </div>
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 shadow-inner">
+                <CheckCircle className="h-8 w-8" />
+              </div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Rincian per Bab */}
+      {moduleProgress.length > 0 && (
+        <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40 mt-6">
+          <div className="bg-slate-50/80 backdrop-blur-sm px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Rincian Progres per Bab</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <th className="px-6 py-4 text-left font-bold text-slate-500">Nama Bab (Modul)</th>
+                  <th className="px-6 py-4 text-center font-bold text-slate-500">Keaktifan (Materi Dibuka)</th>
+                  <th className="px-6 py-4 text-center font-bold text-slate-500">Kemampuan (Skor Kuis)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {moduleProgress.map((mod, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-800">{mod.title}</td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-bold text-emerald-600">{mod.keaktifan}%</span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider">{mod.materials_read} / {mod.materials_total} Materi</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="font-bold text-blue-600">{mod.kemampuan}%</span>
+                        <span className="text-[10px] text-slate-400 uppercase tracking-wider">{mod.quizzes_taken} / {mod.quizzes_total} Kuis</span>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Time Range Filter */}
       <div className="flex justify-end">
         <div className="inline-flex rounded-xl bg-white p-1 border border-slate-200/80 shadow-sm">
@@ -277,13 +371,17 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
                   {badgeTimeline.map((b, i) => (
                     <div 
                       key={i} 
-                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 text-center transition-all hover:bg-indigo-50 hover:shadow-md"
+                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-white p-4 text-center transition-all hover:border-indigo-300 hover:shadow-md"
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-inner">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 p-1">
                         {b.icon ? (
-                          <span className="text-2xl leading-none">{b.icon}</span>
+                          b.icon.startsWith('http') || b.icon.startsWith('data:image') ? (
+                            <img src={b.icon} alt={b.badge_name} className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-2xl leading-none">{b.icon}</span>
+                          )
                         ) : (
-                          <Award className="h-6 w-6" />
+                          <Award className="h-6 w-6 text-indigo-400" />
                         )}
                       </div>
                       <div>
@@ -296,6 +394,39 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
               ) : (
                 <div className="text-center text-sm text-slate-500">Belum ada badge yang diraih.</div>
               )}
+            </div>
+          </div>
+
+          {/* Kamus Makna Badges */}
+          <div className="rounded-3xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-inner">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-inner">
+                <Info className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-slate-800">Kamus Makna Badges</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Penjelasan lengkap mengenai arti setiap badge yang bisa diraih siswa.</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              {ALL_BADGES.map(badge => (
+                <div key={badge.id} className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 p-1">
+                    {badge.icon.startsWith('http') || badge.icon.startsWith('data:image') ? (
+                      <img src={badge.icon} alt={badge.display_name} className="h-full w-full object-contain" />
+                    ) : (
+                      <span className="text-xl leading-none">{badge.icon}</span>
+                    )}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-slate-800">{badge.display_name}</span>
+                    <span className="text-[10px] text-slate-500 leading-snug line-clamp-2 mt-0.5" title={badge.description}>
+                      {badge.description}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -395,6 +526,57 @@ export function StudentAnalyticsClient({ studentId }: { studentId: string }) {
                 <li className="p-6 text-center text-sm text-slate-500">Belum ada catatan intervensi.</li>
               )}
             </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Rubrik Pemaknaan Level */}
+      <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+            <Award className="h-4 w-4 text-indigo-600" />
+          </div>
+          <h3 className="font-bold text-slate-800 tracking-tight">Rubrik Pemaknaan Level (Gelar Siswa)</h3>
+        </div>
+        <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🎓</span>
+              <h4 className="font-bold text-slate-700 text-sm">Level 1 - 4: Pemula (Novice)</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Sedang memulai perjalanan belajar dan mulai mengenal materi dasar.
+            </p>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">🚀</span>
+              <h4 className="font-bold text-slate-700 text-sm">Level 5 - 9: Berkembang (Developing)</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Mulai aktif berpartisipasi dan memahami konsep-konsep dasar dengan baik.
+            </p>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">⚔️</span>
+              <h4 className="font-bold text-slate-700 text-sm">Level 10 - 19: Terampil (Capable)</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Sangat aktif, memiliki pemahaman yang baik, dan sering berpartisipasi dalam kuis.
+            </p>
+          </div>
+          
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xl">👑</span>
+              <h4 className="font-bold text-slate-700 text-sm">Level 20+: Ahli (Expert)</h4>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Sangat berprestasi, konsisten aktif dan menguasai banyak materi pembelajaran.
+            </p>
           </div>
         </div>
       </div>

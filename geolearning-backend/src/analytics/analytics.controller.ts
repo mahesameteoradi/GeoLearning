@@ -94,7 +94,7 @@ export class AnalyticsController {
     
     // Use raw query with ::text cast because of Postgres UUID mismatch issues
     const users: any[] = await this.prisma.$queryRaw`
-      SELECT id, name, level, xp, avatar_url 
+      SELECT id, name, level, xp, avatar_url, current_streak, longest_streak 
       FROM users 
       WHERE id::text = ${userId}
     `;
@@ -108,7 +108,9 @@ export class AnalyticsController {
       name: users[0].name,
       level: users[0].level,
       xp: Number(users[0].xp),
-      avatar_url: users[0].avatar_url
+      avatar_url: users[0].avatar_url,
+      current_streak: Number(users[0].current_streak),
+      longest_streak: Number(users[0].longest_streak)
     };
   }
 
@@ -120,6 +122,12 @@ export class AnalyticsController {
   ) {
     await this.validateStudentAccess(req.user.id, userId);
     return this.analyticsService.createIntervention(req.user.id, userId, body.message, body.type);
+  }
+
+  @Get('student/:userId/module-progress')
+  async getModuleProgress(@Req() req: any, @Param('userId') userId: string) {
+    await this.validateStudentAccess(req.user.id, userId);
+    return this.analyticsService.getModuleProgress(userId, req.user.id);
   }
 }
 

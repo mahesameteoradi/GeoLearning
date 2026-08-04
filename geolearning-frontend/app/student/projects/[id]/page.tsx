@@ -6,11 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import { ArrowLeft, Clock, Zap, FileText, CheckCircle, AlertTriangle, Edit2, Trash2, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import toast from 'react-hot-toast'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 export default function StudentProjectDetailPage() {
   const params = useParams()
   const router = useRouter()
   const supabase = createClient()
+  const { confirm } = useConfirm()
   const projectId = params.id as string
 
   const [project, setProject] = useState<any>(null)
@@ -65,7 +67,7 @@ export default function StudentProjectDetailPage() {
     // Load My Submission
     const { data: sData } = await supabase
       .from('project_submissions')
-      .select('*')
+      .select('*, feedback')
       .eq('assignment_id', projectId)
       
     // Filter to find the submission that belongs to me (either user_id or in group_members)
@@ -177,7 +179,13 @@ export default function StudentProjectDetailPage() {
 
   const handleDelete = async () => {
     if (!submission) return
-    if (!confirm('Apakah Anda yakin ingin membatalkan dan menghapus pengumpulan tugas ini?')) return
+    const isConfirmed = await confirm({
+      title: 'Batalkan Pengumpulan',
+      message: 'Apakah Anda yakin ingin membatalkan dan menghapus pengumpulan tugas ini?',
+      confirmText: 'Ya, Batalkan',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
 
     setDeleting(true)
     try {
@@ -325,7 +333,18 @@ export default function StudentProjectDetailPage() {
                           <span className="text-lg font-black text-emerald-600">{submission.score} / 100</span>
                         </div>
                         {submission.xp_earned > 0 && (
-                           <p className="text-xs font-bold text-amber-500 text-right">+{submission.xp_earned} XP</p>
+                           <p className="text-xs font-bold text-amber-500 text-right mb-3">+{submission.xp_earned} XP</p>
+                        )}
+                        {submission.feedback && (
+                          <div className="mt-3 pt-3 border-t border-emerald-50">
+                            <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                              <CheckCircle className="h-3.5 w-3.5" />
+                              Catatan dari Guru
+                            </h4>
+                            <p className="text-sm text-slate-700 italic bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/50">
+                              "{submission.feedback}"
+                            </p>
+                          </div>
                         )}
                       </div>
                     ) : (

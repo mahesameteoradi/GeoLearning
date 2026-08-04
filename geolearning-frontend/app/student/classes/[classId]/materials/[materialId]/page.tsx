@@ -56,10 +56,8 @@ export default function MaterialReaderPage() {
         const modTitle = Array.isArray(mod) ? mod[0]?.title : mod?.title
         setMaterial({ ...data, module: { title: modTitle || 'Modul' } } as MaterialItem)
         
-        // If there's no link, they implicitly "opened" it just by being here
-        if (!data.content_url) {
-          setHasOpenedLink(true)
-        }
+        // Removed auto-set of hasOpenedLink to enforce reading/watching rule.
+        // We will set it via scroll or video interaction.
       }
 
       // Check if already completed
@@ -81,6 +79,37 @@ export default function MaterialReaderPage() {
 
     fetchMaterial()
   }, [materialId])
+
+  // Track if user reads the material (scrolls to bottom) or interacts with iframe
+  useEffect(() => {
+    const handleScroll = () => {
+      // If user scrolls near the bottom
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 150) {
+        // If there is no video url, scrolling is enough to unlock XP
+        if (material && !material.content_url?.match(/youtube\.com|youtu\.be|\.(mp4|webm|ogg)$/i)) {
+          setHasOpenedLink(true)
+        }
+      }
+    }
+    
+    const handleBlur = () => {
+      // If focus moves to an iframe (e.g. clicking play on YouTube)
+      if (document.activeElement?.tagName === 'IFRAME') {
+        setHasOpenedLink(true)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('blur', handleBlur)
+    
+    // Trigger scroll check immediately in case content is short
+    handleScroll()
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('blur', handleBlur)
+    }
+  }, [material])
 
   const handleFinishReading = async () => {
     if (!material) return
@@ -155,8 +184,8 @@ export default function MaterialReaderPage() {
 
       {/* Reader Content */}
       <main className={cn("mx-auto px-4 py-12 md:py-20", material.type === 'INTERACTIVE_MAP' ? "max-w-6xl" : "max-w-3xl")}>
-        <header className="mb-12 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 leading-tight">
+        <header className="mb-8 md:mb-12 text-center">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 mb-4 md:mb-6 leading-tight">
             {material.title}
           </h1>
           <div className="flex items-center justify-center gap-4 text-sm text-slate-500">
@@ -181,22 +210,64 @@ export default function MaterialReaderPage() {
             <p className="italic text-slate-400 text-center">Teks materi tidak tersedia. Silakan cek lampiran file.</p>
           )}
 
-          {/* If there's a URL but type is TEXT, maybe it's an external reading link */}
+          {/* Embed Content in Glassmorphism Card */}
           {material.content_url && (
-            <div className="mt-8 p-6 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-indigo-900 mb-1">Referensi Eksternal</h4>
-                <p className="text-sm text-indigo-700">Terdapat tautan atau file tambahan untuk materi ini.</p>
+            <div className="mt-12 not-prose">
+              <div className="p-2 sm:p-3 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_20px_50px_rgba(37,99,235,0.1)] overflow-hidden mb-4">
+                <div className="bg-slate-900/5 rounded-2xl overflow-hidden relative w-full flex items-center justify-center min-h-[250px]">
+                  {(() => {
+                    const url = material.content_url;
+                    const isRawVideo = url.match(/\.(mp4|webm|ogg)$/i);
+                    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
+                    
+                    let embedUrl = url;
+                    if (isYouTube) {
+                      const videoId = url.includes('v=') ? new URL(url).searchParams.get('v') : url.split('youtu.be/')[1]?.split('?')[0];
+                      if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+                    }
+
+                    if (isRawVideo) {
+                      return (
+                        <video 
+                          src={embedUrl} 
+                          controls 
+                          className="w-full aspect-video object-cover"
+                          onPlay={() => setHasOpenedLink(true)}
+                        />
+                      );
+                    } else if (isYouTube) {
+                      return (
+                        <iframe 
+                          src={embedUrl}
+                          className="w-full aspect-video"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    } else {
+                      return (
+                        <iframe 
+                          src={embedUrl}
+                          className="w-full h-[600px]"
+                          onLoad={() => setHasOpenedLink(true)}
+                        />
+                      )
+                    }
+                  })()}
+                </div>
               </div>
-              <a 
-                href={material.content_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                onClick={() => setHasOpenedLink(true)}
-                className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-indigo-700 transition"
-              >
-                Buka Referensi
-              </a>
+              
+              <div className="text-center mt-6">
+                <a 
+                  href={material.content_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  onClick={() => setHasOpenedLink(true)} 
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 px-4 py-2 rounded-full"
+                >
+                  Tidak bisa memutar / melihat konten? Buka di tab baru <ArrowLeft className="w-4 h-4 rotate-135" style={{ transform: 'rotate(135deg)' }} />
+                </a>
+              </div>
             </div>
           )}
         </article>
@@ -214,25 +285,25 @@ export default function MaterialReaderPage() {
                 onClick={handleFinishReading}
                 disabled={!hasOpenedLink}
                 className={cn(
-                  "inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-lg shadow-xl transition-all",
+                  "inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg shadow-xl transition-all w-full sm:w-auto",
                   hasOpenedLink 
                     ? "bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 hover:shadow-2xl active:scale-95" 
                     : "bg-slate-300 text-slate-500 cursor-not-allowed"
                 )}
               >
-                <Sparkles className={cn("w-5 h-5", hasOpenedLink ? "text-yellow-400" : "text-slate-400")} />
-                {material.type === 'INTERACTIVE_MAP' ? 'Tandai Selesai Eksplorasi' : 'Selesai Membaca & Dapatkan XP'}
+                <Sparkles className={cn("w-5 h-5 flex-shrink-0", hasOpenedLink ? "text-yellow-400" : "text-slate-400")} />
+                <span className="text-center">{material.type === 'INTERACTIVE_MAP' ? 'Tandai Selesai Eksplorasi' : 'Selesai Membaca & Dapatkan XP'}</span>
               </button>
               {!hasOpenedLink && (
-                <p className="mt-4 text-sm font-semibold text-rose-500 animate-pulse">
-                  * Silakan klik &quot;Buka Referensi&quot; terlebih dahulu untuk mendapatkan XP
+                <p className="mt-4 text-xs sm:text-sm font-semibold text-rose-500 animate-pulse text-center px-4">
+                  * {material.content_url?.match(/youtube\.com|youtu\.be|\.(mp4|webm|ogg)$/i) ? 'Putar video terlebih dahulu untuk mendapatkan XP' : 'Baca materi hingga akhir untuk mendapatkan XP'}
                 </p>
               )}
             </>
           ) : (
-            <div className="inline-flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-8 py-4 rounded-full font-bold text-lg">
-              <CheckCircle className="w-6 h-6 text-emerald-500" />
-              Materi Selesai! Mengarahkan kembali...
+            <div className="inline-flex items-center justify-center gap-2 sm:gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold text-sm sm:text-lg w-full sm:w-auto">
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-500 flex-shrink-0" />
+              <span className="text-center">Materi Selesai! Mengarahkan kembali...</span>
             </div>
           )}
         </div>

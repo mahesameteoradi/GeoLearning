@@ -8,6 +8,7 @@ import { CreateClassModal } from '@/components/teacher/CreateClassModal'
 import { EditClassModal } from '@/components/teacher/EditClassModal'
 import toast from 'react-hot-toast'
 import { BookMarked, Users, BookOpen, Copy, Check, Plus, TrendingUp, Trash2, Edit2 } from 'lucide-react'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface ClassItem {
   id: string
@@ -54,6 +55,7 @@ function CopyableCode({ code }: { code: string }) {
 }
 
 export function ClassesClient({ classes, teacherId, totalStudents, totalModules }: ClassesClientProps) {
+  const { confirm } = useConfirm()
   const [showModal, setShowModal] = useState(false)
   const [editingClass, setEditingClass] = useState<ClassItem | null>(null)
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
@@ -62,7 +64,14 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
     e.preventDefault()
     e.stopPropagation()
     
-    if (!confirm(`Apakah Anda yakin ingin menghapus kelas "${name}"? Semua data di dalamnya akan terhapus.`)) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Kelas',
+      message: `Apakah Anda yakin ingin menghapus kelas "${name}"? Semua data di dalamnya akan terhapus.`,
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    
+    if (!isConfirmed) return
     
     setIsDeleting(id)
     const supabase = createClient()

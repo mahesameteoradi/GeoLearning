@@ -23,35 +23,43 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    const { data, error: signInError } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
 
-    if (signInError) {
-      setError('Email atau password salah.')
+      if (signInError) {
+        setError('Email atau password salah.')
+        setLoading(false)
+        return
+      }
+
+      // Get profile from database to ensure correct role
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', data.user.id)
+        .single()
+
+      const role = profile?.role || data?.user?.user_metadata?.role
+
+      if (role === 'ADMIN') {
+        router.push('/admin')
+      } else if (role === 'TEACHER') {
+        router.push('/teacher/dashboard')
+      } else {
+        router.push('/student/dashboard')
+      }
+      
+      router.refresh()
+    } catch (err: any) {
+      console.error('Login Error:', err)
+      setError(err.message === 'Failed to fetch'
+        ? 'Gagal terhubung ke server. Periksa koneksi internet atau matikan AdBlock.'
+        : err.message || 'Terjadi kesalahan saat masuk.')
       setLoading(false)
-      return
     }
-
-    // Get profile from database to ensure correct role
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
-
-    const role = profile?.role || data?.user?.user_metadata?.role
-
-    if (role === 'ADMIN') {
-      router.push('/admin')
-    } else if (role === 'TEACHER') {
-      router.push('/teacher/dashboard')
-    } else {
-      router.push('/student/dashboard')
-    }
-    
-    router.refresh()
   }
 
   async function handleForgotPassword(e: React.FormEvent) {
@@ -65,16 +73,24 @@ export default function LoginPage() {
       return
     }
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/update-password`,
-    })
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/update-password`,
+      })
 
-    if (error) {
-      setError('Gagal mengirim tautan. Pastikan email terdaftar.')
-    } else {
-      setResetSent(true)
+      if (error) {
+        setError('Gagal mengirim tautan. Pastikan email terdaftar.')
+      } else {
+        setResetSent(true)
+      }
+    } catch (err: any) {
+      console.error('Forgot Password Error:', err)
+      setError(err.message === 'Failed to fetch'
+        ? 'Gagal terhubung ke server. Periksa koneksi internet atau matikan AdBlock.'
+        : err.message || 'Terjadi kesalahan saat mereset kata sandi.')
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (

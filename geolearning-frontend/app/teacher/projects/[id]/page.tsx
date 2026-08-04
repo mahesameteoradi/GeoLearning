@@ -20,6 +20,7 @@ export default function ProjectSubmissionsPage() {
 
   const [gradingSubId, setGradingSubId] = useState<string | null>(null)
   const [scoreInput, setScoreInput] = useState<number | ''>('')
+  const [feedbackInput, setFeedbackInput] = useState<string>('')
   const [savingScore, setSavingScore] = useState(false)
 
   const loadData = async () => {
@@ -42,7 +43,7 @@ export default function ProjectSubmissionsPage() {
     // Fetch submissions
     const { data: sData } = await supabase
       .from('project_submissions')
-      .select('id, file_url, notes, score, xp_earned, submitted_at, group_members, user:users(name, avatar_url)')
+      .select('id, file_url, notes, feedback, score, xp_earned, submitted_at, group_members, user:users(name, avatar_url)')
       .eq('assignment_id', projectId)
       .order('submitted_at', { ascending: false })
 
@@ -107,7 +108,7 @@ export default function ProjectSubmissionsPage() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ score: Number(scoreInput) })
+          body: JSON.stringify({ score: Number(scoreInput), feedback: feedbackInput || undefined })
         })
         if (res.ok) {
           backendSuccess = true;
@@ -126,6 +127,7 @@ export default function ProjectSubmissionsPage() {
           .from('project_submissions')
           .update({
             score: Number(scoreInput),
+            feedback: feedbackInput || null,
             xp_earned: calculatedXp,
             graded_at: new Date().toISOString()
           })
@@ -137,6 +139,7 @@ export default function ProjectSubmissionsPage() {
       toast.success('Nilai berhasil disimpan!')
       setGradingSubId(null)
       setScoreInput('')
+      setFeedbackInput('')
       loadData()
     } catch (err: any) {
       toast.error(`Gagal menyimpan nilai: ${err.message}`)
@@ -251,7 +254,13 @@ export default function ProjectSubmissionsPage() {
                     {sub.notes && (
                       <div className="mt-1.5 rounded bg-slate-100 px-2 py-1 flex items-start gap-1 max-w-sm">
                         <FileText className="h-3 w-3 text-slate-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-[10px] italic text-slate-600 line-clamp-2">{sub.notes}</span>
+                        <span className="text-[10px] italic text-slate-600 line-clamp-2">Catatan Siswa: {sub.notes}</span>
+                      </div>
+                    )}
+                    {sub.feedback && (
+                      <div className="mt-1.5 rounded bg-blue-50 px-2 py-1 flex items-start gap-1 max-w-sm border border-blue-100">
+                        <CheckCircle className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
+                        <span className="text-[10px] text-blue-700">Feedback Guru: {sub.feedback}</span>
                       </div>
                     )}
                   </div>
@@ -279,6 +288,7 @@ export default function ProjectSubmissionsPage() {
                       <button 
                         onClick={() => {
                           setScoreInput(sub.score)
+                          setFeedbackInput(sub.feedback || '')
                           setGradingSubId(sub.id)
                         }}
                         className="text-[10px] text-slate-600 hover:text-blue-600 mt-1"
@@ -287,34 +297,46 @@ export default function ProjectSubmissionsPage() {
                       </button>
                     </div>
                   ) : gradingSubId === sub.id ? (
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="number"
-                        min="0" max="100"
-                        value={scoreInput}
-                        onChange={(e) => setScoreInput(Number(e.target.value))}
-                        className="w-16 rounded border border-slate-300 px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        placeholder="100"
-                        autoFocus
+                    <div className="flex flex-col gap-2 w-full max-w-xs items-end">
+                      <div className="flex w-full items-center gap-2">
+                        <input 
+                          type="number"
+                          min="0" max="100"
+                          value={scoreInput}
+                          onChange={(e) => setScoreInput(Number(e.target.value))}
+                          className="w-20 rounded border border-slate-300 px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                          placeholder="Nilai (0-100)"
+                          autoFocus
+                        />
+                        <button 
+                          onClick={() => handleSaveScore(sub.id)}
+                          disabled={savingScore}
+                          className="flex-1 rounded bg-emerald-500 py-1.5 px-3 text-white text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 flex justify-center items-center gap-1.5"
+                        >
+                          {savingScore ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Simpan</>}
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setGradingSubId(null)
+                            setFeedbackInput('')
+                          }}
+                          className="rounded bg-slate-200 p-1.5 text-slate-600 hover:bg-slate-300"
+                        >
+                          Tutup
+                        </button>
+                      </div>
+                      <textarea
+                        value={feedbackInput}
+                        onChange={(e) => setFeedbackInput(e.target.value)}
+                        className="w-full h-20 rounded border border-slate-300 p-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
+                        placeholder="Tambahkan feedback / catatan untuk siswa (Opsional)"
                       />
-                      <button 
-                        onClick={() => handleSaveScore(sub.id)}
-                        disabled={savingScore}
-                        className="rounded bg-emerald-500 p-1.5 text-white hover:bg-emerald-600 disabled:opacity-50"
-                      >
-                        {savingScore ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      </button>
-                      <button 
-                        onClick={() => setGradingSubId(null)}
-                        className="rounded bg-slate-200 p-1.5 text-slate-600 hover:bg-slate-300"
-                      >
-                        Tutup
-                      </button>
                     </div>
                   ) : (
                     <button 
                       onClick={() => {
                         setScoreInput('')
+                        setFeedbackInput('')
                         setGradingSubId(sub.id)
                       }}
                       className="rounded-lg bg-blue-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors"

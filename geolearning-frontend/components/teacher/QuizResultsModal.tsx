@@ -49,8 +49,11 @@ function ScoreBadge({ score }: { score: number }) {
 
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
+import { useConfirm } from '@/components/ui/ConfirmProvider'
+
 export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
   const supabase = createClient()
+  const { confirm } = useConfirm()
   const [attempts, setAttempts] = useState<AttemptRow[]>([])
   const [loading, setLoading] = useState(true)
   const [lastRefreshed, setLastRefreshed] = useState(new Date())
@@ -63,7 +66,7 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
         user:users!quiz_attempts_user_id_fkey(name)
       `)
       .eq('quiz_id', quiz.id)
-      .order('completed_at', { ascending: false, nullsFirst: false })
+      .order('score', { ascending: true })
 
     const mapped: AttemptRow[] = (data ?? []).map(a => {
       const user = Array.isArray(a.user) ? a.user[0] : a.user as { name: string } | null
@@ -87,15 +90,31 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
   }, [quiz.id, supabase])
 
   const handleResetAttempt = async (attemptId: string, studentName: string) => {
-    if (!confirm(`Hapus nilai dan reset kuis untuk ${studentName}? Siswa dapat mengerjakan ulang kuis ini.`)) return
+    const isConfirmed = await confirm({
+      title: 'Reset Kuis',
+      message: `Hapus nilai dan reset kuis untuk ${studentName}? Siswa dapat mengerjakan ulang kuis ini.`,
+      confirmText: 'Ya, Reset',
+      variant: 'danger'
+    })
+    
+    if (!isConfirmed) return
     
     try {
-      const { error } = await supabase.from('quiz_attempts').delete().eq('id', attemptId)
-      if (error) throw error
+      const res = await fetch('/api/quizzes/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attemptId })
+      })
+      
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal mereset kuis')
+      }
+      
       import('react-hot-toast').then((m) => m.default.success(`Kuis ${studentName} berhasil direset`))
       loadAttempts()
-    } catch (err) {
-      import('react-hot-toast').then((m) => m.default.error('Gagal mereset kuis'))
+    } catch (err: any) {
+      import('react-hot-toast').then((m) => m.default.error(err.message || 'Gagal mereset kuis'))
     }
   }
 
@@ -117,11 +136,22 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
   }, [loadAttempts, quiz.id, supabase])
 
   const completed = attempts.filter(a => a.completed_at)
-  const avgScore = completed.length > 0
-    ? completed.reduce((s, a) => s + a.score, 0) / completed.length
+  
+  // Calculate best scores per user for accurate stats
+  const bestScores = new Map<string, number>()
+  completed.forEach(a => {
+    const currentBest = bestScores.get(a.user_id) || -1
+    if (a.score > currentBest) bestScores.set(a.user_id, a.score)
+  })
+  
+  const uniqueStudentsCount = bestScores.size
+  const bestScoresList = Array.from(bestScores.values())
+  
+  const avgScore = uniqueStudentsCount > 0
+    ? bestScoresList.reduce((s, score) => s + score, 0) / uniqueStudentsCount
     : 0
-  const highest = completed.length > 0 ? Math.max(...completed.map(a => a.score)) : 0
-  const lowest = completed.length > 0 ? Math.min(...completed.map(a => a.score)) : 0
+  const highest = uniqueStudentsCount > 0 ? Math.max(...bestScoresList) : 0
+  const lowest = uniqueStudentsCount > 0 ? Math.min(...bestScoresList) : 0
 
   function formatTime(secs: number) {
     if (secs < 60) return `${secs}d`
@@ -198,10 +228,10 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
           {/* Stats */}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
-              { label: 'Mengerjakan', value: completed.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' },
+              { label: 'Siswa', value: uniqueStudentsCount, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' },
               { label: 'Rata-rata', value: `${avgScore.toFixed(0)}%`, icon: BarChart3, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' },
               { label: 'Tertinggi', value: `${highest.toFixed(0)}%`, icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-              { label: 'Terendah', value: completed.length > 0 ? `${lowest.toFixed(0)}%` : '-', icon: BarChart3, color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
+              { label: 'Terendah', value: uniqueStudentsCount > 0 ? `${lowest.toFixed(0)}%` : '-', icon: BarChart3, color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
             ].map(({ label, value, icon: Icon, color, bg, border }) => (
               <div key={label} className={`rounded-xl border ${border} ${bg} p-3`}>
                 <div className="flex items-center gap-1.5 mb-1">
@@ -224,8 +254,8 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                   { range: [55, 69], color: 'bg-amber-500' },
                   { range: [0, 54], color: 'bg-red-500' },
                 ].map(({ range, color }) => {
-                  const count = completed.filter(a => a.score >= range[0] && a.score <= range[1]).length
-                  const pct = (count / completed.length) * 100
+                  const count = bestScoresList.filter(score => score >= range[0] && score <= range[1]).length
+                  const pct = uniqueStudentsCount > 0 ? (count / uniqueStudentsCount) * 100 : 0
                   return pct > 0 ? <div key={color} className={`${color} transition-all`} style={{ width: `${pct}%` }} /> : null
                 })}
               </div>

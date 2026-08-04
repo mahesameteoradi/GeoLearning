@@ -133,18 +133,35 @@ export class ClassesService {
           });
           user = { id: newUser.id, email: newUser.email, nis_nip: newUser.nis_nip };
         } else {
-          // Update NIS if it's currently empty but provided in the import
-          if (nis && user.nis_nip !== nis.toString()) {
-            const updatedUser = await this.prisma.user.update({
-              where: { id: user.id },
-              data: { nis_nip: nis.toString() }
-            });
-            user.nis_nip = updatedUser.nis_nip;
-            
-            // Also update in our memory maps
-            existingUsersByEmail.set(email.toString(), user);
-            existingUsersByNis.set(nis.toString(), user);
+          // Update existing user to match Excel data
+          const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+            email: email.toString(),
+            password: sandi.toString(),
+            user_metadata: {
+              full_name: nama.toString(),
+              nis_nip: nis.toString()
+            }
+          });
+
+          if (authError) {
+            throw new Error(authError.message);
           }
+
+          const updatedUser = await this.prisma.user.update({
+            where: { id: user.id },
+            data: { 
+              nis_nip: nis.toString(),
+              name: nama.toString(),
+              email: email.toString()
+            }
+          });
+          
+          user.nis_nip = updatedUser.nis_nip;
+          user.email = updatedUser.email;
+          
+          // Update memory maps
+          existingUsersByEmail.set(email.toString(), user);
+          existingUsersByNis.set(nis.toString(), user);
         }
 
         // Add to class if not already in it
@@ -322,6 +339,43 @@ export class ClassesService {
         id: { in: classStudentIds }
       }
     });
+    return { success: true };
+  }
+
+  async unlockModule(classId: string, studentId: string, moduleId: string, teacherId: string, note: string) {
+    // Check if the student is in the class
+    const classStudent = await this.prisma.classStudent.findFirst({
+      where: { class_id: classId, student_id: studentId }
+    });
+    if (!classStudent) throw new BadRequestException('Siswa tidak ditemukan di kelas ini');
+
+    // Check if the module is in the class
+    const module = await this.prisma.module.findUnique({
+      where: { id: moduleId }
+    });
+    if (!module || module.class_id !== classId) throw new BadRequestException('Modul tidak valid');
+
+    // Upsert ModuleUnlock
+    const existing = await this.prisma.moduleUnlock.findFirst({
+      where: { user_id: studentId, module_id: moduleId }
+    });
+
+    if (existing) {
+      await this.prisma.moduleUnlock.update({
+        where: { id: existing.id },
+        data: { note, teacher_id: teacherId }
+      });
+    } else {
+      await this.prisma.moduleUnlock.create({
+        data: {
+          user_id: studentId,
+          module_id: moduleId,
+          teacher_id: teacherId,
+          note
+        }
+      });
+    }
+
     return { success: true };
   }
 }

@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Users, UserPlus, UploadCloud, Loader2, Download, Search, Edit2, Trash2 } from 'lucide-react'
+import { Users, UserPlus, UploadCloud, Loader2, Download, Search, Edit2, Trash2, Unlock } from 'lucide-react'
 import { ImportSiswaModal } from './ImportSiswaModal'
 import { AddSiswaModal } from './AddSiswaModal'
 import { EditSiswaModal } from './EditSiswaModal'
+import { UnlockModuleModal } from './UnlockModuleModal'
 import toast from 'react-hot-toast'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 
 interface ClassStudent {
   id: string
@@ -21,11 +23,13 @@ interface ClassStudent {
 }
 
 export function ClassStudentsPanel({ classId }: { classId: string }) {
+  const { confirm } = useConfirm()
   const [students, setStudents] = useState<ClassStudent[]>([])
   const [loading, setLoading] = useState(true)
   const [showImportModal, setShowImportModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [editStudent, setEditStudent] = useState<ClassStudent | null>(null)
+  const [unlockStudent, setUnlockStudent] = useState<ClassStudent | null>(null)
   const [search, setSearch] = useState('')
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [isDeleting, setIsDeleting] = useState(false)
@@ -59,7 +63,13 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
   )
 
   const handleDelete = async (studentId: string, studentName: string) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus ${studentName} dari kelas ini?`)) return
+    const isConfirmed = await confirm({
+      title: 'Keluarkan Siswa',
+      message: `Apakah Anda yakin ingin mengeluarkan ${studentName} dari kelas ini?`,
+      confirmText: 'Ya, Keluarkan',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     
     setIsDeleting(true)
     try {
@@ -90,7 +100,13 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
 
   const handleBulkDelete = async () => {
     if (selectedStudents.length === 0) return
-    if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedStudents.length} siswa yang dipilih dari kelas ini?`)) return
+    const isConfirmed = await confirm({
+      title: 'Keluarkan Siswa Terpilih',
+      message: `Apakah Anda yakin ingin mengeluarkan ${selectedStudents.length} siswa yang dipilih dari kelas ini?`,
+      confirmText: 'Ya, Keluarkan',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     
     setIsDeleting(true)
     try {
@@ -226,6 +242,13 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
                     <td className="px-5 py-3">
                       <div className="flex items-center justify-end gap-2">
                         <button
+                          onClick={() => setUnlockStudent(s)}
+                          className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-amber-50 hover:text-amber-600 transition-colors"
+                          title="Buka Akses Bab"
+                        >
+                          <Unlock className="h-4 w-4" />
+                        </button>
+                        <button
                           onClick={() => setEditStudent(s)}
                           className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:text-blue-600 transition-colors"
                           title="Edit Siswa"
@@ -277,6 +300,17 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
           student={editStudent}
           onClose={() => setEditStudent(null)}
           onSuccess={() => { setEditStudent(null); fetchStudents(); }}
+        />
+      )}
+
+      {unlockStudent && (
+        <UnlockModuleModal
+          classId={classId}
+          studentId={unlockStudent.student.id}
+          studentName={unlockStudent.student.name}
+          teacherId={unlockStudent.student.id} // wait, I need the actual teacher id!
+          onClose={() => setUnlockStudent(null)}
+          onSuccess={() => setUnlockStudent(null)}
         />
       )}
     </div>

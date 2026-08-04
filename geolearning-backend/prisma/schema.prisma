@@ -31,6 +31,8 @@ model User {
   badges                 UserBadge[]         @relation("OwnedBadges")
   equipped_badge         UserBadge?          @relation("EquippedBadge", fields: [equipped_badge_id], references: [id])
   projectSubmissions     ProjectSubmission[]
+  unlocked_modules       ModuleUnlock[]      @relation("UnlockedModules")
+  teacher_unlocked_modules ModuleUnlock[]    @relation("TeacherUnlockedModules")
   
   verification_status    VerificationStatus  @default(UNVERIFIED)
   created_codes          InvitationCode[]    @relation("AdminCreatedCodes")
@@ -106,6 +108,7 @@ model Module {
   materials   Material[]
   class       Class      @relation(fields: [class_id], references: [id], onDelete: Cascade)
   quizzes     Quiz[]
+  unlocks     ModuleUnlock[]
 
   @@map("modules")
 }
@@ -150,6 +153,7 @@ model Quiz {
   attempts     QuizAttempt[]
   class        Class?        @relation(fields: [class_id], references: [id], onDelete: Cascade)
   module       Module?       @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  passing_score Float?       @default(0)
 
   @@map("quizzes")
 }
@@ -165,6 +169,7 @@ model Question {
   points         Int?
   duration       Int?
   order          Int          @default(0)
+  image_url      String?
   created_at     DateTime     @default(now())
   quiz           Quiz         @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
   attempt_answers QuizAttemptAnswer[]
@@ -243,12 +248,28 @@ model ProjectSubmission {
   graded_at     DateTime?
   submitted_at  DateTime          @default(now())
   group_members Json?
+  feedback      String?
   assignment    ProjectAssignment @relation(fields: [assignment_id], references: [id], onDelete: Cascade)
   user          User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("project_submissions")
 }
 
+model ModuleUnlock {
+  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  user_id    String
+  module_id  String
+  teacher_id String
+  note       String?
+  created_at DateTime @default(now())
+
+  user       User     @relation("UnlockedModules", fields: [user_id], references: [id], onDelete: Cascade)
+  module     Module   @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  teacher    User     @relation("TeacherUnlockedModules", fields: [teacher_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, module_id])
+  @@map("module_unlocks")
+}
 
 
 model Intervention {

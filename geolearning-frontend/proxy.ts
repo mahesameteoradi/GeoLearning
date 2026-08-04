@@ -10,10 +10,10 @@ export async function proxy(request: NextRequest) {
     console.error(
       '[proxy] NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY is not set. Skipping auth middleware.'
     )
-    return NextResponse.next({ request })
+    return NextResponse.next()
   }
 
-  let supabaseResponse = NextResponse.next({ request })
+  let supabaseResponse = NextResponse.next()
 
   const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
         cookiesToSet.forEach(({ name, value }) =>
           request.cookies.set(name, value)
         )
-        supabaseResponse = NextResponse.next({ request })
+        supabaseResponse = NextResponse.next()
         cookiesToSet.forEach(({ name, value, options }) =>
           supabaseResponse.cookies.set(name, value, options)
         )
@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest) {
   } catch (err) {
     console.error('[proxy] supabase.auth.getUser() threw:', err)
     // On error, allow the request through rather than causing a redirect loop
-    return NextResponse.next({ request })
+    return NextResponse.next()
   }
 
   const { pathname } = request.nextUrl

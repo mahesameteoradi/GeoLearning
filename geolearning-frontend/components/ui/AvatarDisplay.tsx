@@ -80,12 +80,18 @@ export function AvatarDisplay({
       {equippedBadge && (
         <div
           className={cn(
-            'absolute -bottom-1 -right-1 flex items-center justify-center rounded-full border-2 border-[#0F0F1A] bg-slate-50',
+            'absolute -bottom-1 -right-1 flex items-center justify-center rounded-full border-2 border-[#0F0F1A] bg-white overflow-hidden',
             sz.badge
           )}
           title={equippedBadge.display_name}
         >
-          <span>{equippedBadge.icon}</span>
+          <span className="flex items-center justify-center w-full h-full p-[1px]">
+            {equippedBadge.icon.startsWith('http') || equippedBadge.icon.startsWith('data:image') ? (
+              <img src={equippedBadge.icon} alt={equippedBadge.display_name} className="w-full h-full object-contain" />
+            ) : (
+              equippedBadge.icon
+            )}
+          </span>
         </div>
       )}
     </div>

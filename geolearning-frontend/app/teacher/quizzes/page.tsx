@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils/cn'
 import { QuizEditorModal } from '@/components/teacher/QuizEditorModal'
 import { QuizResultsModal } from '@/components/teacher/QuizResultsModal'
 import { QuizLiveMonitorModal } from '@/components/teacher/QuizLiveMonitorModal'
+import { useConfirm } from '@/components/ui/ConfirmProvider'
 import type { Metadata } from 'next'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -67,11 +68,18 @@ function QuizCard({
   onLiveMonitor: (quiz: QuizItem) => void
   isVerified: boolean
 }) {
+  const { confirm } = useConfirm()
   const [deleting, setDeleting] = useState(false)
   const [toggling, setToggling] = useState(false)
 
   async function handleDelete() {
-    if (!confirm(`Hapus kuis "${quiz.title}"? Semua data attempt akan ikut terhapus.`)) return
+    const isConfirmed = await confirm({
+      title: 'Hapus Kuis',
+      message: `Hapus kuis "${quiz.title}"? Semua data attempt akan ikut terhapus.`,
+      confirmText: 'Ya, Hapus',
+      variant: 'danger'
+    })
+    if (!isConfirmed) return
     setDeleting(true)
     await onDelete(quiz.id)
     setDeleting(false)

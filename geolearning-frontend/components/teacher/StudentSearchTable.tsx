@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Flame, ChevronDown, ChevronUp, X, BookOpen } from 'lucide-react'
-import { calculateLevel, levelProgressPercent, xpForLevel } from '@/lib/utils/level'
+import { Search, Flame, ChevronDown, ChevronUp, X, BookOpen, Shield, Medal } from 'lucide-react'
+import { calculateLevel, levelProgressPercent, xpForLevel, getLevelMeaning } from '@/lib/utils/level'
 import { cn } from '@/lib/utils/cn'
 
 interface Student {
@@ -153,8 +153,8 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                         </div>
                       </td>
                       <td className="px-5 py-4">
-                        <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm', levelColors(s.level))}>
-                          Lv. {s.level}
+                        <span className={cn('inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold shadow-sm', levelColors(calculateLevel(s.xp || 0)))}>
+                          Lv. {calculateLevel(s.xp || 0)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -241,6 +241,17 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
               </div>
               <h3 className="font-bold text-slate-800">{selectedStudent.name}</h3>
               <p className="mt-0.5 text-xs text-slate-500">{selectedStudent.email}</p>
+              
+              {(() => {
+                const dynamicLevel = calculateLevel(selectedStudent.xp || 0)
+                const meaning = getLevelMeaning(dynamicLevel)
+                return (
+                  <div className={`mt-3 inline-flex items-center gap-1.5 rounded-lg border ${meaning.color} bg-white px-2.5 py-1 shadow-sm`}>
+                    <Shield className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider">{meaning.title}</span>
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Enrolled Classes */}
@@ -266,7 +277,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
             {/* Stats */}
             <div className="mb-4 grid grid-cols-2 gap-2">
               {[
-                { label: 'Level', value: `Lv. ${selectedStudent.level}`, color: 'text-blue-600' },
+                { label: 'Level', value: `Lv. ${calculateLevel(selectedStudent.xp || 0)}`, color: 'text-blue-600' },
                 { label: 'Total XP', value: selectedStudent.xp.toLocaleString(), color: 'text-amber-600' },
                 { label: 'Streak', value: `${selectedStudent.current_streak} hari`, color: 'text-orange-600' },
                 { label: 'Best Streak', value: `${selectedStudent.longest_streak} hari`, color: 'text-slate-500' },
@@ -290,8 +301,8 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
               />
             </div>
             <div className="mt-1 flex justify-between text-[10px] text-slate-700">
-              <span>Lv. {selectedStudent.level}</span>
-              <span>{xpForLevel(selectedStudent.level + 1).toLocaleString()} XP</span>
+              <span>Lv. {calculateLevel(selectedStudent.xp || 0)}</span>
+              <span>{xpForLevel(calculateLevel(selectedStudent.xp || 0) + 1).toLocaleString()} XP</span>
             </div>
 
             {/* Badges */}
@@ -302,10 +313,16 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                   {(selectedStudent.badges ?? []).map((badge) => (
                     <div 
                       key={badge.id}
-                      className="group flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-2 text-center transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm"
+                      className="group flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-center transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm"
                       title={badge.display_name}
                     >
-                      <span className="text-xl leading-none">{badge.icon}</span>
+                      <span className="flex items-center justify-center text-xl leading-none w-7 h-7">
+                        {badge.icon.startsWith('http') || badge.icon.startsWith('data:image') ? (
+                          <img src={badge.icon} alt={badge.display_name} className="w-full h-full object-contain" />
+                        ) : (
+                          badge.icon
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
