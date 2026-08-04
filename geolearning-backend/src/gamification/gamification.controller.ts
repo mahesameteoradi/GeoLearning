@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Get, Param, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -53,7 +60,12 @@ export class GamificationController {
   @Post('boost')
   @ApiOperation({ summary: 'Send motivational boost (XP + Intervention)' })
   async sendBoost(@Body() dto: BoostDto, @CurrentUser() user: SupabaseUser) {
-    return this.gamification.sendBoost(user.id, dto.studentId, dto.xpBonus, dto.note);
+    return this.gamification.sendBoost(
+      user.id,
+      dto.studentId,
+      dto.xpBonus,
+      dto.note,
+    );
   }
 
   /**
@@ -68,7 +80,12 @@ export class GamificationController {
     @Body() dto: GradeProjectDto,
     @CurrentUser() user: SupabaseUser,
   ) {
-    return this.gamification.gradeProject(user.id, submissionId, dto.score, dto.feedback);
+    return this.gamification.gradeProject(
+      user.id,
+      submissionId,
+      dto.score,
+      dto.feedback,
+    );
   }
 
   /**

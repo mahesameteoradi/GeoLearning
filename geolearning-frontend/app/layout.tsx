@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 }
 
 import { ConfirmProvider } from '@/components/ui/ConfirmProvider'
+import { TourProvider } from '@/components/providers/TourProvider'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -27,9 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body suppressHydrationWarning className="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased" style={{ fontFamily: 'var(--font-jakarta, "Plus Jakarta Sans", system-ui, sans-serif)' }}>
-        <ConfirmProvider>
-          {children}
-        </ConfirmProvider>
+        <TourProvider>
+          <ConfirmProvider>
+            {children}
+          </ConfirmProvider>
+        </TourProvider>
 
         {/* Global toast provider */}
         <Toaster

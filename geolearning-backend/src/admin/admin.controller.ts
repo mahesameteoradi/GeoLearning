@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, UnauthorizedException, ExecutionContext } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UseGuards,
+  UnauthorizedException,
+  ExecutionContext,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AuthGuard } from '@nestjs/passport'; // Or custom auth guard if they don't use passport
 import { CurrentUser } from '../auth/auth.decorator';
@@ -11,7 +22,9 @@ export class AdminRoleGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
     if (!user || user.user_metadata?.role !== 'ADMIN') {
-      throw new UnauthorizedException('Akses ditolak: Hanya Super Admin yang diizinkan');
+      throw new UnauthorizedException(
+        'Akses ditolak: Hanya Super Admin yang diizinkan',
+      );
     }
     return true;
   }

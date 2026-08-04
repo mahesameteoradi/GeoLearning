@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 // @ts-ignore
 import { AnalyticsService } from './analytics.service';
 import { SupabaseAuthGuard } from '../auth/auth.guard';
@@ -16,19 +26,20 @@ export class AnalyticsController {
   private async validateClassOwnership(teacherId: string, classId: string) {
     const cls = await this.prisma.class.findUnique({
       where: { id: classId },
-      select: { teacher_id: true }
+      select: { teacher_id: true },
     });
     if (!cls) throw new NotFoundException('Class not found');
-    if (cls.teacher_id !== teacherId) throw new ForbiddenException('You do not own this class');
+    if (cls.teacher_id !== teacherId)
+      throw new ForbiddenException('You do not own this class');
   }
 
   // Middleware-like check: Validate if teacher owns the student's class
   private async validateStudentAccess(teacherId: string, studentId: string) {
     const enrollments = await this.prisma.classStudent.findMany({
       where: { student_id: studentId },
-      include: { class: true }
+      include: { class: true },
     });
-    const hasAccess = enrollments.some(e => e.class.teacher_id === teacherId);
+    const hasAccess = enrollments.some((e) => e.class.teacher_id === teacherId);
     if (!hasAccess) {
       throw new ForbiddenException('You do not have access to this student');
     }
@@ -41,13 +52,19 @@ export class AnalyticsController {
   }
 
   @Get('class/:classId/topic-performance')
-  async getTopicPerformance(@Req() req: any, @Param('classId') classId: string) {
+  async getTopicPerformance(
+    @Req() req: any,
+    @Param('classId') classId: string,
+  ) {
     await this.validateClassOwnership(req.user.id, classId);
     return this.analyticsService.getTopicPerformance(classId);
   }
 
   @Get('class/:classId/quiz-question-stats')
-  async getQuizQuestionStats(@Req() req: any, @Param('classId') classId: string) {
+  async getQuizQuestionStats(
+    @Req() req: any,
+    @Param('classId') classId: string,
+  ) {
     await this.validateClassOwnership(req.user.id, classId);
     return this.analyticsService.getQuizQuestionStats(classId);
   }
@@ -91,18 +108,18 @@ export class AnalyticsController {
   @Get('student/:userId/profile')
   async getStudentProfile(@Req() req: any, @Param('userId') userId: string) {
     await this.validateStudentAccess(req.user.id, userId);
-    
+
     // Use raw query with ::text cast because of Postgres UUID mismatch issues
     const users: any[] = await this.prisma.$queryRaw`
       SELECT id, name, level, xp, avatar_url, current_streak, longest_streak 
       FROM users 
       WHERE id::text = ${userId}
     `;
-    
+
     if (!users || users.length === 0) {
       throw new NotFoundException('Student not found for id: ' + userId);
     }
-    
+
     return {
       id: users[0].id,
       name: users[0].name,
@@ -110,18 +127,23 @@ export class AnalyticsController {
       xp: Number(users[0].xp),
       avatar_url: users[0].avatar_url,
       current_streak: Number(users[0].current_streak),
-      longest_streak: Number(users[0].longest_streak)
+      longest_streak: Number(users[0].longest_streak),
     };
   }
 
   @Post('student/:userId/interventions')
   async createIntervention(
-    @Req() req: any, 
+    @Req() req: any,
     @Param('userId') userId: string,
-    @Body() body: { message: string, type?: string }
+    @Body() body: { message: string; type?: string },
   ) {
     await this.validateStudentAccess(req.user.id, userId);
-    return this.analyticsService.createIntervention(req.user.id, userId, body.message, body.type);
+    return this.analyticsService.createIntervention(
+      req.user.id,
+      userId,
+      body.message,
+      body.type,
+    );
   }
 
   @Get('student/:userId/module-progress')
@@ -130,4 +152,3 @@ export class AnalyticsController {
     return this.analyticsService.getModuleProgress(userId, req.user.id);
   }
 }
-

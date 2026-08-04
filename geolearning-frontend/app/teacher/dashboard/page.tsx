@@ -4,6 +4,8 @@ import { ClassCard } from '@/components/teacher/ClassCard'
 import { StudentProgressTable } from '@/components/teacher/StudentProgressTable'
 import { BarChart3, BookMarked, Users, AlertTriangle } from 'lucide-react'
 import { InteractiveBackground } from '@/components/ui/InteractiveBackground'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { dashboardTeacherSteps } from '@/lib/utils/tourSteps'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -70,6 +72,7 @@ export default async function TeacherDashboardPage() {
 
   return (
     <div className="relative min-h-full p-5 lg:p-7 overflow-hidden bg-slate-50/50">
+      <OnboardingTour tourKey="dashboard_teacher" steps={dashboardTeacherSteps} />
       <InteractiveBackground />
       <div className="relative z-10">
       {/* ─── Verification Warning ──────────────────────────── */}
@@ -129,7 +132,7 @@ export default async function TeacherDashboardPage() {
       </div>
 
       {/* ─── Overview Stats ───────────────────────────────── */}
-      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div id="tour-teacher-stats" className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { label: 'Kelas Saya',   value: totalClasses,             icon: BookMarked,     color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
           { label: 'Total Siswa',        value: totalStudents,            icon: Users,          color: 'text-cyan-600',   bg: 'bg-cyan-50',   border: 'border-cyan-100', gradient: 'from-cyan-500/5 to-transparent'   },
@@ -151,7 +154,7 @@ export default async function TeacherDashboardPage() {
       </div>
 
       {/* ─── Classes Grid ─────────────────────────────────── */}
-      <section className="mb-5">
+      <section id="tour-teacher-classes" className="mb-5">
         <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
           📚 Kelas Saya
         </h2>
@@ -194,7 +197,7 @@ export default async function TeacherDashboardPage() {
       </section>
 
       {/* ─── Bottom Grid ─────────────────────────────────── */}
-      <div className="mt-5">
+      <div id="tour-teacher-progress" className="mt-5">
         <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
           📊 Progres Siswa
         </h2>

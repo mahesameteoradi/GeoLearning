@@ -8,44 +8,52 @@ export class AnalyticsService {
   async getClassSummary(classId: string) {
     const students = await this.prisma.classStudent.findMany({
       where: { class_id: classId },
-      select: { student_id: true }
+      select: { student_id: true },
     });
-    const studentIds = students.map(s => s.student_id);
+    const studentIds = students.map((s) => s.student_id);
 
     const quizAttempts = await this.prisma.quizAttempt.findMany({
-      where: { user_id: { in: studentIds }, quiz: { class_id: classId }, completed_at: { not: null } }
+      where: {
+        user_id: { in: studentIds },
+        quiz: { class_id: classId },
+        completed_at: { not: null },
+      },
     });
 
     const bestAttempts = new Map<string, number>();
-    quizAttempts.forEach(a => {
+    quizAttempts.forEach((a) => {
       const key = `${a.user_id}_${a.quiz_id}`;
       const currentMax = bestAttempts.get(key) || -1;
       if (a.score > currentMax) bestAttempts.set(key, a.score);
     });
 
-    const averageScore = bestAttempts.size > 0 
-      ? Array.from(bestAttempts.values()).reduce((sum, score) => sum + score, 0) / bestAttempts.size 
-      : 0;
+    const averageScore =
+      bestAttempts.size > 0
+        ? Array.from(bestAttempts.values()).reduce(
+            (sum, score) => sum + score,
+            0,
+          ) / bestAttempts.size
+        : 0;
 
     // A student is considered active if they have completed a quiz in this class, otherwise passive.
-    const activeStudentIds = new Set(quizAttempts.map(a => a.user_id));
-    
+    const activeStudentIds = new Set(quizAttempts.map((a) => a.user_id));
+
     // Total quizzes available for this class
     const totalQuizzes = await this.prisma.quiz.count({
-      where: { class_id: classId }
+      where: { class_id: classId },
     });
 
     let completionRate = 0;
     if (studentIds.length > 0 && totalQuizzes > 0) {
-       const totalPossibleAttempts = studentIds.length * totalQuizzes;
-       completionRate = (bestAttempts.size / totalPossibleAttempts) * 100;
+      const totalPossibleAttempts = studentIds.length * totalQuizzes;
+      completionRate = (bestAttempts.size / totalPossibleAttempts) * 100;
     }
 
     return {
       rata_rata_skor: averageScore,
       completion_rate: completionRate,
       siswa_aktif: activeStudentIds.size,
-      siswa_pasif: studentIds.length - activeStudentIds.size
+      siswa_pasif: studentIds.length - activeStudentIds.size,
     };
   }
 
@@ -64,9 +72,9 @@ export class AnalyticsService {
       WHERE m.class_id::text = ${classId}
       GROUP BY m.title
     `;
-    return data.map(d => ({
+    return data.map((d) => ({
       topic: d.topic,
-      rata_rata_skor: parseFloat(d.rata_rata_skor) || 0
+      rata_rata_skor: parseFloat(d.rata_rata_skor) || 0,
     }));
   }
 
@@ -97,7 +105,7 @@ export class AnalyticsService {
         quizMap.set(row.quiz_id, {
           quiz_id: row.quiz_id,
           quiz_title: row.quiz_title,
-          questions: []
+          questions: [],
         });
       }
       const total = Number(row.total_attempts);
@@ -108,21 +116,24 @@ export class AnalyticsService {
         total_attempts: total,
         correct_count: correct,
         incorrect_count: total - correct,
-        correct_rate: total > 0 ? Math.round((correct / total) * 100) : 0
+        correct_rate: total > 0 ? Math.round((correct / total) * 100) : 0,
       });
     }
 
-    return Array.from(quizMap.values()).map(quiz => {
+    return Array.from(quizMap.values()).map((quiz) => {
       const questions = quiz.questions;
-      if (questions.length === 0) return { ...quiz, most_correct: null, most_incorrect: null };
-      const sorted = [...questions].sort((a: any, b: any) => b.correct_rate - a.correct_rate);
+      if (questions.length === 0)
+        return { ...quiz, most_correct: null, most_incorrect: null };
+      const sorted = [...questions].sort(
+        (a: any, b: any) => b.correct_rate - a.correct_rate,
+      );
       return {
         quiz_id: quiz.quiz_id,
         quiz_title: quiz.quiz_title,
         total_questions: questions.length,
         most_correct: sorted[0],
         most_incorrect: sorted[sorted.length - 1],
-        all_questions: sorted
+        all_questions: sorted,
       };
     });
   }
@@ -154,7 +165,7 @@ export class AnalyticsService {
       WHERE cs.class_id::text = ${classId}
       GROUP BY u.id, u.name, u.level, u.xp, u.avatar_url
     `;
-    return data.map(d => {
+    return data.map((d) => {
       const avgScore = parseFloat(d.rata_rata_skor);
       return {
         user_id: d.user_id,
@@ -164,7 +175,12 @@ export class AnalyticsService {
         avatar_url: d.avatar_url,
         rata_rata_skor: avgScore,
         jumlah_kuis_selesai: Number(d.jumlah_kuis_selesai),
-        status: avgScore >= 70 ? 'baik' : (avgScore >= 50 ? 'perlu dipantau' : 'perlu perhatian')
+        status:
+          avgScore >= 70
+            ? 'baik'
+            : avgScore >= 50
+              ? 'perlu dipantau'
+              : 'perlu perhatian',
       };
     });
   }
@@ -173,12 +189,12 @@ export class AnalyticsService {
     const attempts = await this.prisma.quizAttempt.findMany({
       where: { user_id: userId, completed_at: { not: null } },
       include: { quiz: true },
-      orderBy: { completed_at: 'asc' }
+      orderBy: { completed_at: 'asc' },
     });
-    return attempts.map(a => ({
+    return attempts.map((a) => ({
       tanggal: a.completed_at,
       skor: a.score,
-      quiz_title: a.quiz.title
+      quiz_title: a.quiz.title,
     }));
   }
 
@@ -190,9 +206,9 @@ export class AnalyticsService {
       WHERE user_id::text = ${userId}
       ORDER BY created_at ASC;
     `;
-    return data.map(d => ({
+    return data.map((d) => ({
       tanggal: d.tanggal,
-      xp_kumulatif: Number(d.xp_kumulatif)
+      xp_kumulatif: Number(d.xp_kumulatif),
     }));
   }
 
@@ -200,125 +216,143 @@ export class AnalyticsService {
     const badges = await this.prisma.userBadge.findMany({
       where: { user_id: userId },
       include: { badge: true },
-      orderBy: { earned_at: 'asc' }
+      orderBy: { earned_at: 'asc' },
     });
-    return badges.map(b => ({
+    return badges.map((b) => ({
       badge_id: b.badge.id,
       badge_name: b.badge.display_name,
       earned_at: b.earned_at,
-      icon: b.badge.icon
+      icon: b.badge.icon,
     }));
   }
 
   async getTopicBreakdown(userId: string, teacherId: string) {
     // 1. Kuis (Rata-rata skor kuis siswa)
     const attempts = await this.prisma.quizAttempt.findMany({
-      where: { user_id: userId, completed_at: { not: null } }
+      where: { user_id: userId, completed_at: { not: null } },
     });
     const bestAttempts = new Map<string, number>();
-    attempts.forEach(a => {
+    attempts.forEach((a) => {
       const current = bestAttempts.get(a.quiz_id) || -1;
       if (a.score > current) bestAttempts.set(a.quiz_id, a.score);
     });
-    
-    const avgScore = bestAttempts.size > 0 
-      ? Array.from(bestAttempts.values()).reduce((acc, curr) => acc + curr, 0) / bestAttempts.size 
-      : 0;
-    
+
+    const avgScore =
+      bestAttempts.size > 0
+        ? Array.from(bestAttempts.values()).reduce(
+            (acc, curr) => acc + curr,
+            0,
+          ) / bestAttempts.size
+        : 0;
+
     // 2. XP (Diasumsikan 1000 XP = 100% untuk visualisasi)
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     const xpScore = Math.min(100, ((user?.xp || 0) / 500) * 100);
 
     // 3. Keaktifan (Dihitung dari rutinitas absen/kuis - mock data untuk keaktifan membaca)
-    const activeScore = Math.min(100, 40 + (bestAttempts.size * 15));
+    const activeScore = Math.min(100, 40 + bestAttempts.size * 15);
 
     return [
       { topic: 'Skor Kuis', rata_rata_skor_siswa: avgScore },
       { topic: 'Keaktifan Membaca', rata_rata_skor_siswa: activeScore },
-      { topic: 'Perolehan XP', rata_rata_skor_siswa: xpScore }
+      { topic: 'Perolehan XP', rata_rata_skor_siswa: xpScore },
     ];
   }
 
   async getInterventions(userId: string) {
     const interventions = await this.prisma.intervention.findMany({
       where: { student_id: userId },
-      orderBy: { created_at: 'desc' }
+      orderBy: { created_at: 'desc' },
     });
-    return interventions.map(i => ({
+    return interventions.map((i) => ({
       message: i.note,
       created_at: i.created_at,
-      status: i.resolved ? 'completed' : 'pending'
+      status: i.resolved ? 'completed' : 'pending',
     }));
   }
 
-  async createIntervention(teacherId: string, studentId: string, message: string, type: any = 'ACADEMIC') {
+  async createIntervention(
+    teacherId: string,
+    studentId: string,
+    message: string,
+    type: any = 'ACADEMIC',
+  ) {
     const intervention = await this.prisma.intervention.create({
       data: {
         teacher_id: teacherId,
         student_id: studentId,
         note: message,
         type: type,
-        resolved: false
-      }
+        resolved: false,
+      },
     });
     return {
       message: intervention.note,
       created_at: intervention.created_at,
-      status: intervention.resolved ? 'completed' : 'pending'
+      status: intervention.resolved ? 'completed' : 'pending',
     };
   }
 
   async getModuleProgress(userId: string, teacherId: string) {
     const enrollments = await this.prisma.classStudent.findMany({
-      where: { 
+      where: {
         student_id: userId,
-        class: { teacher_id: teacherId }
+        class: { teacher_id: teacherId },
       },
-      select: { class_id: true }
+      select: { class_id: true },
     });
-    const classIds = enrollments.map(e => e.class_id);
+    const classIds = enrollments.map((e) => e.class_id);
 
     const modules = await this.prisma.module.findMany({
       where: { class_id: { in: classIds } },
       include: {
         materials: { select: { id: true } },
-        quizzes: { select: { id: true } }
+        quizzes: { select: { id: true } },
       },
-      orderBy: { order: 'asc' }
+      orderBy: { order: 'asc' },
     });
 
     // materials completed by user in these modules
     const materialCompletions: any[] = await this.prisma.$queryRaw`
       SELECT material_id FROM material_completions WHERE user_id::text = ${userId}
     `;
-    const completedMaterialIds = new Set(materialCompletions.map(mc => mc.material_id));
+    const completedMaterialIds = new Set(
+      materialCompletions.map((mc) => mc.material_id),
+    );
 
     // quiz attempts by user
     const quizAttempts = await this.prisma.quizAttempt.findMany({
-      where: { user_id: userId, completed_at: { not: null } }
+      where: { user_id: userId, completed_at: { not: null } },
     });
 
-    const result = modules.map(mod => {
+    const result = modules.map((mod) => {
       const totalMaterials = mod.materials.length;
       let readMaterials = 0;
       for (const mat of mod.materials) {
         if (completedMaterialIds.has(mat.id)) readMaterials++;
       }
       // If there are no materials, we can say keaktifan is 0 or ignore it. Let's say 0.
-      const keaktifan = totalMaterials > 0 ? (readMaterials / totalMaterials) * 100 : 0;
+      const keaktifan =
+        totalMaterials > 0 ? (readMaterials / totalMaterials) * 100 : 0;
 
-      const modQuizIds = new Set(mod.quizzes.map(q => q.id));
-      const modAttempts = quizAttempts.filter(qa => modQuizIds.has(qa.quiz_id));
-      
+      const modQuizIds = new Set(mod.quizzes.map((q) => q.id));
+      const modAttempts = quizAttempts.filter((qa) =>
+        modQuizIds.has(qa.quiz_id),
+      );
+
       const bestAttempts = new Map<string, number>();
-      modAttempts.forEach(a => {
+      modAttempts.forEach((a) => {
         const current = bestAttempts.get(a.quiz_id) || -1;
         if (a.score > current) bestAttempts.set(a.quiz_id, a.score);
       });
-      
-      const kemampuan = bestAttempts.size > 0 
-        ? Array.from(bestAttempts.values()).reduce((sum, score) => sum + score, 0) / bestAttempts.size 
-        : 0;
+
+      const kemampuan =
+        bestAttempts.size > 0
+          ? Array.from(bestAttempts.values()).reduce(
+              (sum, score) => sum + score,
+              0,
+            ) / bestAttempts.size
+          : 0;
 
       return {
         module_id: mod.id,
@@ -328,7 +362,7 @@ export class AnalyticsService {
         materials_read: readMaterials,
         materials_total: totalMaterials,
         quizzes_taken: bestAttempts.size,
-        quizzes_total: mod.quizzes.length
+        quizzes_total: mod.quizzes.length,
       };
     });
 

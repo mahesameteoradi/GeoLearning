@@ -47,7 +47,7 @@ export class AwardXpDto {
   quizScore?: number;
 
   @ApiPropertyOptional({
-    description: 'True if this is the user\'s first ever quiz attempt',
+    description: "True if this is the user's first ever quiz attempt",
     example: false,
   })
   @IsOptional()

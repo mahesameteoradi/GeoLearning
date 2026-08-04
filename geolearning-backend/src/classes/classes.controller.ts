@@ -1,4 +1,14 @@
-import { Controller, Post, Param, UploadedFile, UseInterceptors, BadRequestException, Body, Put, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Param,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+  Body,
+  Put,
+  Delete,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClassesService } from './classes.service';
 
@@ -21,7 +31,14 @@ export class ClassesController {
   @Post(':classId/students')
   async addStudent(
     @Param('classId') classId: string,
-    @Body() body: { name: string; email: string; nis_nip?: string; no_absen?: number; password?: string },
+    @Body()
+    body: {
+      name: string;
+      email: string;
+      nis_nip?: string;
+      no_absen?: number;
+      password?: string;
+    },
   ) {
     return this.classesService.addStudent(classId, body);
   }
@@ -30,7 +47,14 @@ export class ClassesController {
   async updateStudent(
     @Param('classId') classId: string,
     @Param('classStudentId') classStudentId: string,
-    @Body() body: { no_absen?: number; nis_nip?: string; name?: string; email?: string; password?: string },
+    @Body()
+    body: {
+      no_absen?: number;
+      nis_nip?: string;
+      name?: string;
+      email?: string;
+      password?: string;
+    },
   ) {
     return this.classesService.updateStudent(classId, classStudentId, body);
   }
@@ -63,6 +87,12 @@ export class ClassesController {
     if (!body.module_id || !body.teacher_id) {
       throw new BadRequestException('module_id and teacher_id are required');
     }
-    return this.classesService.unlockModule(classId, studentId, body.module_id, body.teacher_id, body.note);
+    return this.classesService.unlockModule(
+      classId,
+      studentId,
+      body.module_id,
+      body.teacher_id,
+      body.note,
+    );
   }
 }

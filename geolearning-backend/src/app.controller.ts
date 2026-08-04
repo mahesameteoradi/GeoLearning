@@ -16,8 +16,6 @@ export class AppController {
     };
   }
 
-
-
   @Public()
   @Get()
   getRoot(): string {

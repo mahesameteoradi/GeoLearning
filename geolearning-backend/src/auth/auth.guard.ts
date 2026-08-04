@@ -53,9 +53,7 @@ export class SupabaseAuthGuard implements CanActivate {
     const user = await this.supabase.verifyToken(token);
 
     if (!user) {
-      throw new UnauthorizedException(
-        'Invalid or expired Supabase JWT token.',
-      );
+      throw new UnauthorizedException('Invalid or expired Supabase JWT token.');
     }
 
     // Attach the validated Supabase user to the request object

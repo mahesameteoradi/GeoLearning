@@ -32,7 +32,10 @@ export class LeaderboardController {
       'Returns the current top-10 users by XP. For live updates, subscribe to the ' +
       'Supabase Realtime channel "leaderboard" and listen for "leaderboard_updated" events.',
   })
-  @ApiResponse({ status: 200, description: 'Top-10 leaderboard entries with rank' })
+  @ApiResponse({
+    status: 200,
+    description: 'Top-10 leaderboard entries with rank',
+  })
   async getLeaderboard(): Promise<LeaderboardEntry[]> {
     return this.leaderboard.getTopTen();
   }

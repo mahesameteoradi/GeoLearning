@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import {
   BookOpen, Hash, GraduationCap, Users, BookMarked, ChevronRight,
 } from 'lucide-react'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { classesStudentSteps } from '@/lib/utils/tourSteps'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -192,7 +194,7 @@ export default function StudentClassesPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
-
+      <OnboardingTour tourKey="classes_student" steps={classesStudentSteps} />
       {/* ── Page Header ──────────────────────────────────────────────────── */}
       <div className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
@@ -226,7 +228,7 @@ export default function StudentClassesPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="tour-student-class-cards" className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {enrolledClasses.map((cls) => (
             <EnrolledCard key={cls.id} cls={cls} />
           ))}

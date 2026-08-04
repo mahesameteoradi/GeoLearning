@@ -72,7 +72,9 @@ export class LeaderboardService {
    */
   async broadcastLeaderboard(): Promise<void> {
     const supabaseUrl = this.config.getOrThrow<string>('SUPABASE_URL');
-    const serviceKey = this.config.getOrThrow<string>('SUPABASE_SERVICE_ROLE_KEY');
+    const serviceKey = this.config.getOrThrow<string>(
+      'SUPABASE_SERVICE_ROLE_KEY',
+    );
 
     try {
       const entries = await this.getTopTen();

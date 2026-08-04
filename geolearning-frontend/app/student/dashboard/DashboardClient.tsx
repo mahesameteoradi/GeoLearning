@@ -14,6 +14,8 @@ import { ActivityFeed } from '@/components/student/ActivityFeed'
 import { LeaderboardWidget } from '@/components/student/LeaderboardWidget'
 import { FlashcardWidget } from './FlashcardWidget'
 import { calculateLevel } from '@/lib/utils/level'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { dashboardStudentSteps } from '@/lib/utils/tourSteps'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -520,6 +522,7 @@ export function DashboardClient() {
 
   return (
     <div className="min-h-full p-3 md:p-5 lg:p-7 relative overflow-x-hidden">
+      <OnboardingTour tourKey="dashboard_student" steps={dashboardStudentSteps} />
       
       {/* ─── Interactive Cursor Glow ─────────────────────────────────────── */}
       <motion.div
@@ -528,7 +531,7 @@ export function DashboardClient() {
       />
 
       {/* ─── Hero Header ─────────────────────────────────────────────────── */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+      <div id="tour-student-hero" className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
@@ -567,7 +570,7 @@ export function DashboardClient() {
       </div>
 
       {/* ─── Stats Row ───────────────────────────────────────────────────── */}
-      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div id="tour-student-stats" className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: 'Total XP',    value: profile.xp.toLocaleString(),   icon: Zap,          color: 'text-amber-500',   bg: 'bg-amber-50',   border: 'border-amber-100',   gradient: 'from-amber-500/5 to-transparent',   subtitle: 'Keep going!' },
           { label: 'Level',       value: level,                         icon: Trophy,       color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100',  gradient: 'from-indigo-500/5 to-transparent',  subtitle: 'Max: 100' },
@@ -594,11 +597,11 @@ export function DashboardClient() {
       <div className="grid gap-5 xl:grid-cols-3">
         {/* Left — flashcards + badges + activity */}
         <div className="space-y-5 xl:col-span-2">
-          <section>
+          <section id="tour-student-flashcard">
             <FlashcardWidget userId={profile.id} customFlashcards={enrolledFlashcards} />
           </section>
 
-          <section>
+          <section id="tour-student-badges">
             <div className="mb-2.5 flex items-center justify-between">
               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
                 🏅 Badges
@@ -612,7 +615,7 @@ export function DashboardClient() {
             </div>
           </section>
 
-          <section>
+          <section id="tour-student-activity">
             <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
               📋 Recent Activity
             </h2>
@@ -622,10 +625,12 @@ export function DashboardClient() {
 
         {/* Right — leaderboard & interventions */}
         <div className="space-y-5">
-          <LeaderboardWidget entries={leaderboard} currentUserId={profile.id} />
+          <div id="tour-student-leaderboard">
+            <LeaderboardWidget entries={leaderboard} currentUserId={profile.id} />
+          </div>
           
           {/* Interventions (Catatan Guru) */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div id="tour-student-interventions" className="rounded-2xl border border-slate-200 bg-white p-4">
              <div className="flex items-center justify-between mb-4">
                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
                  💬 Pesan Guru

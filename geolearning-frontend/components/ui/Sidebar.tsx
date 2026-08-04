@@ -22,6 +22,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTour } from '@/components/providers/TourProvider'
 
 interface NavItem {
   label: string
@@ -61,6 +62,7 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
   const [collapsed, setCollapsed] = useState(false)
   const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
+  const { startTour } = useTour()
 
   const navItems = role === 'TEACHER' ? teacherNav : studentNav
 
@@ -161,6 +163,7 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
             <Link
               key={href}
               href={href}
+              id={'tour-nav-' + href.split('/').pop()}
               onClick={onNavClick}
               title={collapsed ? label : undefined}
               className={cn(
@@ -206,6 +209,24 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
             <p className="flex-1 min-w-0 truncate text-xs font-semibold text-slate-700">{userName}</p>
           </div>
         )}
+
+        <button
+          onClick={() => {
+            let key = `dashboard_${role.toLowerCase()}`
+            if (pathname.includes('/classes')) key = `classes_${role.toLowerCase()}`
+            if (pathname.includes('/quizzes')) key = `quizzes_${role.toLowerCase()}`
+            if (pathname.includes('/projects')) key = `projects_${role.toLowerCase()}`
+            if (pathname.includes('/students')) key = `students_${role.toLowerCase()}`
+            if (pathname.includes('/analytics')) key = `analytics_${role.toLowerCase()}`
+            
+            startTour(key)
+          }}
+          title="Bantuan Tutorial"
+          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-all id-tour-help"
+        >
+          <span className="flex items-center justify-center h-4 w-4 rounded-full border border-blue-600 text-[10px] font-bold">?</span>
+          {!collapsed && <span>Bantuan Tutorial</span>}
+        </button>
 
         <button
           onClick={handleLogout}

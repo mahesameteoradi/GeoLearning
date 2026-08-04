@@ -125,7 +125,9 @@ export class GamificationService {
         data: {
           user_id: userId,
           amount: xpAmount,
-          source: context.source || (context.quizAttemptId ? 'quiz' : 'manual_adjustment'),
+          source:
+            context.source ||
+            (context.quizAttemptId ? 'quiz' : 'manual_adjustment'),
           reference_id: context.referenceId || context.quizAttemptId || null,
         },
       }),
@@ -164,7 +166,9 @@ export class GamificationService {
       this.lastLeaderboardBroadcast = now;
       void this.broadcastLeaderboard();
     } else {
-      this.logger.debug('[Realtime] Leaderboard broadcast throttled — skipping');
+      this.logger.debug(
+        '[Realtime] Leaderboard broadcast throttled — skipping',
+      );
     }
 
     return {
@@ -223,25 +227,33 @@ export class GamificationService {
   /**
    * Grades a project submission and awards calculated XP.
    */
-  async gradeProject(teacherId: string, submissionId: string, score: number, feedback?: string): Promise<any> {
+  async gradeProject(
+    teacherId: string,
+    submissionId: string,
+    score: number,
+    feedback?: string,
+  ): Promise<any> {
     const submission = await this.prisma.projectSubmission.findUnique({
       where: { id: submissionId },
       include: { assignment: true },
     });
 
-    if (!submission) throw new NotFoundException('Project submission not found');
+    if (!submission)
+      throw new NotFoundException('Project submission not found');
 
-    const totalXpEarned = Math.round(submission.assignment.xp_reward * (score / 100));
-    
+    const totalXpEarned = Math.round(
+      submission.assignment.xp_reward * (score / 100),
+    );
+
     // For group projects, divide XP by the number of members
     let xpEarned = totalXpEarned;
     let groupMembers: string[] = [];
     if (submission.assignment.is_group_project && submission.group_members) {
       try {
-        const members = Array.isArray(submission.group_members) 
-          ? submission.group_members 
+        const members = Array.isArray(submission.group_members)
+          ? submission.group_members
           : JSON.parse(submission.group_members as string);
-        
+
         if (Array.isArray(members) && members.length > 0) {
           groupMembers = members;
           xpEarned = Math.round(totalXpEarned / members.length);
@@ -266,28 +278,37 @@ export class GamificationService {
       if (groupMembers.length > 0) {
         // Award XP to all group members
         const results = await Promise.all(
-          groupMembers.map(memberId => this.awardXP(memberId, xpEarned, { source: 'project', referenceId: submissionId }))
+          groupMembers.map((memberId) =>
+            this.awardXP(memberId, xpEarned, {
+              source: 'project',
+              referenceId: submissionId,
+            }),
+          ),
         );
         // We just return the submitter's result or the first one for backwards compatibility
-        xpResult = results.find(r => r.userId === submission.user_id) || results[0];
+        xpResult =
+          results.find((r) => r.userId === submission.user_id) || results[0];
       } else {
         // Single user project
-        xpResult = await this.awardXP(submission.user_id, xpEarned, { source: 'project', referenceId: submissionId });
+        xpResult = await this.awardXP(submission.user_id, xpEarned, {
+          source: 'project',
+          referenceId: submissionId,
+        });
       }
 
       // Create notification
       const message = `Tugas Proyek "${submission.assignment.title}" telah dinilai! Anda mendapatkan skor ${score} dan +${xpEarned} XP.`;
       if (groupMembers.length > 0) {
         await Promise.all(
-          groupMembers.map(memberId => 
+          groupMembers.map((memberId) =>
             this.prisma.notification.create({
               data: {
                 user_id: memberId,
                 message,
                 type: 'ACHIEVEMENT',
-              }
-            })
-          )
+              },
+            }),
+          ),
         );
       } else {
         await this.prisma.notification.create({
@@ -295,7 +316,7 @@ export class GamificationService {
             user_id: submission.user_id,
             message,
             type: 'ACHIEVEMENT',
-          }
+          },
         });
       }
     }
@@ -319,8 +340,7 @@ export class GamificationService {
   ): Promise<AwardedBadge[]> {
     // Filter rules that qualify and haven't been awarded yet
     const qualifiedRules = BADGE_RULES.filter(
-      (rule) =>
-        !existingBadgeIds.includes(rule.id) && rule.evaluate(context),
+      (rule) => !existingBadgeIds.includes(rule.id) && rule.evaluate(context),
     );
 
     if (qualifiedRules.length === 0) return [];
@@ -346,10 +366,14 @@ export class GamificationService {
           icon: rule.icon,
           earnedAt: new Date(),
         });
-        this.logger.log(`[Badge] ${rule.icon} "${rule.name}" awarded to user ${userId}`);
+        this.logger.log(
+          `[Badge] ${rule.icon} "${rule.name}" awarded to user ${userId}`,
+        );
       } else {
         // Log but don't fail — badge may already exist (race condition)
-        this.logger.warn(`[Badge] Insert failed (likely duplicate): ${String(result.reason)}`);
+        this.logger.warn(
+          `[Badge] Insert failed (likely duplicate): ${String(result.reason)}`,
+        );
       }
     }
 
@@ -368,7 +392,9 @@ export class GamificationService {
     badge: AwardedBadge,
   ): Promise<void> {
     const supabaseUrl = this.config.getOrThrow<string>('SUPABASE_URL');
-    const serviceKey = this.config.getOrThrow<string>('SUPABASE_SERVICE_ROLE_KEY');
+    const serviceKey = this.config.getOrThrow<string>(
+      'SUPABASE_SERVICE_ROLE_KEY',
+    );
 
     try {
       const res = await fetch(`${supabaseUrl}/realtime/v1/api/broadcast`, {
@@ -412,7 +438,9 @@ export class GamificationService {
    */
   async broadcastLeaderboard(): Promise<void> {
     const supabaseUrl = this.config.getOrThrow<string>('SUPABASE_URL');
-    const serviceKey = this.config.getOrThrow<string>('SUPABASE_SERVICE_ROLE_KEY');
+    const serviceKey = this.config.getOrThrow<string>(
+      'SUPABASE_SERVICE_ROLE_KEY',
+    );
 
     try {
       const topTen = await this.prisma.user.findMany({
@@ -452,7 +480,9 @@ export class GamificationService {
       });
 
       if (!res.ok) {
-        this.logger.warn(`[Realtime] Leaderboard broadcast failed — HTTP ${res.status}`);
+        this.logger.warn(
+          `[Realtime] Leaderboard broadcast failed — HTTP ${res.status}`,
+        );
       } else {
         this.logger.log('[Realtime] leaderboard_updated broadcast sent');
       }
@@ -549,4 +579,3 @@ export class GamificationService {
     };
   }
 }
-

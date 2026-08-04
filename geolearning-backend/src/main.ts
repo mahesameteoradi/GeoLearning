@@ -9,9 +9,9 @@ async function bootstrap() {
   // ─── Global Validation Pipe ───────────────────────────────────────────────
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,       // Strip unknown properties from DTOs
+      whitelist: true, // Strip unknown properties from DTOs
       forbidNonWhitelisted: true, // Throw error on unknown properties
-      transform: true,       // Auto-transform payloads to DTO instances
+      transform: true, // Auto-transform payloads to DTO instances
     }),
   );
 
@@ -23,7 +23,9 @@ async function bootstrap() {
 
   // ─── CORS ─────────────────────────────────────────────────────────────────
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+    origin: process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : '*',
     credentials: true,
   });
 

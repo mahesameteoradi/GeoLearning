@@ -10,6 +10,8 @@ import {
 import { cn } from '@/lib/utils/cn'
 import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { quizzesStudentSteps } from '@/lib/utils/tourSteps'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -240,6 +242,7 @@ export default function StudentQuizzesPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      <OnboardingTour tourKey="quizzes_student" steps={quizzesStudentSteps} />
       {/* ── Page Header ──────────────────────────────────────────────────── */}
       <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
@@ -276,7 +279,7 @@ export default function StudentQuizzesPage() {
       )}
 
       {!loading && pending.length > 0 && (
-        <section className="mb-7">
+        <section id="tour-student-pending-quizzes" className="mb-7">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
             ⏳ Belum Dikerjakan ({pending.length})
           </h2>
@@ -287,7 +290,7 @@ export default function StudentQuizzesPage() {
       )}
 
       {!loading && done.length > 0 && (
-        <section>
+        <section id="tour-student-done-quizzes">
           <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
             ✅ Sudah Selesai ({done.length})
           </h2>

@@ -1,4 +1,11 @@
-import { Controller, Get, Post, Body, Query, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Public } from './auth.decorator';
 
@@ -53,7 +60,7 @@ export class AuthController {
 
   @Public()
   @Post('record-invitation')
-  async recordInvitation(@Body() body: { userId: string, code: string }) {
+  async recordInvitation(@Body() body: { userId: string; code: string }) {
     if (!body.userId || !body.code) {
       throw new BadRequestException('userId and code are required');
     }
@@ -62,7 +69,12 @@ export class AuthController {
       where: { code: body.code },
     });
 
-    if (!invitation || !invitation.is_active || (invitation.expires_at && new Date() > invitation.expires_at) || (invitation.max_uses && invitation.times_used >= invitation.max_uses)) {
+    if (
+      !invitation ||
+      !invitation.is_active ||
+      (invitation.expires_at && new Date() > invitation.expires_at) ||
+      (invitation.max_uses && invitation.times_used >= invitation.max_uses)
+    ) {
       throw new BadRequestException('Kode undangan tidak valid');
     }
 
@@ -72,12 +84,12 @@ export class AuthController {
         data: {
           invitation_code_id: invitation.id,
           used_by_id: body.userId,
-        }
+        },
       }),
       this.prisma.invitationCode.update({
         where: { id: invitation.id },
-        data: { times_used: { increment: 1 } }
-      })
+        data: { times_used: { increment: 1 } },
+      }),
     ]);
 
     return { success: true };

@@ -58,38 +58,45 @@ export class ClassesService {
 
     const existingUsers = await this.prisma.user.findMany({
       where: {
-        OR: [
-          { email: { in: allEmails } },
-          { nis_nip: { in: allNis } }
-        ]
+        OR: [{ email: { in: allEmails } }, { nis_nip: { in: allNis } }],
       },
-      select: { id: true, email: true, nis_nip: true }
+      select: { id: true, email: true, nis_nip: true },
     });
 
-    const existingUsersByEmail = new Map(existingUsers.map(u => [u.email, u]));
-    const existingUsersByNis = new Map(existingUsers.map(u => [u.nis_nip, u]));
+    const existingUsersByEmail = new Map(
+      existingUsers.map((u) => [u.email, u]),
+    );
+    const existingUsersByNis = new Map(
+      existingUsers.map((u) => [u.nis_nip, u]),
+    );
 
     // Pre-fetch students already in this class
     const existingClassStudents = await this.prisma.classStudent.findMany({
       where: { class_id: classId },
-      select: { student_id: true }
+      select: { student_id: true },
     });
-    const studentsInClass = new Set(existingClassStudents.map(cs => cs.student_id));
-    
+    const studentsInClass = new Set(
+      existingClassStudents.map((cs) => cs.student_id),
+    );
+
     for (const row of data) {
       const no_absen = row['No Absen'] || row['no_absen'];
       const nama = row['Nama'] || row['nama'];
       const nis = row['NIS'] || row['nis'];
       const email = row['Email'] || row['email'];
-      const sandi = row['Sandi'] || row['sandi'] || row['Password'] || row['password'];
+      const sandi =
+        row['Sandi'] || row['sandi'] || row['Password'] || row['password'];
 
       if (!nama || !nis || !email || !sandi) {
-        errors.push({ baris: rowIndex, alasan: 'Data tidak lengkap (Nama/NIS/Email/Sandi kosong)' });
+        errors.push({
+          baris: rowIndex,
+          alasan: 'Data tidak lengkap (Nama/NIS/Email/Sandi kosong)',
+        });
         failCount++;
         rowIndex++;
         continue;
       }
-      
+
       if (sandi.toString().length < 6) {
         errors.push({ baris: rowIndex, alasan: 'Sandi minimal 6 karakter' });
         failCount++;
@@ -98,21 +105,24 @@ export class ClassesService {
       }
 
       // Check if NIS or Email already exists in DB
-      let user = existingUsersByEmail.get(email.toString()) || existingUsersByNis.get(nis.toString());
+      let user =
+        existingUsersByEmail.get(email.toString()) ||
+        existingUsersByNis.get(nis.toString());
 
       try {
         if (!user) {
           // Create user in Supabase Auth
-          const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-            email: email.toString(),
-            password: sandi.toString(),
-            email_confirm: true,
-            user_metadata: {
-              role: 'STUDENT',
-              full_name: nama.toString(),
-              nis_nip: nis.toString()
-            }
-          });
+          const { data: authData, error: authError } =
+            await supabaseAdmin.auth.admin.createUser({
+              email: email.toString(),
+              password: sandi.toString(),
+              email_confirm: true,
+              user_metadata: {
+                role: 'STUDENT',
+                full_name: nama.toString(),
+                nis_nip: nis.toString(),
+              },
+            });
 
           if (authError) {
             throw new Error(authError.message);
@@ -129,19 +139,24 @@ export class ClassesService {
               email: email.toString(),
               role: Role.STUDENT,
               nis_nip: nis.toString(),
-            }
+            },
           });
-          user = { id: newUser.id, email: newUser.email, nis_nip: newUser.nis_nip };
+          user = {
+            id: newUser.id,
+            email: newUser.email,
+            nis_nip: newUser.nis_nip,
+          };
         } else {
           // Update existing user to match Excel data
-          const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-            email: email.toString(),
-            password: sandi.toString(),
-            user_metadata: {
-              full_name: nama.toString(),
-              nis_nip: nis.toString()
-            }
-          });
+          const { error: authError } =
+            await supabaseAdmin.auth.admin.updateUserById(user.id, {
+              email: email.toString(),
+              password: sandi.toString(),
+              user_metadata: {
+                full_name: nama.toString(),
+                nis_nip: nis.toString(),
+              },
+            });
 
           if (authError) {
             throw new Error(authError.message);
@@ -149,16 +164,16 @@ export class ClassesService {
 
           const updatedUser = await this.prisma.user.update({
             where: { id: user.id },
-            data: { 
+            data: {
               nis_nip: nis.toString(),
               name: nama.toString(),
-              email: email.toString()
-            }
+              email: email.toString(),
+            },
           });
-          
+
           user.nis_nip = updatedUser.nis_nip;
           user.email = updatedUser.email;
-          
+
           // Update memory maps
           existingUsersByEmail.set(email.toString(), user);
           existingUsersByNis.set(nis.toString(), user);
@@ -171,40 +186,51 @@ export class ClassesService {
               class_id: classId,
               student_id: user.id,
               no_absen: no_absen ? parseInt(no_absen.toString()) : null,
-            }
+            },
           });
           studentsInClass.add(user.id);
         }
 
         successCount++;
       } catch (err: any) {
-        errors.push({ baris: rowIndex, alasan: err.message || 'Gagal menyimpan data' });
+        errors.push({
+          baris: rowIndex,
+          alasan: err.message || 'Gagal menyimpan data',
+        });
         failCount++;
       }
 
       rowIndex++;
     }
 
-
-
     return {
       status: 'success',
       total_baris: data.length,
       berhasil: successCount,
       gagal: failCount,
-      detail_gagal: errors
+      detail_gagal: errors,
     };
   }
 
-  async addStudent(classId: string, body: { name: string; email: string; nis_nip?: string; no_absen?: number; password?: string }) {
+  async addStudent(
+    classId: string,
+    body: {
+      name: string;
+      email: string;
+      nis_nip?: string;
+      no_absen?: number;
+      password?: string;
+    },
+  ) {
     const { name, email, nis_nip, no_absen, password } = body;
-    if (!name || !email) throw new BadRequestException('Nama dan email wajib diisi');
+    if (!name || !email)
+      throw new BadRequestException('Nama dan email wajib diisi');
 
     const supabaseAdmin = this.supabaseService.getAdminClient();
-    
+
     // Check if user exists
     let user = await this.prisma.user.findFirst({
-      where: { OR: [{ email }, { nis_nip: nis_nip || undefined }] }
+      where: { OR: [{ email }, { nis_nip: nis_nip || undefined }] },
     });
 
     if (!user) {
@@ -212,19 +238,22 @@ export class ClassesService {
         throw new BadRequestException('Sandi minimal 6 karakter');
       }
 
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          role: 'STUDENT',
-          full_name: name,
-          nis_nip: nis_nip
-        }
-      });
+      const { data: authData, error: authError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: {
+            role: 'STUDENT',
+            full_name: name,
+            nis_nip: nis_nip,
+          },
+        });
 
       if (authError || !authData.user) {
-        throw new BadRequestException(authError?.message || 'Gagal membuat user');
+        throw new BadRequestException(
+          authError?.message || 'Gagal membuat user',
+        );
       }
 
       user = await this.prisma.user.create({
@@ -234,21 +263,23 @@ export class ClassesService {
           email,
           role: Role.STUDENT,
           nis_nip,
-        }
+        },
       });
     } else {
       // Update nis_nip if missing
       if (nis_nip && user.nis_nip !== nis_nip) {
         user = await this.prisma.user.update({
           where: { id: user.id },
-          data: { nis_nip }
+          data: { nis_nip },
         });
       }
     }
 
     // Add to class
     const existing = await this.prisma.classStudent.findUnique({
-      where: { class_id_student_id: { class_id: classId, student_id: user.id } }
+      where: {
+        class_id_student_id: { class_id: classId, student_id: user.id },
+      },
     });
 
     if (existing) {
@@ -261,22 +292,36 @@ export class ClassesService {
         student_id: user.id,
         no_absen: no_absen ? Number(no_absen) : null,
       },
-      include: { student: true }
+      include: { student: true },
     });
 
     return classStudent;
   }
 
-  async updateStudent(classId: string, classStudentId: string, body: { no_absen?: number; nis_nip?: string; name?: string; email?: string; password?: string }) {
+  async updateStudent(
+    classId: string,
+    classStudentId: string,
+    body: {
+      no_absen?: number;
+      nis_nip?: string;
+      name?: string;
+      email?: string;
+      password?: string;
+    },
+  ) {
     const classStudent = await this.prisma.classStudent.findUnique({
       where: { id: classStudentId, class_id: classId },
-      include: { student: true }
+      include: { student: true },
     });
 
-    if (!classStudent) throw new BadRequestException('Data siswa tidak ditemukan');
+    if (!classStudent)
+      throw new BadRequestException('Data siswa tidak ditemukan');
 
     const updateData: any = {};
-    if (body.nis_nip !== undefined && body.nis_nip !== classStudent.student.nis_nip) {
+    if (
+      body.nis_nip !== undefined &&
+      body.nis_nip !== classStudent.student.nis_nip
+    ) {
       updateData.nis_nip = body.nis_nip || null;
     }
     if (body.name !== undefined && body.name !== classStudent.student.name) {
@@ -289,29 +334,35 @@ export class ClassesService {
     if (Object.keys(updateData).length > 0) {
       await this.prisma.user.update({
         where: { id: classStudent.student_id },
-        data: updateData
+        data: updateData,
       });
-      
+
       const supabaseAdmin = this.supabaseService.getAdminClient();
       const authUpdate: any = {};
       if (updateData.email) authUpdate.email = updateData.email;
       if (body.password) authUpdate.password = body.password;
       if (updateData.name || updateData.nis_nip !== undefined) {
-        authUpdate.user_metadata = { 
+        authUpdate.user_metadata = {
           full_name: updateData.name || classStudent.student.name,
-          nis_nip: updateData.nis_nip !== undefined ? updateData.nis_nip : classStudent.student.nis_nip
+          nis_nip:
+            updateData.nis_nip !== undefined
+              ? updateData.nis_nip
+              : classStudent.student.nis_nip,
         };
       }
-      
+
       if (Object.keys(authUpdate).length > 0) {
-        await supabaseAdmin.auth.admin.updateUserById(classStudent.student_id, authUpdate);
+        await supabaseAdmin.auth.admin.updateUserById(
+          classStudent.student_id,
+          authUpdate,
+        );
       }
     }
 
     if (body.no_absen !== undefined) {
       await this.prisma.classStudent.update({
         where: { id: classStudentId },
-        data: { no_absen: body.no_absen ? Number(body.no_absen) : null }
+        data: { no_absen: body.no_absen ? Number(body.no_absen) : null },
       });
     }
 
@@ -320,13 +371,14 @@ export class ClassesService {
 
   async removeStudent(classId: string, classStudentId: string) {
     const classStudent = await this.prisma.classStudent.findUnique({
-      where: { id: classStudentId, class_id: classId }
+      where: { id: classStudentId, class_id: classId },
     });
 
-    if (!classStudent) throw new BadRequestException('Data siswa tidak ditemukan');
+    if (!classStudent)
+      throw new BadRequestException('Data siswa tidak ditemukan');
 
     await this.prisma.classStudent.delete({
-      where: { id: classStudentId }
+      where: { id: classStudentId },
     });
 
     return { success: true };
@@ -336,34 +388,42 @@ export class ClassesService {
     await this.prisma.classStudent.deleteMany({
       where: {
         class_id: classId,
-        id: { in: classStudentIds }
-      }
+        id: { in: classStudentIds },
+      },
     });
     return { success: true };
   }
 
-  async unlockModule(classId: string, studentId: string, moduleId: string, teacherId: string, note: string) {
+  async unlockModule(
+    classId: string,
+    studentId: string,
+    moduleId: string,
+    teacherId: string,
+    note: string,
+  ) {
     // Check if the student is in the class
     const classStudent = await this.prisma.classStudent.findFirst({
-      where: { class_id: classId, student_id: studentId }
+      where: { class_id: classId, student_id: studentId },
     });
-    if (!classStudent) throw new BadRequestException('Siswa tidak ditemukan di kelas ini');
+    if (!classStudent)
+      throw new BadRequestException('Siswa tidak ditemukan di kelas ini');
 
     // Check if the module is in the class
     const module = await this.prisma.module.findUnique({
-      where: { id: moduleId }
+      where: { id: moduleId },
     });
-    if (!module || module.class_id !== classId) throw new BadRequestException('Modul tidak valid');
+    if (!module || module.class_id !== classId)
+      throw new BadRequestException('Modul tidak valid');
 
     // Upsert ModuleUnlock
     const existing = await this.prisma.moduleUnlock.findFirst({
-      where: { user_id: studentId, module_id: moduleId }
+      where: { user_id: studentId, module_id: moduleId },
     });
 
     if (existing) {
       await this.prisma.moduleUnlock.update({
         where: { id: existing.id },
-        data: { note, teacher_id: teacherId }
+        data: { note, teacher_id: teacherId },
       });
     } else {
       await this.prisma.moduleUnlock.create({
@@ -371,8 +431,8 @@ export class ClassesService {
           user_id: studentId,
           module_id: moduleId,
           teacher_id: teacherId,
-          note
-        }
+          note,
+        },
       });
     }
 
