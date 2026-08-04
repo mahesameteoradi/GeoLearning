@@ -9,6 +9,8 @@ import { EditClassModal } from '@/components/teacher/EditClassModal'
 import toast from 'react-hot-toast'
 import { BookMarked, Users, BookOpen, Copy, Check, Plus, TrendingUp, Trash2, Edit2 } from 'lucide-react'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { classesTeacherSteps } from '@/lib/utils/tourSteps'
 
 interface ClassItem {
   id: string
@@ -89,6 +91,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
 
   return (
     <>
+      <OnboardingTour tourKey="classes_teacher" steps={classesTeacherSteps} />
       {/* Stats Row */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
@@ -119,6 +122,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
           <p className="text-sm font-medium text-slate-500">Belum ada kelas</p>
           <p className="mt-1 text-xs text-slate-600">Buat kelas pertama Anda untuk memulai perjalanan mengajar</p>
           <button
+            id="tour-teacher-create-class"
             onClick={() => setShowModal(true)}
             className="mt-5 flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700"
           >
@@ -127,7 +131,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
           </button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="tour-teacher-class-list" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {classes.map((cls) => (
             <Link
               key={cls.id}
@@ -195,6 +199,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
 
           {/* Add New Card */}
           <button
+            id="tour-teacher-create-class"
             onClick={() => setShowModal(true)}
             className={cn(
               'flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-500',

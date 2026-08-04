@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Bell, Trophy, BookOpen, AlertCircle, Info, CheckCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils/cn'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { notificationsStudentSteps } from '@/lib/utils/tourSteps'
 
 type NotificationType = 'ACHIEVEMENT' | 'REMINDER' | 'INTERVENTION' | 'SYSTEM' | 'FORUM'
 
@@ -88,6 +90,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      <OnboardingTour tourKey="notifications_student" steps={notificationsStudentSteps} />
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>

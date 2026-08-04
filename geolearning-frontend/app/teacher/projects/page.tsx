@@ -8,6 +8,8 @@ import { EditProjectModal } from '@/components/teacher/EditProjectModal'
 import { cn } from '@/lib/utils/cn'
 import toast from 'react-hot-toast'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { projectsTeacherSteps } from '@/lib/utils/tourSteps'
 
 export default function TeacherProjectsPage() {
   const { confirm } = useConfirm()
@@ -72,6 +74,7 @@ export default function TeacherProjectsPage() {
 
   return (
     <div className="min-h-screen p-5 lg:p-7">
+      <OnboardingTour tourKey="projects_teacher" steps={projectsTeacherSteps} />
       <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -92,6 +95,7 @@ export default function TeacherProjectsPage() {
             </div>
           </div>
           <button
+            id="tour-teacher-create-project"
             onClick={() => setShowCreate(true)}
             className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50 hover:from-blue-400 hover:to-indigo-500"
           >
@@ -104,7 +108,7 @@ export default function TeacherProjectsPage() {
       {loading ? (
         <div className="py-20 text-center text-sm text-slate-500">Memuat data tugas...</div>
       ) : projects.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
+        <div id="tour-teacher-project-list" className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
           <BookMarked className="mx-auto mb-3 h-10 w-10 text-slate-700" />
           <h3 className="text-sm font-bold text-slate-700">Belum Ada Tugas Proyek</h3>
           <p className="mt-1 text-xs text-slate-500 mb-4">Buat tugas pertama Anda untuk mulai memberikan proyek.</p>
@@ -113,7 +117,7 @@ export default function TeacherProjectsPage() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="tour-teacher-project-list" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map(proj => {
             const submissions = proj.submissions || []
             const gradedCount = submissions.filter((s: any) => s.score !== null).length

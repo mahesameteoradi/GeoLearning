@@ -363,6 +363,7 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <label className="text-sm font-semibold text-slate-700">Pilih Kelas:</label>
         <select
+          id="tour-teacher-analytics-select"
           value={selectedClassId}
           onChange={(e) => setSelectedClassId(e.target.value)}
           className="block w-full max-w-sm rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-800 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
@@ -429,7 +430,7 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
 
           {/* ── TAB: Topic Performance Chart ── */}
           {activeSubTab === 'chart' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div id="tour-teacher-analytics-charts" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Chart Panel */}
               <div className="lg:col-span-1 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-2">

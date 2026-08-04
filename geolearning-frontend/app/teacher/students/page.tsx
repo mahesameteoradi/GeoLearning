@@ -4,6 +4,8 @@ import { Users } from 'lucide-react'
 import type { Metadata } from 'next'
 import { StudentSearchTable } from '@/components/teacher/StudentSearchTable'
 import { calculateLevel } from '@/lib/utils/level'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { studentsTeacherSteps } from '@/lib/utils/tourSteps'
 
 export const metadata: Metadata = {
   title: 'GeoLearning — Students',
@@ -91,6 +93,7 @@ export default async function TeacherStudentsPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      <OnboardingTour tourKey="students_teacher" steps={studentsTeacherSteps} />
       {/* Header */}
       <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
@@ -133,7 +136,9 @@ export default async function TeacherStudentsPage() {
       </div>
 
       {/* Table */}
-      <StudentSearchTable students={students} />
+      <div id="tour-teacher-student-table">
+        <StudentSearchTable students={students} />
+      </div>
     </div>
   )
 }

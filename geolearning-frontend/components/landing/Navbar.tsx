@@ -47,6 +47,7 @@ export default function Navbar({ userRole }: { userRole?: string | null }) {
             ))}
           </div>
           <Link 
+            id="tour-landing-login"
             href={userRole ? dashboardLink : '/login'}
             className="relative overflow-hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-600/40 hover:-translate-y-0.5"
           >
@@ -90,6 +91,7 @@ export default function Navbar({ userRole }: { userRole?: string | null }) {
                 ))}
                 <div className="pt-4 border-t border-slate-100">
                   <Link 
+                    id="tour-landing-login-mobile"
                     href={userRole ? dashboardLink : '/login'}
                     onClick={() => setIsOpen(false)}
                     className="flex items-center justify-center w-full bg-blue-600 hover:bg-blue-700 text-white px-5 py-3.5 rounded-xl font-bold transition-all shadow-md"

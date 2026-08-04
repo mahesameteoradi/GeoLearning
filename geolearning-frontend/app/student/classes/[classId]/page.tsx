@@ -13,6 +13,8 @@ import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { InteractiveMapViewer } from '@/components/ui/InteractiveMapViewer'
 import { ExpeditionMap } from '@/components/student/ExpeditionMap'
 import { cn } from '@/lib/utils/cn'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { classDetailStudentSteps } from '@/lib/utils/tourSteps'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -374,6 +376,7 @@ export default function StudentClassDetailPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      <OnboardingTour tourKey="class_detail_student_v3" steps={classDetailStudentSteps} />
       {/* Back */}
       <Link
         href="/student/classes"
@@ -435,6 +438,7 @@ export default function StudentClassDetailPage() {
           </button>
 
           <button
+            id="tour-student-class-leaderboard"
             onClick={() => setActiveTab('peringkat')}
             className={cn(
               'w-1/2 flex justify-center items-center gap-2 rounded-full px-4 sm:px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300',
@@ -452,7 +456,7 @@ export default function StudentClassDetailPage() {
       {/* Content */}
       {activeTab === 'materi' && (
         allMaterials.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-28 text-center">
+          <div id="tour-student-class-modules" className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-28 text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-50">
               <BookOpen className="h-7 w-7 text-slate-600" />
             </div>
@@ -462,7 +466,7 @@ export default function StudentClassDetailPage() {
             </p>
           </div>
         ) : (
-          <div>
+          <div id="tour-student-class-modules" className="w-full">
             <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500 text-center mt-4">
               🗺️ Peta Ekspedisi
             </h2>

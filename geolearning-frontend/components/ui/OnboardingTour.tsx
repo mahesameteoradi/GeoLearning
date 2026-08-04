@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Joyride, Step, EventData } from 'react-joyride'
 import { useTour } from '@/components/providers/TourProvider'
+import { CustomTooltip } from './CustomTooltip'
 
 interface OnboardingTourProps {
   tourKey: string
@@ -50,6 +51,7 @@ export function OnboardingTour({ tourKey, steps }: OnboardingTourProps) {
       run={run}
       scrollToFirstStep
       steps={steps}
+      tooltipComponent={CustomTooltip}
       options={{
         zIndex: 10000,
         primaryColor: '#2563EB',
@@ -58,28 +60,6 @@ export function OnboardingTour({ tourKey, steps }: OnboardingTourProps) {
         arrowColor: '#ffffff',
         showProgress: true,
         buttons: ['back', 'primary', 'skip'],
-      }}
-      styles={{
-        buttonSkip: {
-          color: '#64748b',
-          fontSize: '14px',
-        },
-        buttonBack: {
-          color: '#64748b',
-          marginRight: 10,
-        },
-        buttonPrimary: {
-          backgroundColor: '#2563EB',
-          borderRadius: 8,
-          padding: '8px 16px',
-        },
-      }}
-      locale={{
-        back: 'Kembali',
-        close: 'Tutup',
-        last: 'Selesai',
-        next: 'Lanjut',
-        skip: 'Lewati',
       }}
     />
   )

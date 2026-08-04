@@ -3,6 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { BarChart3 } from 'lucide-react'
 import type { Metadata } from 'next'
 import { ClassAnalyticsClient } from '../../../components/teacher/ClassAnalyticsClient'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { analyticsTeacherSteps } from '@/lib/utils/tourSteps'
 
 export const metadata: Metadata = {
   title: 'GeoLearning — Analytics',
@@ -27,6 +29,7 @@ export default async function TeacherAnalyticsPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      <OnboardingTour tourKey="analytics_teacher" steps={analyticsTeacherSteps} />
       {/* Header */}
       <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>

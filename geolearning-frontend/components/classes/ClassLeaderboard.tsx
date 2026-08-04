@@ -123,6 +123,26 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
         if (data) projectSubmissions = data
       }
 
+      // 3.5 Fetch material completions for this class
+      let classMaterials: { id: string, type: string }[] = []
+      if (moduleIds.length > 0) {
+        const { data } = await supabase
+          .from('materials')
+          .select('id, type')
+          .in('module_id', moduleIds)
+        if (data) classMaterials = data
+      }
+      const materialIds = classMaterials.map(m => m.id)
+      
+      let materialCompletions: { user_id: string, material_id: string }[] = []
+      if (materialIds.length > 0) {
+        const { data } = await supabase
+          .from('material_completions')
+          .select('user_id, material_id')
+          .in('material_id', materialIds)
+        if (data) materialCompletions = data
+      }
+
       // 4. Calculate actual XP per student and sort
       const processed = usersData.map((u: any) => {
         const userQuizzes = quizAttempts.filter(q => q.user_id === u.id)
@@ -136,7 +156,13 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
         const qXp = Array.from(maxXpPerQuiz.values()).reduce((sum, xp) => sum + xp, 0)
         
         const pXp = projectSubmissions.filter(p => p.user_id === u.id).reduce((sum, p) => sum + (p.xp_earned || 0), 0)
-        const classXp = qXp + pXp
+        
+        const mXp = materialCompletions.filter(m => m.user_id === u.id).reduce((sum, m) => {
+          const mat = classMaterials.find(cm => cm.id === m.material_id)
+          return sum + (mat && mat.type !== 'INTERACTIVE_MAP' ? 15 : 0)
+        }, 0)
+
+        const classXp = qXp + pXp + mXp
 
         const equippedBadgeUb = (u.badges || []).find((ub: any) => ub.id === u.equipped_badge_id || ub.badge_id === u.equipped_badge_id)
         const equipped = equippedBadgeUb?.badge ? (Array.isArray(equippedBadgeUb.badge) ? equippedBadgeUb.badge[0] : equippedBadgeUb.badge) : null
@@ -191,10 +217,16 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
             <div
               key={student.id}
               className={cn(
-                "flex items-center gap-2 sm:gap-4 rounded-xl border p-2 sm:p-3 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md cursor-default overflow-hidden",
+                "relative flex items-center gap-2 sm:gap-4 rounded-2xl border p-2 sm:p-3 overflow-hidden",
                 isCurrentUser 
-                  ? "border-blue-200 bg-blue-50 hover:bg-blue-100" 
-                  : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
+                  ? "border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50/50 shadow-sm" 
+                  : idx === 0 
+                    ? "border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50/50"
+                    : idx === 1 
+                      ? "border-slate-300 bg-gradient-to-r from-slate-100 to-slate-50"
+                      : idx === 2 
+                        ? "border-orange-200 bg-gradient-to-r from-orange-50 to-rose-50/30"
+                        : "border-slate-100 bg-white"
               )}
             >
               {/* Rank Badge */}

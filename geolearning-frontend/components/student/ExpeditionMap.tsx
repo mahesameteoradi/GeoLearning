@@ -1,8 +1,8 @@
 import React from 'react'
-import { Map, Lock, CheckCircle2, BookOpen, ClipboardList, PlayCircle, FileText, ChevronRight } from 'lucide-react'
+import { Map, Lock, CheckCircle2, ClipboardList, PlayCircle, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface MaterialItem {
   id: string
@@ -43,7 +43,6 @@ export function ExpeditionMap({
   unlockedModules: Set<string>,
   classId: string
 }) {
-  // Flatten everything into a single linear sequence
   type MapNode = {
     id: string
     type: 'material' | 'quiz'
@@ -58,10 +57,24 @@ export function ExpeditionMap({
 
   const nodes: MapNode[] = []
   
+  const WORLD_TOUR = [
+    { country: 'Brasil', flag: '🇧🇷', emoji: '🗿', x: 33, y: 70 },
+    { country: 'Prancis', flag: '🇫🇷', emoji: '🗼', x: 49, y: 28 },
+    { country: 'Jepang', flag: '🇯🇵', emoji: '⛩️', x: 87, y: 33 },
+    { country: 'Mesir', flag: '🇪🇬', emoji: '🏜️', x: 55, y: 45 },
+    { country: 'Amerika Serikat', flag: '🇺🇸', emoji: '🗽', x: 20, y: 35 },
+    { country: 'India', flag: '🇮🇳', emoji: '🕌', x: 72, y: 45 },
+    { country: 'Italia', flag: '🇮🇹', emoji: '🏛️', x: 52, y: 33 },
+    { country: 'Australia', flag: '🇦🇺', emoji: '🏖️', x: 86, y: 78 },
+    { country: 'Tiongkok', flag: '🇨🇳', emoji: '🏯', x: 78, y: 38 },
+    { country: 'Yunani', flag: '🇬🇷', emoji: '🏺', x: 54, y: 38 },
+    { country: 'Meksiko', flag: '🇲🇽', emoji: '🌵', x: 18, y: 48 },
+    { country: 'Inggris', flag: '🇬🇧', emoji: '🏰', x: 47, y: 24 },
+  ]
+  
   modules.forEach((mod) => {
     const combinedNodes: (MapNode & { order: number })[] = []
     
-    // 1. Add all materials
     mod.materials?.forEach((mat) => {
       let icon = FileText
       if (mat.type === 'VIDEO') icon = PlayCircle
@@ -81,7 +94,6 @@ export function ExpeditionMap({
       })
     })
 
-    // 2. Add all quizzes
     mod.quizzes?.forEach((quiz) => {
       combinedNodes.push({
         id: quiz.id,
@@ -97,10 +109,8 @@ export function ExpeditionMap({
       })
     })
 
-    // Sort by order
     combinedNodes.sort((a, b) => a.order - b.order)
 
-    // Assign module start and push to global nodes
     let isFirstInModule = true
     combinedNodes.forEach((node) => {
       node.isModuleStart = isFirstInModule
@@ -109,168 +119,179 @@ export function ExpeditionMap({
     })
   })
 
-  // Calculate unlocked status
-  // A node is unlocked if ALL previous nodes are completed
-  let isLocked = false
+  // Pre-calculate logic
+  let currentLockState = false
+  const pNodes = nodes.map((node, i) => {
+    if (node.isModuleStart && unlockedModules.has(node.moduleId)) {
+      currentLockState = false
+    }
+    const locked = currentLockState
+    if (!node.isCompleted) {
+      currentLockState = true
+    }
+    const isCurrent = !node.isCompleted && !locked
+    const tourStop = WORLD_TOUR[i % WORLD_TOUR.length]
+    
+    const landmarkEmoji = tourStop.emoji
+
+    return {
+      ...node,
+      locked,
+      isCurrent,
+      tourStop,
+      landmarkEmoji
+    }
+  })
+
+  const renderPin = (pNode: typeof pNodes[0], layoutIdPrefix: string) => (
+    <div className="relative flex flex-col items-center group">
+      {pNode.isCurrent && (
+        <motion.div 
+          layoutId={`explorer-${layoutIdPrefix}`}
+          className="absolute -top-10 -left-4 text-4xl z-30 drop-shadow-md pointer-events-none"
+          animate={{ y: [0, -10, 0], x: [0, 5, 0], rotate: [0, 10, -5, 0] }}
+          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          title="Kamu berada di sini!"
+        >
+          🏃‍♂️
+        </motion.div>
+      )}
+
+      {pNode.isCompleted && (
+        <motion.div
+          initial={{ scale: 0, originY: 1, rotate: -30 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+          className={cn(
+            "absolute z-30 pointer-events-none",
+            pNode.type === 'quiz' ? "-top-6 -right-6 text-4xl drop-shadow-[0_4px_8px_rgba(251,191,36,0.5)]" : "-top-4 -right-5 text-3xl drop-shadow-sm"
+          )}
+        >
+          {pNode.type === 'quiz' ? '🏆' : '🚩'}
+        </motion.div>
+      )}
+
+      {pNode.locked ? (
+        <div 
+          className="bg-slate-200/80 flex flex-col items-center justify-center text-slate-400 opacity-80 shadow-inner backdrop-blur-sm border-slate-300 w-16 h-16 border-4"
+          style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }}
+        >
+          <div style={{ transform: 'rotate(45deg)' }} className="relative flex flex-col items-center justify-center w-full h-full">
+            <span className="grayscale opacity-50 drop-shadow-sm -translate-y-4 text-[2.5rem]">
+              {pNode.landmarkEmoji}
+            </span>
+            <Lock className="absolute -bottom-1 -right-1 w-5 h-5 text-slate-500 bg-white rounded-full p-0.5 shadow-sm" />
+          </div>
+        </div>
+      ) : (
+        <Link href={pNode.url}>
+          <div className={cn(pNode.isCurrent && "animate-bounce-slow")}>
+            <div 
+              className={cn(
+                "flex flex-col items-center justify-center transition-all hover:scale-110 hover:shadow-xl cursor-pointer shadow-lg w-16 h-16 border-4",
+                pNode.isCompleted 
+                  ? "border-emerald-400 bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-emerald-500/20"
+                  : "border-indigo-300 bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-indigo-500/40",
+                pNode.isCurrent && "ring-4 ring-offset-4 ring-indigo-200"
+              )}
+              style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }}
+            >
+              <div style={{ transform: 'rotate(45deg)' }} className="relative flex flex-col items-center justify-center w-full h-full">
+                <span className="drop-shadow-md transition-transform hover:scale-110 -translate-y-4 text-[2.5rem]">
+                  {pNode.landmarkEmoji}
+                </span>
+                {pNode.isCompleted && (
+                  <CheckCircle2 className="absolute -bottom-1 -right-1 w-6 h-6 text-emerald-500 bg-white rounded-full p-0.5 shadow-sm" />
+                )}
+              </div>
+            </div>
+          </div>
+        </Link>
+      )}
+      
+      <div className={cn(
+        "absolute top-full mt-3 w-max max-w-[12rem] text-center text-xs font-bold transition-all left-1/2 -translate-x-1/2",
+        "px-4 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/50",
+        pNode.locked ? "text-slate-500" : "text-slate-800 group-hover:text-indigo-700 group-hover:bg-white"
+      )}>
+        <div className="flex items-center justify-center gap-1.5 mb-0.5">
+          <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 opacity-80">{pNode.type === 'quiz' ? 'KUIS' : 'MATERI'}</span>
+        </div>
+        <p className="truncate w-full drop-shadow-sm">{pNode.title}</p>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="relative py-12 flex flex-col items-center overflow-hidden w-full px-4 sm:px-6">
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl">
-        {nodes.map((node, i) => {
-          // If a new module starts and it is manually unlocked by teacher, remove the lock!
-          if (node.isModuleStart && unlockedModules.has(node.moduleId)) {
-            isLocked = false
-          }
-
-          // If we hit a locked flag from previous nodes, this node is locked
-          const currentLocked = isLocked
-          
-          // If this node is NOT completed, all subsequent nodes will be locked
-          if (!node.isCompleted) {
-            isLocked = true
-          }
-
-          const isCurrent = !node.isCompleted && !currentLocked
-          const showModuleTitle = node.isModuleStart
-          
-          // Wavy positioning
-          const isLeft = i % 2 === 0
-          const offsetClass = isLeft ? 'mr-auto ml-4 md:ml-12' : 'ml-auto mr-4 md:mr-12'
-
-          const nodeContent = (
-            <div className="relative flex flex-col items-center group">
-              {/* ─── Animated Explorer ─── */}
-              {isCurrent && (
-                <motion.div 
-                  layoutId="explorer"
-                  className="absolute -top-6 -left-6 text-4xl z-20 drop-shadow-md pointer-events-none"
-                  animate={{ 
-                    y: [0, -10, 0],
-                    x: [0, 5, 0],
-                    rotate: [0, 10, -5, 0]
-                  }}
-                  transition={{ 
-                    duration: 1.5, 
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  title="Kamu berada di sini!"
-                >
-                  🏃‍♂️
-                </motion.div>
-              )}
-
-              {/* ─── Planted Flag for Completed ─── */}
-              {node.isCompleted && (
-                <motion.div
-                  initial={{ scale: 0, originY: 1, rotate: -30 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-                  className={cn(
-                    "absolute z-20 pointer-events-none",
-                    node.type === 'quiz' ? "-top-4 -right-5 text-4xl drop-shadow-[0_4px_8px_rgba(251,191,36,0.5)]" : "-top-2 -right-4 text-3xl drop-shadow-sm"
-                  )}
-                  title={node.type === 'quiz' ? "Kuis selesai ditaklukkan!" : "Materi selesai ditaklukkan!"}
-                >
-                  {node.type === 'quiz' ? '🏆' : '🚩'}
-                </motion.div>
-              )}
-
-              {currentLocked ? (
-                // Locked Node
-                <div className={cn(
-                  "rounded-full border-slate-200 bg-slate-100 flex flex-col items-center justify-center text-slate-400 opacity-70",
-                  node.type === 'quiz' ? "w-24 h-24 border-8" : "w-20 h-20 border-4"
-                )}>
-                  <Lock className={cn("mb-1", node.type === 'quiz' ? "w-8 h-8" : "w-6 h-6")} />
-                </div>
-              ) : (
-                // Unlocked / Completed Node
-                <Link href={node.url}>
-                  <div className={cn(
-                    "rounded-full flex flex-col items-center justify-center transition-all hover:scale-110 hover:shadow-xl cursor-pointer shadow-md",
-                    node.type === 'quiz' ? "w-24 h-24 border-8" : "w-20 h-20 border-4",
-                    node.isCompleted 
-                      ? (node.type === 'quiz' 
-                          ? "border-amber-400 bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600 shadow-amber-400/30" 
-                          : "border-emerald-500 bg-emerald-100 text-emerald-600 shadow-emerald-500/20")
-                      : (node.type === 'quiz'
-                          ? "border-amber-500 bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-amber-500/40"
-                          : "border-indigo-500 bg-indigo-500 text-white shadow-indigo-500/40"),
-                    isCurrent && "ring-4 ring-offset-2 animate-bounce-slow",
-                    isCurrent && (node.type === 'quiz' ? "ring-amber-200" : "ring-indigo-200")
-                  )}>
-                    {node.isCompleted ? (
-                      <CheckCircle2 className={cn(node.type === 'quiz' ? "w-10 h-10 text-amber-500" : "w-8 h-8")} />
-                    ) : (
-                      <node.icon className={cn(node.type === 'quiz' ? "w-10 h-10 drop-shadow-md" : "w-8 h-8")} />
-                    )}
-                  </div>
-                </Link>
-              )}
-              
-              {/* Floating Label */}
-              <div className={cn(
-                "absolute top-full mt-3 w-32 text-center text-xs font-bold transition-all left-1/2 -translate-x-1/2",
-                currentLocked ? "text-slate-400" : "text-slate-700 group-hover:text-indigo-600"
-              )}>
-                {node.title}
-              </div>
-            </div>
-          )
-
-          return (
-            <div key={node.id} className="relative w-full mb-12 flex flex-col items-center">
-              {showModuleTitle && (
-                <div className="w-full text-center mb-8 mt-4">
-                  <h3 className="inline-block px-4 py-1.5 rounded-full bg-slate-800 text-white font-bold text-sm shadow-md">
-                    {node.moduleTitle}
-                  </h3>
-                </div>
-              )}
-
-              <div className="relative w-full flex">
-                
-                {/* SVG Connecting Line */}
-                {i < nodes.length - 1 && (
-                  <svg className="absolute top-1/2 left-0 w-full h-[calc(100%+3rem)] z-0 pointer-events-none overflow-visible" preserveAspectRatio="none">
-                    <line 
-                      x1={isLeft ? "25%" : "75%"} 
-                      y1="0" 
-                      x2={isLeft ? "75%" : "25%"} 
-                      y2="100%" 
-                      stroke="currentColor" 
-                      strokeWidth="4" 
-                      strokeDasharray="8 8" 
-                      className={node.isCompleted ? "text-indigo-400" : "text-slate-300"} 
-                    />
-                  </svg>
-                )}
-
-                {/* Left Side */}
-                <div className="w-1/2 flex justify-center z-10">
-                  {isLeft && nodeContent}
-                </div>
-
-                {/* Right Side */}
-                <div className="w-1/2 flex justify-center z-10">
-                  {!isLeft && nodeContent}
-                </div>
-
-              </div>
-            </div>
-          )
-        })}
-      </div>
+    <div className="w-full bg-[#f8fafc]">
       
-      {/* Custom Animation */}
+      {/* ─── VERTICAL LAYOUT (All Devices) ─── */}
+      <div className="relative py-16 flex flex-col items-center overflow-hidden w-full px-4 sm:px-6 min-h-[500px]">
+        <div 
+          className="absolute inset-0 z-0 pointer-events-none" 
+          style={{
+            backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundAttachment: 'fixed',
+            backgroundRepeat: 'no-repeat',
+            opacity: 0.25,
+            filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.1)) saturate(120%)'
+          }}
+        />
+        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl z-10 relative">
+          {pNodes.map((pNode, i) => {
+            const isLeft = i % 2 === 0
+            return (
+              <div key={`mobile-${pNode.id}`} className="relative w-full mb-12 flex flex-col items-center">
+                {pNode.isModuleStart && (
+                  <div className="w-full text-center mb-8 mt-4">
+                    <h3 className="inline-block px-4 py-1.5 rounded-full bg-slate-800 text-white font-bold text-sm shadow-md">
+                      {pNode.moduleTitle}
+                    </h3>
+                  </div>
+                )}
+                <div className="relative w-full flex">
+                  {i < pNodes.length - 1 && (
+                    <svg 
+                      viewBox="0 0 100 100" 
+                      className="absolute top-1/2 left-0 w-full h-[calc(100%+3rem)] z-0 pointer-events-none overflow-visible" 
+                      preserveAspectRatio="none"
+                    >
+                      <path 
+                        d={isLeft ? "M 25 0 C 25 60, 75 40, 75 100" : "M 75 0 C 75 60, 25 40, 25 100"} 
+                        stroke="currentColor" 
+                        strokeWidth="4" 
+                        fill="none"
+                        strokeDasharray="6 6" 
+                        vectorEffect="non-scaling-stroke"
+                        className={cn(pNode.isCompleted ? "text-indigo-400 animate-dash-move" : "text-slate-300 opacity-60")} 
+                      />
+                    </svg>
+                  )}
+                  <div className="w-1/2 flex justify-center z-10">{isLeft && renderPin(pNode, 'mobile')}</div>
+                  <div className="w-1/2 flex justify-center z-10">{!isLeft && renderPin(pNode, 'mobile')}</div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes bounce-slow {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
+          50% { transform: translateY(-8px); }
         }
         .animate-bounce-slow {
           animation: bounce-slow 2s infinite ease-in-out;
+        }
+        @keyframes dash-move {
+          from { stroke-dashoffset: 12; }
+          to { stroke-dashoffset: 0; }
+        }
+        .animate-dash-move {
+          animation: dash-move 1s linear infinite;
         }
       `}} />
     </div>

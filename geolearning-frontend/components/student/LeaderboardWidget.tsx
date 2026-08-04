@@ -38,14 +38,14 @@ export function LeaderboardWidget({ entries, currentUserId, className }: Leaderb
             <div
               key={entry.id}
               className={cn(
-                'flex items-center gap-1.5 sm:gap-2.5 rounded-xl border px-2 sm:px-3 py-2 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 hover:shadow-md hover:bg-white cursor-pointer',
-                // Top 3 get subtle colored borders
-                index === 0 && 'border-amber-200 bg-amber-50',
-                index === 1 && 'border-slate-200 bg-slate-50',
-                index === 2 && 'border-orange-200 bg-orange-50',
-                index >= 3 && 'border-slate-100 bg-transparent',
+                'relative flex items-center gap-1.5 sm:gap-2.5 rounded-xl border px-2 sm:px-3 py-2 overflow-hidden',
+                // Unique coloring
+                index === 0 && 'border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50/50',
+                index === 1 && 'border-slate-200 bg-gradient-to-r from-slate-100 to-slate-50',
+                index === 2 && 'border-orange-200 bg-gradient-to-r from-orange-50 to-rose-50/30',
+                index >= 3 && 'border-slate-100 bg-white',
                 // Current user highlight — solid border
-                isCurrentUser && 'ring-1 ring-blue-500/50'
+                isCurrentUser && 'border-blue-300 ring-1 ring-blue-200 shadow-sm'
               )}
             >
               {/* Rank */}

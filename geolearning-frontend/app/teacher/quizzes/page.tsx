@@ -14,6 +14,8 @@ import { QuizResultsModal } from '@/components/teacher/QuizResultsModal'
 import { QuizLiveMonitorModal } from '@/components/teacher/QuizLiveMonitorModal'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import type { Metadata } from 'next'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { quizzesTeacherSteps } from '@/lib/utils/tourSteps'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -301,6 +303,7 @@ export default function TeacherQuizzesPage() {
 
   return (
     <div className="min-h-full p-5 lg:p-7">
+      <OnboardingTour tourKey="quizzes_teacher" steps={quizzesTeacherSteps} />
       {!isVerified && (
         <div className="mb-6 rounded-xl bg-amber-50 p-4 border border-amber-200 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -340,7 +343,7 @@ export default function TeacherQuizzesPage() {
 
       {/* Stats */}
       {!loading && quizzes.length > 0 && (
-        <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div id="tour-teacher-quiz-list" className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: 'Total Kuis (Tersaring)', value: filteredQuizzes.length, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
             { label: 'Published', value: published.length, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', gradient: 'from-emerald-500/5 to-transparent' },
@@ -399,7 +402,7 @@ export default function TeacherQuizzesPage() {
 
       {/* Empty */}
       {!loading && filteredQuizzes.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
+        <div id="tour-teacher-quiz-list" className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 py-16 text-center">
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50">
             <ClipboardList className="h-7 w-7 text-blue-600" />
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Search, Flame, ChevronDown, ChevronUp, X, BookOpen, Shield, Medal } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { calculateLevel, levelProgressPercent, xpForLevel, getLevelMeaning } from '@/lib/utils/level'
 import { cn } from '@/lib/utils/cn'
 
@@ -120,11 +121,17 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
+                <AnimatePresence mode="popLayout">
                 {sorted.map((s, idx) => {
                   const progress = levelProgressPercent(s.xp)
                   const isSelected = selectedStudent?.id === s.id
                   return (
-                    <tr
+                    <motion.tr
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.2, delay: idx * 0.02 }}
                       key={s.id}
                       onClick={() => setSelectedStudent(isSelected ? null : s)}
                       className={cn(
@@ -194,9 +201,10 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                           </div>
                         </td>
                       )}
-                    </tr>
+                    </motion.tr>
                   )
                 })}
+                </AnimatePresence>
                 {sorted.length === 0 && (
                   <tr>
                     <td colSpan={hasClassData ? 6 : 5} className="py-10 text-center text-sm text-slate-600">

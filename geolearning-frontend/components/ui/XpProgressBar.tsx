@@ -9,11 +9,11 @@ interface XpProgressBarProps {
 
 export function XpProgressBar({ xp, className, showLabel = true }: XpProgressBarProps) {
   const level = calculateLevel(xp)
-  const percent = levelProgressPercent(xp)
   const currentLevelXp = xpForLevel(level)
   const nextLevelXp = xpForLevel(level + 1)
-  const xpInLevel = xp - currentLevelXp
-  const xpNeeded = nextLevelXp - currentLevelXp
+  
+  // Use cumulative XP for the bar and labels as requested by user
+  const percentCumulative = Math.min((xp / nextLevelXp) * 100, 100)
 
   return (
     <div className={cn('w-full', className)}>
@@ -21,7 +21,7 @@ export function XpProgressBar({ xp, className, showLabel = true }: XpProgressBar
         <div className="mb-1.5 flex items-center justify-between text-xs">
           <span className="font-semibold text-amber-600">Level {level}</span>
           <span className="text-slate-500">
-            {xpInLevel.toLocaleString()} / {xpNeeded.toLocaleString()} XP
+            {xp.toLocaleString()} / {nextLevelXp.toLocaleString()} XP
           </span>
         </div>
       )}
@@ -29,7 +29,7 @@ export function XpProgressBar({ xp, className, showLabel = true }: XpProgressBar
       <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-white/[0.08]">
         <div
           className="xp-bar-fill h-full rounded-full"
-          style={{ width: `${percent}%` }}
+          style={{ width: `${percentCumulative}%` }}
         />
       </div>
     </div>

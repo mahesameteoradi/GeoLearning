@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { GraduationCap, Eye, EyeOff, Loader2, BookOpen, Sparkles } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { loginPageSteps } from '@/lib/utils/tourSteps'
 
 export default function LoginPage() {
   const supabase = createClient()
@@ -103,7 +105,7 @@ export default function LoginPage() {
         border: '1px solid #E2E8F0',
         boxShadow: '0 20px 50px rgba(0,0,0,0.08), 0 4px 16px rgba(37,99,235,0.06)',
       }}>
-
+      <OnboardingTour tourKey="login_page" steps={loginPageSteps} />
       {/* Top accent line — blue gradient like a ruler */}
       <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #2563EB, #0EA5E9, #10B981)' }} />
 
@@ -140,6 +142,7 @@ export default function LoginPage() {
 
         {/* Form */}
         <motion.form 
+          id="tour-login-form"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}

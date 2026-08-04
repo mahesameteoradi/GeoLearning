@@ -64,7 +64,36 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
   const [unreadCount, setUnreadCount] = useState(0)
   const { startTour } = useTour()
 
-  const navItems = role === 'TEACHER' ? teacherNav : studentNav
+  const isTeacher = role === 'TEACHER'
+  const navItems = isTeacher ? teacherNav : studentNav
+
+  // Theme variables
+  const sidebarBg = 'bg-[#0f172a]'
+  const sidebarBorder = '1px solid #1e293b'
+  const dividerBorder = '1px solid #1e293b'
+  const logoText = 'text-white'
+  const logoSubText = isTeacher ? 'text-amber-400' : 'text-blue-400'
+  
+  const activeBg = isTeacher ? 'bg-amber-500 text-slate-900 shadow-md' : 'bg-blue-600 text-white shadow-md'
+  const inactiveBg = 'text-slate-400 hover:bg-slate-800 hover:text-white'
+  const iconActiveText = isTeacher ? 'text-slate-900' : 'text-white'
+  const iconHoverText = 'group-hover:text-white'
+  const activeDotBg = isTeacher ? 'bg-slate-900' : 'bg-blue-200'
+  
+  const helpBtnText = 'text-slate-400'
+  const helpBtnHoverBg = 'hover:bg-slate-800 hover:text-white'
+  const helpBtnBorder = 'border-slate-500'
+  
+  const avatarGradient = isTeacher ? 'linear-gradient(135deg, #D97706, #F59E0B)' : 'linear-gradient(135deg, #2563EB, #0EA5E9)'
+  const userBg = 'bg-[#1e293b] border-[#334155]'
+  const userNameColor = 'text-slate-200'
+  
+  const logoutText = 'text-slate-400 hover:bg-red-500/10 hover:text-red-400'
+  
+  const collapseBg = 'bg-[#1e293b]'
+  const collapseText = 'text-slate-400 hover:text-white'
+  const collapseBorderColor = '#334155'
+  const collapseShadow = 'rgba(0,0,0,0.5)'
 
   useEffect(() => {
     const supabase = createClient()
@@ -118,23 +147,24 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
   return (
     <aside
       className={cn(
-        'relative flex h-screen flex-col transition-[width] duration-200 bg-white',
+        'relative flex h-screen flex-col transition-[width] duration-200',
+        sidebarBg,
         collapsed ? 'w-[60px]' : 'w-60'
       )}
-      style={{ borderRight: '1px solid #E2E8F0' }}
+      style={{ borderRight: sidebarBorder }}
     >
       {/* ── Logo ── */}
-      <div className="flex h-14 items-center gap-2.5 overflow-hidden px-3.5" style={{ borderBottom: '1px solid #F1F5F9' }}>
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden"
-          style={{ border: '1px solid #E2E8F0' }}>
+      <div className="flex h-14 items-center gap-2.5 overflow-hidden px-3.5" style={{ borderBottom: dividerBorder }}>
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl shadow-sm overflow-hidden"
+          style={{ backgroundColor: 'white', border: sidebarBorder }}>
           <img src="/logo.png" alt="GeoLearning Logo" className="h-full w-full object-cover" />
         </div>
         {!collapsed && (
           <div className="flex flex-col">
-            <span className="whitespace-nowrap text-sm font-extrabold text-gradient-primary leading-none">
+            <span className={cn(logoText, "whitespace-nowrap text-sm font-extrabold leading-none")}>
               GeoLearning
             </span>
-            <span className="text-[9px] font-medium text-blue-400 leading-tight">
+            <span className={cn(logoSubText, "text-[9px] font-medium leading-tight")}>
               Platform Belajar Geografi
             </span>
           </div>
@@ -168,19 +198,17 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
               title={collapsed ? label : undefined}
               className={cn(
                 'group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-sm',
-                active
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-600 hover:bg-blue-50 hover:text-blue-700'
+                active ? activeBg : inactiveBg
               )}
             >
               {collapsed ? (
                 <span className="text-base leading-none transition-transform duration-200 group-hover:scale-110">{emoji}</span>
               ) : (
                 <>
-                  <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110', active ? 'text-blue-100' : 'text-slate-400 group-hover:text-blue-600')} />
+                  <Icon className={cn('h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110', active ? iconActiveText : `text-slate-400 ${iconHoverText}`)} />
                   <span className="truncate">{label}</span>
                   {active && (
-                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-blue-200 flex-shrink-0" />
+                    <div className={`ml-auto h-1.5 w-1.5 rounded-full flex-shrink-0 ${activeDotBg}`} />
                   )}
                   {label === 'Notifikasi' && unreadCount > 0 && !active && (
                     <div className="ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white flex-shrink-0">
@@ -195,43 +223,51 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
       </nav>
 
       {/* ── User + Logout ── */}
-      <div className="px-2 py-3 space-y-1" style={{ borderTop: '1px solid #F1F5F9' }}>
+      <div className="px-2 py-3 space-y-1" style={{ borderTop: dividerBorder }}>
         {!collapsed && (
-          <div className="flex items-center gap-2.5 rounded-xl px-3 py-2 bg-slate-50 border border-slate-200">
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-slate-800"
-              style={{ background: 'linear-gradient(135deg, #2563EB, #0EA5E9)' }}>
+          <div className={cn("flex items-center gap-2.5 rounded-xl px-3 py-2 border", userBg)}>
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-white shadow-sm"
+              style={{ background: avatarGradient }}>
               {avatarUrl ? (
                 <img src={avatarUrl} alt={userName} className="h-full w-full object-cover" />
               ) : (
                 userName?.charAt(0)?.toUpperCase() ?? '?'
               )}
             </div>
-            <p className="flex-1 min-w-0 truncate text-xs font-semibold text-slate-700">{userName}</p>
+            <p className={cn("flex-1 min-w-0 truncate text-xs font-semibold", userNameColor)}>{userName}</p>
           </div>
         )}
 
         <button
           onClick={() => {
             let key = `dashboard_${role.toLowerCase()}`
-            if (pathname.includes('/classes')) key = `classes_${role.toLowerCase()}`
-            if (pathname.includes('/quizzes')) key = `quizzes_${role.toLowerCase()}`
-            if (pathname.includes('/projects')) key = `projects_${role.toLowerCase()}`
-            if (pathname.includes('/students')) key = `students_${role.toLowerCase()}`
-            if (pathname.includes('/analytics')) key = `analytics_${role.toLowerCase()}`
+            if (pathname.match(/\/classes\/[a-zA-Z0-9_-]+/)) {
+              key = `class_detail_${role.toLowerCase()}_v3`
+            } else if (pathname.includes('/classes')) {
+              key = `classes_${role.toLowerCase()}`
+            } else if (pathname.includes('/quizzes')) {
+              key = `quizzes_${role.toLowerCase()}`
+            } else if (pathname.includes('/projects')) {
+              key = `projects_${role.toLowerCase()}`
+            } else if (pathname.includes('/students')) {
+              key = `students_${role.toLowerCase()}`
+            } else if (pathname.includes('/analytics')) {
+              key = `analytics_${role.toLowerCase()}`
+            }
             
             startTour(key)
           }}
           title="Bantuan Tutorial"
-          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-all id-tour-help"
+          className={cn("flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all id-tour-help", helpBtnText, helpBtnHoverBg)}
         >
-          <span className="flex items-center justify-center h-4 w-4 rounded-full border border-blue-600 text-[10px] font-bold">?</span>
+          <span className={cn("flex items-center justify-center h-4 w-4 rounded-full border text-[10px] font-bold", helpBtnBorder)}>?</span>
           {!collapsed && <span>Bantuan Tutorial</span>}
         </button>
 
         <button
           onClick={handleLogout}
           title="Keluar"
-          className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all"
+          className={cn("flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all", logoutText)}
         >
           <LogOut className="h-4 w-4 flex-shrink-0" />
           {!collapsed && <span>Keluar</span>}
@@ -241,8 +277,8 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
       {/* ── Collapse Toggle ── */}
       <button
         onClick={() => setCollapsed((v) => !v)}
-        className="absolute -right-3 top-16 flex h-6 w-6 items-center justify-center rounded-full bg-white text-blue-600 transition-all hover:scale-110"
-        style={{ border: '1.5px solid #BFDBFE', boxShadow: '0 1px 4px rgba(37,99,235,0.15)' }}
+        className={cn("absolute -right-3 top-16 flex h-6 w-6 items-center justify-center rounded-full transition-all hover:scale-110", collapseBg, collapseText)}
+        style={{ border: `1.5px solid ${collapseBorderColor}`, boxShadow: `0 1px 4px ${collapseShadow}` }}
       >
         {collapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronLeft className="h-3 w-3" />}
       </button>

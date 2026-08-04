@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { BookMarked, Clock, CheckCircle, ArrowRight, Zap, FileText } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { projectsStudentSteps } from '@/lib/utils/tourSteps'
 
 export default function StudentProjectsPage() {
   const supabase = createClient()
@@ -65,6 +67,7 @@ export default function StudentProjectsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
+      <OnboardingTour tourKey="projects_student" steps={projectsStudentSteps} />
       {/* ── Page Header ──────────────────────────────────────────────────── */}
       <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
@@ -103,13 +106,13 @@ export default function StudentProjectsPage() {
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
+        <div id="tour-student-project-list" className="rounded-2xl border border-dashed border-slate-300 bg-white py-20 text-center">
           <BookMarked className="mx-auto mb-3 h-10 w-10 text-slate-700" />
           <h3 className="text-sm font-bold text-slate-700">Belum Ada Tugas Proyek</h3>
           <p className="mt-1 text-xs text-slate-500">Belum ada tugas yang dipublikasikan oleh gurumu.</p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div id="tour-student-project-list" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map(proj => {
             const sub = proj.submission
             const isLate = proj.deadline && !sub && new Date() > new Date(proj.deadline)

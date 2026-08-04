@@ -9,6 +9,8 @@ import StatistikSection from '@/components/landing/StatistikSection'
 import CTASection from '@/components/landing/CTASection'
 import Footer from '@/components/landing/Footer'
 import WelcomeScreen from '@/components/landing/WelcomeScreen'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { landingPageSteps } from '@/lib/utils/tourSteps'
 
 export const metadata = {
   title: 'GeoLearning — Platform Kuis Interaktif & Gamifikasi',
@@ -34,6 +36,7 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-blue-200">
+      <OnboardingTour tourKey="landing_page" steps={landingPageSteps} />
       <WelcomeScreen />
       <Navbar userRole={role} />
       <main className="flex-1">

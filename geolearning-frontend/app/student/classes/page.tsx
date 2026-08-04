@@ -218,7 +218,7 @@ export default function StudentClassesPage() {
 
       {/* ── Class List ─────────────────────────────────────────────────── */}
       {enrolledClasses.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-slate-200 bg-white/50 py-32 text-center backdrop-blur-sm">
+        <div id="tour-student-class-cards" className="flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-slate-200 bg-white/50 py-32 text-center backdrop-blur-sm">
           <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full border-4 border-indigo-50 bg-indigo-100/50 shadow-inner">
             <BookOpen className="h-10 w-10 text-indigo-500" />
           </div>

@@ -68,6 +68,7 @@ export default function FiturSection() {
         </motion.div>
 
         <motion.div 
+          id="tour-landing-fitur"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

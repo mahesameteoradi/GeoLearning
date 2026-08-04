@@ -6,6 +6,8 @@ import { Camera, Loader2, User, Save, Building, Hash, GraduationCap, KeyRound, E
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
 import { AvatarDisplay } from '@/components/ui/AvatarDisplay'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { profileStudentSteps, profileTeacherSteps } from '@/lib/utils/tourSteps'
 
 interface UserProfile {
   id: string
@@ -182,6 +184,11 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
   return (
     <div className="mx-auto max-w-3xl p-5 lg:p-8">
+      {role === 'STUDENT' ? (
+        <OnboardingTour tourKey="profile_student" steps={profileStudentSteps} />
+      ) : (
+        <OnboardingTour tourKey="profile_teacher" steps={profileTeacherSteps} />
+      )}
       {/* ── Page Header ──────────────────────────────────────────────────── */}
       <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
@@ -243,7 +250,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
         {/* Right Column: Form */}
         <div className="md:col-span-2">
-          <form onSubmit={handleSave} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form id={role === 'STUDENT' ? "tour-student-profile-edit" : "tour-teacher-profile-edit"} onSubmit={handleSave} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 mb-5 border-b border-slate-100 pb-3">
               Biodata Diri
             </h2>
@@ -373,7 +380,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
           </form>
 
           {/* Change Password Form */}
-          <form onSubmit={handleUpdatePassword} className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <form id={role === 'STUDENT' ? "tour-student-profile-password" : "tour-teacher-profile-password"} onSubmit={handleUpdatePassword} className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-lg font-bold text-slate-900 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2">
               <KeyRound className="h-5 w-5 text-emerald-600" /> Keamanan Akun
             </h2>
