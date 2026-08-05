@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Search, Flame, ChevronDown, ChevronUp, X, BookOpen, Shield, Medal } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { calculateLevel, levelProgressPercent, xpForLevel, getLevelMeaning } from '@/lib/utils/level'
+import { calculateLevel, xpForLevel, getLevelMeaning } from '@/lib/utils/level'
 import { cn } from '@/lib/utils/cn'
 
 interface Student {
@@ -121,17 +120,12 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                <AnimatePresence mode="popLayout">
                 {sorted.map((s, idx) => {
-                  const progress = levelProgressPercent(s.xp)
+                  const nextLevelXp = xpForLevel(calculateLevel(s.xp || 0) + 1)
+                  const progress = Math.min(((s.xp || 0) / nextLevelXp) * 100, 100)
                   const isSelected = selectedStudent?.id === s.id
                   return (
-                    <motion.tr
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.2, delay: idx * 0.02 }}
+                    <tr
                       key={s.id}
                       onClick={() => setSelectedStudent(isSelected ? null : s)}
                       className={cn(
@@ -201,10 +195,9 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                           </div>
                         </td>
                       )}
-                    </motion.tr>
+                    </tr>
                   )
                 })}
-                </AnimatePresence>
                 {sorted.length === 0 && (
                   <tr>
                     <td colSpan={hasClassData ? 6 : 5} className="py-10 text-center text-sm text-slate-600">
@@ -298,20 +291,30 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
             </div>
 
             {/* XP Progress Bar */}
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-[11px] text-slate-600">Progres Level</span>
-              <span className="text-[11px] text-slate-500">{levelProgressPercent(selectedStudent.xp)}%</span>
-            </div>
-            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500 transition-all"
-                style={{ width: `${levelProgressPercent(selectedStudent.xp)}%` }}
-              />
-            </div>
-            <div className="mt-1 flex justify-between text-[10px] text-slate-700">
-              <span>Lv. {calculateLevel(selectedStudent.xp || 0)}</span>
-              <span>{xpForLevel(calculateLevel(selectedStudent.xp || 0) + 1).toLocaleString()} XP</span>
-            </div>
+            {(() => {
+              const currentXp = selectedStudent.xp || 0
+              const nextLevelXp = xpForLevel(calculateLevel(currentXp) + 1)
+              const percent = Math.min((currentXp / nextLevelXp) * 100, 100)
+              
+              return (
+                <>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-600">Progres Level</span>
+                    <span className="text-[11px] text-slate-500">{Math.round(percent)}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500 transition-all"
+                      style={{ width: `${percent}%` }}
+                    />
+                  </div>
+                  <div className="mt-1 flex justify-between text-[10px] text-slate-700">
+                    <span>Lv. {calculateLevel(currentXp)}</span>
+                    <span>{nextLevelXp.toLocaleString()} XP</span>
+                  </div>
+                </>
+              )
+            })()}
 
             {/* Badges */}
             <div className="mt-6 border-t border-slate-100 pt-5">

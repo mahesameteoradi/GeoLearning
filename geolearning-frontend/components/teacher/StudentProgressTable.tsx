@@ -1,4 +1,4 @@
-import { calculateLevel, levelProgressPercent } from '@/lib/utils/level'
+import { calculateLevel, xpForLevel } from '@/lib/utils/level'
 import { cn } from '@/lib/utils/cn'
 import { Flame } from 'lucide-react'
 
@@ -58,7 +58,8 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
               </tr>
             ) : sorted.map((student, idx) => {
               const level = calculateLevel(student.xp)
-              const progress = levelProgressPercent(student.xp)
+              const nextLevelXp = xpForLevel(level + 1)
+              const progress = Math.min((student.xp / nextLevelXp) * 100, 100)
 
               return (
                 <tr
@@ -107,7 +108,7 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                           style={{ width: `${progress}%` }}
                         />
                       </div>
-                      <span className="text-[10px] text-slate-500">{progress}%</span>
+                      <span className="text-[10px] text-slate-500">{Math.round(progress)}%</span>
                     </div>
                   </td>
                   <td className="px-5 py-4">

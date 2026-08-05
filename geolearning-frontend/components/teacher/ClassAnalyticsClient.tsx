@@ -109,166 +109,14 @@ function TopicPerformanceChart({ data }: { data: any[] }) {
   )
 }
 
-// ─── Animated Progress Ring ───────────────────────────────────────────────────
-function ScoreRing({ score, color }: { score: number; color: string }) {
-  const r = 28
-  const circ = 2 * Math.PI * r
-  const offset = circ - (score / 100) * circ
-  return (
-    <svg width={72} height={72} viewBox="0 0 72 72" className="shrink-0">
-      <circle cx={36} cy={36} r={r} fill="none" stroke="#f1f5f9" strokeWidth={7} />
-      <circle
-        cx={36} cy={36} r={r} fill="none"
-        stroke={color} strokeWidth={7}
-        strokeDasharray={circ}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        transform="rotate(-90 36 36)"
-        style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)' }}
-      />
-      <text x={36} y={40} textAnchor="middle" fontSize={13} fontWeight={800} fill={color}>
-        {Math.round(score)}%
-      </text>
-    </svg>
-  )
-}
-
-// ─── Quiz Question Stats Panel ────────────────────────────────────────────────
-function QuizQuestionCard({ quiz }: { quiz: any }) {
-  const [expanded, setExpanded] = useState(false)
-
-  if (!quiz.most_correct && !quiz.most_incorrect) {
-    return (
-      <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 text-center text-sm text-slate-400">
-        Belum ada jawaban tercatat untuk <span className="font-bold text-slate-500">{quiz.quiz_title}</span>
-      </div>
-    )
-  }
-
-  const truncate = (text: string, max = 120) =>
-    text?.length > max ? text.slice(0, max) + '…' : text
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md">
-      {/* Header */}
-      <div className="flex items-center justify-between bg-gradient-to-r from-slate-50 to-white px-5 py-4 border-b border-slate-100">
-        <div>
-          <p className="font-bold text-slate-800 text-sm">{quiz.quiz_title}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">
-            {quiz.total_questions} soal · {quiz.all_questions?.reduce((s: number, q: any) => s + q.total_attempts, 0) || 0} total jawaban
-          </p>
-        </div>
-        <button
-          onClick={() => setExpanded(e => !e)}
-          className="flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors"
-        >
-          {expanded ? 'Sembunyikan' : 'Lihat Semua'}
-          {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-        </button>
-      </div>
-
-      {/* Best & Worst */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 divide-x divide-slate-100">
-        {/* Most Correct */}
-        {quiz.most_correct && (
-          <div className="p-4 group">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-              </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-600">Paling Banyak Benar</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <ScoreRing score={quiz.most_correct.correct_rate} color="#10b981" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-700 leading-snug">{truncate(quiz.most_correct.question_text)}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
-                    ✓ {quiz.most_correct.correct_count} benar
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-500">
-                    {quiz.most_correct.total_attempts} total
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Most Incorrect */}
-        {quiz.most_incorrect && (
-          <div className="p-4 group">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-100">
-                <XCircle className="h-3.5 w-3.5 text-red-500" />
-              </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-red-500">Paling Banyak Salah</span>
-            </div>
-            <div className="flex items-start gap-3">
-              <ScoreRing score={quiz.most_incorrect.correct_rate} color="#ef4444" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-700 leading-snug">{truncate(quiz.most_incorrect.question_text)}</p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-0.5 text-[11px] font-bold text-red-600">
-                    ✗ {quiz.most_incorrect.incorrect_count} salah
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-500">
-                    {quiz.most_incorrect.total_attempts} total
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Expanded: All Questions */}
-      {expanded && quiz.all_questions?.length > 0 && (
-        <div className="border-t border-slate-100">
-          <div className="bg-slate-50 px-5 py-2.5">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Semua Soal — Diurutkan dari Paling Banyak Benar</p>
-          </div>
-          <div className="divide-y divide-slate-50">
-            {quiz.all_questions.map((q: any, idx: number) => (
-              <div key={q.question_id} className="flex items-center gap-4 px-5 py-3 hover:bg-slate-50/50 transition-colors">
-                <span className="w-5 shrink-0 text-center text-xs font-bold text-slate-300">#{idx + 1}</span>
-                <p className="flex-1 text-sm text-slate-600 leading-snug">{truncate(q.question_text, 100)}</p>
-                <div className="shrink-0 flex items-center gap-2">
-                  {/* Mini progress bar */}
-                  <div className="w-20 h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{
-                        width: `${q.correct_rate}%`,
-                        backgroundColor: getBarColor(q.correct_rate)
-                      }}
-                    />
-                  </div>
-                  <span
-                    className="w-10 text-right text-xs font-bold"
-                    style={{ color: getBarColor(q.correct_rate) }}
-                  >
-                    {q.correct_rate}%
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
   const [selectedClassId, setSelectedClassId] = useState<string>(classes[0]?.id || '')
   const [summary, setSummary] = useState<any>(null)
   const [topicPerformance, setTopicPerformance] = useState<any[]>([])
-  const [quizQuestionStats, setQuizQuestionStats] = useState<any[]>([])
   const [students, setStudents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeSubTab, setActiveSubTab] = useState<'chart' | 'soal'>('chart')
 
   const supabase = createClient()
 
@@ -284,18 +132,16 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1'
         const headers = { Authorization: `Bearer ${token}` }
 
-        const [sumRes, topRes, stuRes, qqRes] = await Promise.all([
+        const [sumRes, topRes, stuRes] = await Promise.all([
           fetch(`${apiUrl}/teacher/analytics/class/${selectedClassId}/summary`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/class/${selectedClassId}/topic-performance`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/class/${selectedClassId}/students`, { headers }),
-          fetch(`${apiUrl}/teacher/analytics/class/${selectedClassId}/quiz-question-stats`, { headers }),
         ])
 
         if (isMounted) {
           if (sumRes.ok) setSummary(await sumRes.json())
           if (topRes.ok) { const d = await topRes.json(); if (Array.isArray(d)) setTopicPerformance(d) }
           if (stuRes.ok) { const d = await stuRes.json(); if (Array.isArray(d)) setStudents(d) }
-          if (qqRes.ok) { const d = await qqRes.json(); if (Array.isArray(d)) setQuizQuestionStats(d) }
         }
       } catch (error) {
         console.error('Error fetching analytics:', error)
@@ -406,30 +252,7 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
             </div>
           )}
 
-          {/* ── Sub-Tabs: Chart / Soal ── */}
-          <div className="flex items-center gap-1 border-b border-slate-200">
-            {([
-              { id: 'chart', label: 'Performa per Topik', icon: BarChart3 },
-              { id: 'soal', label: 'Analisis Soal Kuis', icon: Sparkles },
-            ] as const).map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                onClick={() => setActiveSubTab(id)}
-                className={`relative flex items-center gap-2 px-4 py-3 text-sm font-bold transition-colors ${
-                  activeSubTab === id ? 'text-indigo-600' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-                {activeSubTab === id && (
-                  <div className="absolute bottom-0 left-0 h-0.5 w-full rounded-t-full bg-indigo-600" />
-                )}
-              </button>
-            ))}
-          </div>
 
-          {/* ── TAB: Topic Performance Chart ── */}
-          {activeSubTab === 'chart' && (
             <div id="tour-teacher-analytics-charts" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Chart Panel */}
               <div className="lg:col-span-1 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
@@ -541,35 +364,6 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
                 </div>
               </div>
             </div>
-          )}
-
-          {/* ── TAB: Quiz Question Stats ── */}
-          {activeSubTab === 'soal' && (
-            <div className="space-y-4">
-              <div className="flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/60 p-4">
-                <AlertCircle className="h-5 w-5 text-indigo-500 shrink-0 mt-0.5" />
-                <p className="text-sm text-indigo-700">
-                  Panel ini menampilkan <strong>soal yang paling banyak dijawab benar</strong> dan{' '}
-                  <strong>paling banyak dijawab salah</strong> untuk setiap kuis di kelas ini.
-                  Gunakan informasi ini untuk menentukan fokus remedial atau pengayaan.
-                </p>
-              </div>
-
-              {quizQuestionStats.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white p-12 text-slate-400">
-                  <BarChart3 className="h-10 w-10 opacity-20" />
-                  <p className="text-sm">Belum ada data jawaban kuis untuk kelas ini.</p>
-                  <p className="text-xs text-slate-300">Data akan muncul setelah siswa mengerjakan kuis.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {quizQuestionStats.map((quiz) => (
-                    <QuizQuestionCard key={quiz.quiz_id} quiz={quiz} />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
         </>
       )}
     </div>

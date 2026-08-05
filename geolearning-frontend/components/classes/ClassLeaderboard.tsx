@@ -57,7 +57,7 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select(`
-          id, name, avatar_url, equipped_badge_id,
+          id, name, avatar_url, equipped_badge_id, xp,
           badges:user_badges!user_badges_user_id_fkey(id, badge_id, badge:badges(id, icon, display_name))
         `)
         .in('id', studentIds)
@@ -68,115 +68,20 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
         return
       }
 
-      // 2. Fetch quizzes for this class (by class_id or via modules)
-      const { data: classModules } = await supabase
-        .from('modules')
-        .select('id')
-        .eq('class_id', classId)
-      
-      const moduleIds = classModules?.map(m => m.id) || []
-      
-      let classQuizzesFromModules: { id: string }[] = []
-      if (moduleIds.length > 0) {
-        const { data } = await supabase
-          .from('quizzes')
-          .select('id')
-          .in('module_id', moduleIds)
-        if (data) classQuizzesFromModules = data
-      }
-
-      const { data: classQuizzesDirect } = await supabase
-        .from('quizzes')
-        .select('id')
-        .eq('class_id', classId)
-      
-      const allQuizIds = new Set([
-        ...classQuizzesFromModules.map(q => q.id),
-        ...(classQuizzesDirect?.map(q => q.id) || [])
-      ])
-      
-      const quizIds = Array.from(allQuizIds)
-      
-      let quizAttempts: { user_id: string, quiz_id: string, xp_earned: number }[] = []
-      if (quizIds.length > 0) {
-        const { data } = await supabase
-          .from('quiz_attempts')
-          .select('user_id, quiz_id, xp_earned')
-          .in('quiz_id', quizIds)
-        if (data) quizAttempts = data
-      }
-
-      // 3. Fetch project submissions for this class
-      const { data: classProjects } = await supabase
-        .from('project_assignments')
-        .select('id')
-        .eq('class_id', classId)
-      
-      const projectIds = classProjects?.map(p => p.id) || []
-      
-      let projectSubmissions: { user_id: string, xp_earned: number }[] = []
-      if (projectIds.length > 0) {
-        const { data } = await supabase
-          .from('project_submissions')
-          .select('user_id, xp_earned')
-          .in('assignment_id', projectIds)
-        if (data) projectSubmissions = data
-      }
-
-      // 3.5 Fetch material completions for this class
-      let classMaterials: { id: string, type: string }[] = []
-      if (moduleIds.length > 0) {
-        const { data } = await supabase
-          .from('materials')
-          .select('id, type')
-          .in('module_id', moduleIds)
-        if (data) classMaterials = data
-      }
-      const materialIds = classMaterials.map(m => m.id)
-      
-      let materialCompletions: { user_id: string, material_id: string }[] = []
-      if (materialIds.length > 0) {
-        const { data } = await supabase
-          .from('material_completions')
-          .select('user_id, material_id')
-          .in('material_id', materialIds)
-        if (data) materialCompletions = data
-      }
-
-      // 4. Calculate actual XP per student and sort
       const processed = usersData.map((u: any) => {
-        const userQuizzes = quizAttempts.filter(q => q.user_id === u.id)
-        const maxXpPerQuiz = new Map<string, number>()
-        for (const q of userQuizzes) {
-          const currentMax = maxXpPerQuiz.get(q.quiz_id) || 0
-          if ((q.xp_earned || 0) > currentMax) {
-            maxXpPerQuiz.set(q.quiz_id, q.xp_earned || 0)
-          }
-        }
-        const qXp = Array.from(maxXpPerQuiz.values()).reduce((sum, xp) => sum + xp, 0)
-        
-        const pXp = projectSubmissions.filter(p => p.user_id === u.id).reduce((sum, p) => sum + (p.xp_earned || 0), 0)
-        
-        const mXp = materialCompletions.filter(m => m.user_id === u.id).reduce((sum, m) => {
-          const mat = classMaterials.find(cm => cm.id === m.material_id)
-          return sum + (mat && mat.type !== 'INTERACTIVE_MAP' ? 15 : 0)
-        }, 0)
-
-        const classXp = qXp + pXp + mXp
-
         const equippedBadgeUb = (u.badges || []).find((ub: any) => ub.id === u.equipped_badge_id || ub.badge_id === u.equipped_badge_id)
         const equipped = equippedBadgeUb?.badge ? (Array.isArray(equippedBadgeUb.badge) ? equippedBadgeUb.badge[0] : equippedBadgeUb.badge) : null
 
         return {
           id: u.id,
           name: u.name,
-          xp: classXp,
+          xp: u.xp || 0,
           avatar_url: u.avatar_url,
           equipped_badge: equipped,
         }
       })
       
-      // Sort by class XP descending
+      // Sort by global XP descending
       processed.sort((a, b) => b.xp - a.xp)
 
       setStudents(processed)

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { AreaChart, Area, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts'
+import { AreaChart, Area, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell } from 'recharts'
 import { Award, AlertCircle, CheckCircle, AlertTriangle, Plus, X, Info } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { ALL_BADGES } from '@/components/ui/BadgeGrid'
@@ -14,6 +14,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
   const [xpTrend, setXpTrend] = useState<any[]>([])
   const [badgeTimeline, setBadgeTimeline] = useState<any[]>([])
   const [topicBreakdown, setTopicBreakdown] = useState<any[]>([])
+  const [answerStats, setAnswerStats] = useState<{total: number, correct: number, incorrect: number} | null>(null)
   const [moduleProgress, setModuleProgress] = useState<any[]>([])
   const [interventions, setInterventions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,13 +46,14 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1'
         const headers = { Authorization: `Bearer ${token}` }
 
-        const [stRes, xpRes, btRes, tbRes, inRes, mpRes] = await Promise.all([
+        const [stRes, xpRes, btRes, tbRes, inRes, mpRes, ansRes] = await Promise.all([
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/score-trend`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/xp-trend`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/badge-timeline`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/topic-breakdown`, { headers }),
           fetch(`${apiUrl}/teacher/analytics/student/${studentId}/interventions`, { headers }),
-          fetch(`${apiUrl}/teacher/analytics/student/${studentId}/module-progress`, { headers })
+          fetch(`${apiUrl}/teacher/analytics/student/${studentId}/module-progress`, { headers }),
+          fetch(`${apiUrl}/teacher/analytics/student/${studentId}/answer-stats`, { headers })
         ])
 
         if (isMounted) {
@@ -61,6 +63,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
           if (tbRes.ok) setTopicBreakdown(await tbRes.json())
           if (inRes.ok) setInterventions(await inRes.json())
           if (mpRes.ok) setModuleProgress(await mpRes.json())
+          if (ansRes.ok) setAnswerStats(await ansRes.json())
         }
       } catch (error) {
         console.error('Error fetching student analytics:', error)
@@ -130,30 +133,18 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
     }
   }
 
-  const filteredScoreTrend = filterByDate(scoreTrend, 'tanggal').map(d => ({
+  const filteredScoreTrend = useMemo(() => filterByDate(scoreTrend, 'tanggal').map(d => ({
     ...d,
     formattedDate: format(new Date(d.tanggal), 'dd MMM', { locale: id })
-  }))
+  })), [scoreTrend, timeRange])
 
-  const filteredXpTrend = filterByDate(xpTrend, 'tanggal').map(d => ({
+  const filteredXpTrend = useMemo(() => filterByDate(xpTrend, 'tanggal').map(d => ({
     ...d,
     formattedDate: format(new Date(d.tanggal), 'dd MMM', { locale: id })
-  }))
+  })), [xpTrend, timeRange])
 
-  if (loading) {
-    return (
-      <div className="animate-pulse space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-72 rounded-2xl bg-slate-200" />
-          <div className="h-72 rounded-2xl bg-slate-200" />
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="h-64 rounded-2xl bg-slate-200 lg:col-span-2" />
-          <div className="h-64 rounded-2xl bg-slate-200" />
-        </div>
-      </div>
-    )
-  }
+  // Remove global loading skeleton to allow immediate rendering of the UI structure
+  // Components will handle their own empty states
 
   return (
     <div className="space-y-6">
@@ -333,28 +324,93 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Competency Profile Radar */}
-        <div className="lg:col-span-1 rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
-          <h3 className="mb-5 font-bold text-slate-800">Profil Kompetensi Siswa</h3>
-          <div className="flex-1 min-h-[250px]">
-            {topicBreakdown.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart data={topicBreakdown} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
-                  <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="topic" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                  <Radar name="Siswa" dataKey="rata_rata_skor_siswa" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: any) => [`${Number(value).toFixed(1)} Poin`, 'Skor Siswa']}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="flex h-full items-center justify-center text-sm text-slate-500">
-                Data topik belum tersedia.
+        <div className="lg:col-span-1 space-y-6">
+          {/* Answer Stats Pie Chart */}
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
+            <h3 className="mb-5 font-bold text-slate-800">Akurasi Jawaban Keseluruhan</h3>
+            <div className="h-[200px] w-full">
+              {answerStats && answerStats.total > 0 ? (
+                <div className="flex items-center justify-between h-full w-full">
+                   <div className="w-1/2 h-full relative">
+                     <ResponsiveContainer width="100%" height="100%">
+                       <PieChart>
+                         <Pie
+                           data={[
+                             { name: 'Benar', value: answerStats.correct },
+                             { name: 'Salah', value: answerStats.incorrect }
+                           ]}
+                           innerRadius={40}
+                           outerRadius={65}
+                           dataKey="value"
+                           stroke="none"
+                         >
+                           <Cell fill="#10b981" />
+                           <Cell fill="#ef4444" />
+                         </Pie>
+                         <Tooltip 
+                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                         />
+                       </PieChart>
+                     </ResponsiveContainer>
+                   </div>
+                   <div className="w-1/2 flex flex-col justify-center gap-4 pl-4 border-l border-slate-100">
+                     <div>
+                       <p className="text-[11px] font-bold text-slate-400 uppercase">Jawaban Benar</p>
+                       <p className="text-2xl font-black text-emerald-500">{answerStats.correct}</p>
+                     </div>
+                     <div>
+                       <p className="text-[11px] font-bold text-slate-400 uppercase">Jawaban Salah</p>
+                       <p className="text-2xl font-black text-red-500">{answerStats.incorrect}</p>
+                     </div>
+                   </div>
+                </div>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-slate-500">Belum ada jawaban kuis.</div>
+              )}
+            </div>
+          </div>
+
+          {/* Competency Profile Radar */}
+          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
+            <h3 className="mb-5 font-bold text-slate-800">Profil Kompetensi Siswa</h3>
+            <div className="flex-1 min-h-[250px] w-full relative">
+              {topicBreakdown.length > 0 ? (
+                <div className="absolute inset-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={topicBreakdown} margin={{ top: 20, right: 30, bottom: 20, left: 30 }}>
+                    <PolarGrid stroke="#e2e8f0" />
+                    <PolarAngleAxis dataKey="topic" tick={{ fill: '#64748b', fontSize: 11, fontWeight: 'bold' }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                    <Radar name="Siswa" dataKey="rata_rata_skor_siswa" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                      formatter={(value: any) => [`${Number(value).toFixed(1)} Poin`, 'Skor Kompetensi']}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                  Data topik belum tersedia.
+                </div>
+              )}
+            </div>
+            
+            {/* Legend / Keterangan */}
+            <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
+              <div>
+                <span className="font-bold text-slate-800">Engagements:</span> Tingkat partisipasi rutinitas login (streak) & aktivitas membaca materi.
               </div>
-            )}
+              <div>
+                <span className="font-bold text-slate-800">Mastery:</span> Penguasaan materi akademis berdasarkan rata-rata skor dan akurasi kuis.
+              </div>
+              <div>
+                <span className="font-bold text-slate-800">Progress:</span> Kegigihan dan usaha siswa mencoba ulang kuis serta total XP yang diraih.
+              </div>
+              <div>
+                <span className="font-bold text-slate-800">Projects:</span> Tingkat keterlibatan dan penyelesaian tugas proyek kelas.
+              </div>
+            </div>
           </div>
         </div>
 

@@ -23,6 +23,10 @@ export const dashboardStudentSteps: Step[] = [
     content: 'Kumpulkan lencana (badges) dari setiap pencapaian. Lencana yang paling keren bisa kamu lengkapi agar terlihat oleh teman-teman!',
   },
   {
+    target: '#tour-student-xp-breakdown',
+    content: 'Lihat Distribusi XP kamu di sini! Kamu bisa memantau darimana saja sumber poin XP yang telah kamu kumpulkan.',
+  },
+  {
     target: '#tour-student-activity',
     content: 'Aktivitas terbarumu (kuis, tugas, atau materi yang kamu baca) akan tercatat di sini.',
   },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Flame, BookOpen, GraduationCap, Users, Plus, ArrowRight, Compass, Loader2, AlertTriangle, Zap, Trophy, CheckCircle, Target } from 'lucide-react'
@@ -201,6 +201,7 @@ export function DashboardClient() {
   const [enrolledFlashcards, setEnrolledFlashcards] = useState<{question:string, answer:string}[]>([])
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
   const [interventions, setInterventions] = useState<{id: string, note: string, type: string, teacher: string, created_at: string}[]>([])
+  const [xpBreakdown, setXpBreakdown] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -217,7 +218,7 @@ export function DashboardClient() {
         }
 
         // Step 2: Fetch all data in PARALLEL (not serial!)
-        const [profileRes, attemptsRes, notifsRes, enrolledRes, interventionsRes, materialRes, projectRes] = await Promise.all([
+        const [profileRes, attemptsRes, notifsRes, enrolledRes, interventionsRes, materialRes, projectRes, allQuizAttemptsRes, allMaterialCompletionsRes, allProjectSubmissionsRes] = await Promise.all([
           supabase
             .from('users')
             .select(`
@@ -275,7 +276,26 @@ export function DashboardClient() {
             .select('id, submitted_at, assignment_id, xp_earned, score, project_assignment:project_assignments(title)')
             .eq('user_id', user.id)
             .order('submitted_at', { ascending: false })
-            .limit(5)
+            .limit(5),
+            
+          // Fetch ALL quiz attempts for exact XP
+          supabase
+            .from('quiz_attempts')
+            .select('xp_earned')
+            .eq('user_id', user.id)
+            .not('completed_at', 'is', null),
+            
+          // Fetch ALL material completions for exact XP (assume 15 XP each)
+          supabase
+            .from('material_completions')
+            .select('id')
+            .eq('user_id', user.id),
+            
+          // Fetch ALL project submissions for exact XP
+          supabase
+            .from('project_submissions')
+            .select('xp_earned')
+            .eq('user_id', user.id)
         ])
 
         if (profileRes.error) throw new Error(profileRes.error.message)
@@ -310,8 +330,8 @@ export function DashboardClient() {
         }) => ({
           id: a.id,
           type: 'quiz',
-          title: (Array.isArray(a.quiz) ? a.quiz[0] : a.quiz as { title: string } | null)?.title ?? 'Quiz',
-          subtitle: `Score: ${Math.round(a.score)}%`,
+          title: `Kuis: ${(Array.isArray(a.quiz) ? a.quiz[0] : a.quiz as { title: string } | null)?.title ?? 'Tanpa Judul'}`,
+          subtitle: `Skor: ${Math.round(a.score)}%`,
           timestamp: a.completed_at,
           xp: a.xp_earned,
           quizId: a.quiz_id,
@@ -321,7 +341,7 @@ export function DashboardClient() {
         const materialItems: AttemptItem[] = (materialRes.data ?? []).map((m: any) => ({
           id: m.id,
           type: 'material',
-          title: (Array.isArray(m.material) ? m.material[0] : m.material)?.title ?? 'Materi',
+          title: `Materi: ${(Array.isArray(m.material) ? m.material[0] : m.material)?.title ?? 'Tanpa Judul'}`,
           subtitle: 'Membaca Materi',
           timestamp: m.created_at,
           xp: 15,
@@ -332,7 +352,7 @@ export function DashboardClient() {
         const projectItems: AttemptItem[] = (projectRes.data ?? []).map((p: any) => ({
           id: p.id,
           type: 'project',
-          title: (Array.isArray(p.project_assignment) ? p.project_assignment[0] : p.project_assignment)?.title ?? 'Tugas Proyek',
+          title: `Proyek: ${(Array.isArray(p.project_assignment) ? p.project_assignment[0] : p.project_assignment)?.title ?? 'Tanpa Judul'}`,
           subtitle: p.score !== null ? `Nilai: ${p.score}` : 'Menunggu Penilaian',
           timestamp: p.submitted_at,
           xp: p.xp_earned || 0,
@@ -340,49 +360,6 @@ export function DashboardClient() {
         }))
 
         let allAttempts = [...quizItems, ...materialItems, ...projectItems]
-
-        // Make sure the sum matches profile.xp
-        const sumXp = allAttempts.reduce((acc, curr) => acc + (curr.xp || 0), 0)
-        if (rawProfile.xp > sumXp) {
-          let missingXp = rawProfile.xp - sumXp
-          let mockIdCounter = 1
-          
-          const mockTemplates = [
-            { type: 'project' as const, title: 'Tugas Peta Topografi', subtitle: 'Nilai: 90' },
-            { type: 'quiz' as const, title: 'Kuis Geografi Dasar', subtitle: 'Score: 100%' },
-            { type: 'material' as const, title: 'Membaca Materi Bumi', subtitle: 'Penyelesaian Materi' },
-            { type: 'project' as const, title: 'Laporan Observasi Alam', subtitle: 'Nilai: 85' },
-            { type: 'quiz' as const, title: 'Kuis Peta Interaktif', subtitle: 'Score: 80%' },
-            { type: 'material' as const, title: 'Membaca Materi Iklim', subtitle: 'Penyelesaian Materi' },
-          ]
-          
-          let templateIdx = 0
-          while (missingXp > 0) {
-            const template = mockTemplates[templateIdx % mockTemplates.length]
-            let xpToGive = 0
-            
-            if (template.type === 'material') {
-              xpToGive = Math.min(missingXp, 15)
-            } else if (template.type === 'quiz') {
-              xpToGive = Math.min(missingXp, 100)
-            } else {
-              xpToGive = Math.min(missingXp, 200)
-            }
-            
-            allAttempts.push({
-              id: `mock-activity-${mockIdCounter}`,
-              type: template.type,
-              title: template.title,
-              subtitle: template.subtitle,
-              timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24 * mockIdCounter).toISOString(),
-              xp: xpToGive,
-            })
-            
-            missingXp -= xpToGive
-            mockIdCounter++
-            templateIdx++
-          }
-        }
         
         allAttempts = allAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
@@ -400,6 +377,31 @@ export function DashboardClient() {
         }))
 
         setNotifications(notifItems)
+
+        // Calculate exact XP Breakdown from source tables
+        const allQuizAttempts = allQuizAttemptsRes.data || [] 
+        const allMaterialCompletions = allMaterialCompletionsRes.data || []
+        const allProjectSubmissions = allProjectSubmissionsRes.data || []
+        
+        const quizXp = allQuizAttempts.reduce((sum: number, q: any) => sum + (q.xp_earned || 0), 0)
+        const materialXp = allMaterialCompletions.length * 15
+        const projectXp = allProjectSubmissions.reduce((sum: number, p: any) => sum + (p.xp_earned || 0), 0)
+
+        const totalCalculatedXp = quizXp + materialXp + projectXp
+        const userTotalXp = profileRes.data?.xp || 0
+        const lainnyaXp = Math.max(0, userTotalXp - totalCalculatedXp)
+
+        const formattedBreakdown = {
+          quiz: quizXp,
+          material: materialXp,
+          project: projectXp,
+          lainnya: lainnyaXp
+        }
+
+        setXpBreakdown(formattedBreakdown)
+
+        // Core data loaded, hide main skeleton immediately
+        setLoading(false)
 
         // Parse interventions
         const activeInterventions = (interventionsRes.data ?? []).map((i: any) => ({
@@ -463,11 +465,11 @@ export function DashboardClient() {
         )
         setAvailableClasses(available as unknown as AvailableClassItem[])
         setAvailableLoading(false)
+
       } catch (err) {
         console.error('[DashboardClient] fetch error:', err)
         setError('Gagal memuat data dashboard. Coba refresh halaman.')
         setAvailableLoading(false)
-      } finally {
         setLoading(false)
       }
     }
@@ -530,6 +532,16 @@ export function DashboardClient() {
     alert(`Berhasil bergabung ke kelas ${cls.name}!`)
   }
 
+  // ── Compute Memoized Data ────────────────────────────────────────────────
+  const level = useMemo(() => profile ? calculateLevel(profile.xp) : 0, [profile?.xp])
+  const equippedBadge = useMemo(() => profile ? profile.badges.find((b) => b.id === profile.equipped_badge_id) ?? null : null, [profile?.badges, profile?.equipped_badge_id])
+
+  const activityItems = useMemo(() => {
+    return [...attempts]
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 6)
+  }, [attempts])
+
   // ── Loading state → show skeleton immediately ──────────────────────────────
   if (loading) return <DashboardSkeleton />
 
@@ -552,14 +564,6 @@ export function DashboardClient() {
   }
 
   // ── Data ready → render dashboard ─────────────────────────────────────────
-  const level = calculateLevel(profile.xp)
-  const equippedBadge = profile.badges.find((b) => b.id === profile.equipped_badge_id) ?? null
-
-  const activityItems = [
-    ...attempts,
-  ]
-    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    .slice(0, 6)
 
   const greeting = getGreeting()
 
@@ -655,6 +659,34 @@ export function DashboardClient() {
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <BadgeGrid earned={profile.badges} equippedId={profile.equipped_badge_id} />
+            </div>
+          </section>
+
+          <section id="tour-student-xp-breakdown" className="mb-5">
+            <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">
+              📊 Distribusi XP
+            </h2>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className={`grid gap-4 ${xpBreakdown.lainnya > 0 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+                <div className="flex flex-col gap-1 rounded-xl bg-amber-50 p-3">
+                   <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
+                   <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
+                </div>
+                <div className="flex flex-col gap-1 rounded-xl bg-indigo-50 p-3">
+                   <span className="text-xs font-semibold text-indigo-700">Dari Materi</span>
+                   <span className="text-xl font-black text-indigo-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
+                </div>
+                <div className="flex flex-col gap-1 rounded-xl bg-emerald-50 p-3">
+                   <span className="text-xs font-semibold text-emerald-700">Dari Proyek</span>
+                   <span className="text-xl font-black text-emerald-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
+                </div>
+                {xpBreakdown.lainnya > 0 && (
+                  <div className="flex flex-col gap-1 rounded-xl bg-violet-50 p-3">
+                     <span className="text-xs font-semibold text-violet-700">Flashcard & Bonus</span>
+                     <span className="text-xl font-black text-violet-600">{xpBreakdown.lainnya.toLocaleString()} XP</span>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 

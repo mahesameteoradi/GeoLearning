@@ -227,7 +227,15 @@ export class AnalyticsService {
   }
 
   async getTopicBreakdown(userId: string, teacherId: string) {
-    // 1. Kuis (Rata-rata skor kuis siswa)
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    
+    // 1. Engagements
+    const streakScore = Math.min(100, (user?.current_streak || 0) * 5);
+    const materialCompletions = await this.prisma.materialCompletion.count({ where: { user_id: userId } });
+    const readScore = Math.min(100, materialCompletions * 5);
+    const engagementsScore = Math.round((streakScore + readScore) / 2);
+
+    // 2. Mastery & Knowledge
     const attempts = await this.prisma.quizAttempt.findMany({
       where: { user_id: userId, completed_at: { not: null } },
     });
@@ -236,27 +244,56 @@ export class AnalyticsService {
       const current = bestAttempts.get(a.quiz_id) || -1;
       if (a.score > current) bestAttempts.set(a.quiz_id, a.score);
     });
+    const avgScore = bestAttempts.size > 0 
+      ? Array.from(bestAttempts.values()).reduce((acc, curr) => acc + curr, 0) / bestAttempts.size 
+      : 0;
+      
+    // Use average score for mastery since quiz_attempt_answers might not be populated
+    const accuracy = avgScore; 
+    const masteryScore = Math.round(accuracy);
 
-    const avgScore =
-      bestAttempts.size > 0
-        ? Array.from(bestAttempts.values()).reduce(
-            (acc, curr) => acc + curr,
-            0,
-          ) / bestAttempts.size
-        : 0;
+    // 3. Progress & Effort
+    const replayRatio = bestAttempts.size > 0 ? attempts.length / bestAttempts.size : 1;
+    const replayScore = Math.min(100, replayRatio * 25);
+    const xpScore = Math.min(100, ((user?.xp || 0) / 1000) * 100);
+    const progressScore = Math.round((replayScore + xpScore) / 2);
 
-    // 2. XP (Diasumsikan 1000 XP = 100% untuk visualisasi)
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    const xpScore = Math.min(100, ((user?.xp || 0) / 500) * 100);
-
-    // 3. Keaktifan (Dihitung dari rutinitas absen/kuis - mock data untuk keaktifan membaca)
-    const activeScore = Math.min(100, 40 + bestAttempts.size * 15);
+    // 4. Projects
+    const projects = await this.prisma.projectSubmission.count({ where: { user_id: userId } });
+    const projectScore = Math.min(100, projects * 25); // 25 points per project
 
     return [
-      { topic: 'Skor Kuis', rata_rata_skor_siswa: avgScore },
-      { topic: 'Keaktifan Membaca', rata_rata_skor_siswa: activeScore },
-      { topic: 'Perolehan XP', rata_rata_skor_siswa: xpScore },
+      { topic: 'Engagements', rata_rata_skor_siswa: engagementsScore || 0 },
+      { topic: 'Mastery', rata_rata_skor_siswa: masteryScore || 0 },
+      { topic: 'Progress', rata_rata_skor_siswa: progressScore || 0 },
+      { topic: 'Projects', rata_rata_skor_siswa: projectScore || 0 },
     ];
+  }
+
+  async getStudentAnswerStats(userId: string) {
+    const attempts = await this.prisma.quizAttempt.findMany({
+      where: { user_id: userId, completed_at: { not: null } },
+      include: { quiz: { include: { questions: true } } }
+    });
+    
+    let total = 0;
+    let correct = 0;
+    
+    attempts.forEach(a => {
+      // Default to 10 questions if unknown
+      const qCount = a.quiz?.questions?.length || 10;
+      // Estimate correct answers based on score (0-100)
+      const correctCount = Math.round((a.score / 100) * qCount);
+      
+      total += qCount;
+      correct += correctCount;
+    });
+    
+    return {
+      total: total,
+      correct: correct,
+      incorrect: total - correct,
+    };
   }
 
   async getInterventions(userId: string) {

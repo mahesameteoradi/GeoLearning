@@ -99,6 +99,12 @@ export class AnalyticsController {
     return this.analyticsService.getTopicBreakdown(userId, req.user.id);
   }
 
+  @Get('student/:userId/answer-stats')
+  async getStudentAnswerStats(@Req() req: any, @Param('userId') userId: string) {
+    await this.validateStudentAccess(req.user.id, userId);
+    return this.analyticsService.getStudentAnswerStats(userId);
+  }
+
   @Get('student/:userId/interventions')
   async getInterventions(@Req() req: any, @Param('userId') userId: string) {
     await this.validateStudentAccess(req.user.id, userId);
