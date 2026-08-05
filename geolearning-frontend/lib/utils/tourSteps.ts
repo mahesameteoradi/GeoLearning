@@ -228,6 +228,22 @@ export const analyticsTeacherSteps: Step[] = [
   }
 ]
 
+export const studentAnalyticsTeacherSteps: Step[] = [
+  {
+    target: 'body',
+    placement: 'center',
+    content: 'Halaman Detail Analitik Siswa. Di sini Anda bisa melihat profil kompetensi siswa secara mendalam.',
+  },
+  {
+    target: '#tour-teacher-student-spider',
+    content: 'Grafik Radar (Spider Chart) ini menunjukkan 4 dimensi kompetensi siswa: Engagements, Mastery, Progress, dan Projects.',
+  },
+  {
+    target: '#tour-teacher-student-interventions',
+    content: 'Gunakan fitur Intervensi Guru ini untuk mencatat teguran, apresiasi, atau rekomendasi langsung untuk siswa ini.',
+  }
+]
+
 export const profileTeacherSteps: Step[] = [
   {
     target: 'body',

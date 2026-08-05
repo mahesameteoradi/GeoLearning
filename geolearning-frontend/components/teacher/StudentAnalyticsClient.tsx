@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils/cn'
 import { ALL_BADGES } from '@/components/ui/BadgeGrid'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
+import { OnboardingTour } from '@/components/ui/OnboardingTour'
+import { studentAnalyticsTeacherSteps } from '@/lib/utils/tourSteps'
 
 export function StudentAnalyticsClient({ studentId, studentData }: { studentId: string, studentData?: any }) {
   const [scoreTrend, setScoreTrend] = useState<any[]>([])
@@ -143,14 +145,12 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
     formattedDate: format(new Date(d.tanggal), 'dd MMM', { locale: id })
   })), [xpTrend, timeRange])
 
-  // Remove global loading skeleton to allow immediate rendering of the UI structure
-  // Components will handle their own empty states
-
   return (
     <div className="space-y-6">
+      <OnboardingTour tourKey="analytics_student_teacher" steps={studentAnalyticsTeacherSteps} />
+
       {/* Kemampuan & Keaktifan Summary */}
       {(() => {
-        // Hitung Kemampuan & Keaktifan dari moduleProgress
         let totalKemampuan = 0;
         let totalRead = 0;
         let totalMaterials = 0;
@@ -167,7 +167,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
         const keaktifan = totalMaterials > 0 ? Math.round((totalRead / totalMaterials) * 100) : 0;
 
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div id="tour-teacher-student-summary" className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Kemampuan Siswa</p>
@@ -201,7 +201,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
 
       {/* Rincian per Bab */}
       {moduleProgress.length > 0 && (
-        <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40 mt-6">
+        <div id="tour-teacher-student-progress" className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40 mt-6">
           <div className="bg-slate-50/80 backdrop-blur-sm px-6 py-5 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Rincian Progres per Bab</h3>
           </div>
@@ -259,7 +259,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div id="tour-teacher-student-trends" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Score Trend */}
         <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
           <h3 className="mb-5 font-bold text-slate-800">Tren Skor Kuis</h3>
@@ -371,7 +371,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
           </div>
 
           {/* Competency Profile Radar */}
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
+          <div id="tour-teacher-student-spider" className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
             <h3 className="mb-5 font-bold text-slate-800">Profil Kompetensi Siswa</h3>
             <div className="flex-1 min-h-[250px] w-full relative">
               {topicBreakdown.length > 0 ? (
@@ -396,7 +396,6 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
               )}
             </div>
             
-            {/* Legend / Keterangan */}
             <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
               <div>
                 <span className="font-bold text-slate-800">Engagements:</span> Tingkat partisipasi rutinitas login (streak) & aktivitas membaca materi.
