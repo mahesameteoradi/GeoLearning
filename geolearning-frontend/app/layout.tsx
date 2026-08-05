@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 import { ConfirmProvider } from '@/components/ui/ConfirmProvider'
 import { TourProvider } from '@/components/providers/TourProvider'
+import NextTopLoader from 'nextjs-toploader'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,6 +31,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body suppressHydrationWarning className="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased" style={{ fontFamily: 'var(--font-jakarta, "Plus Jakarta Sans", system-ui, sans-serif)' }}>
         <TourProvider>
           <ConfirmProvider>
+            <NextTopLoader
+              color="#4F46E5"
+              initialPosition={0.08}
+              crawlSpeed={200}
+              height={3}
+              crawl={true}
+              showSpinner={false}
+              easing="ease"
+              speed={200}
+              shadow="0 0 10px #4F46E5,0 0 5px #4F46E5"
+            />
             {children}
           </ConfirmProvider>
         </TourProvider>

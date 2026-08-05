@@ -176,22 +176,6 @@ function getGreeting() {
 // ─── Main Client Component ────────────────────────────────────────────────────
 
 export function DashboardClient() {
-  // Cursor tracking for interactive glow
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
-  const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 })
-  const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 })
-  const cursorBackground = useMotionTemplate`radial-gradient(600px circle at ${smoothX}px ${smoothY}px, rgba(99, 102, 241, 0.08), transparent 40%)`
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX)
-      mouseY.set(e.clientY)
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [mouseX, mouseY])
-
   const [profile, setProfile] = useState<Profile | null>(null)
   const [attempts, setAttempts] = useState<AttemptItem[]>([])
   const [notifications, setNotifications] = useState<NotifItem[]>([])
@@ -571,11 +555,7 @@ export function DashboardClient() {
     <div className="min-h-full p-3 md:p-5 lg:p-7 relative overflow-x-hidden">
       <OnboardingTour tourKey="dashboard_student" steps={dashboardStudentSteps} />
       
-      {/* ─── Interactive Cursor Glow ─────────────────────────────────────── */}
-      <motion.div
-        className="pointer-events-none fixed inset-0 z-50 transition-opacity duration-300"
-        style={{ background: cursorBackground }}
-      />
+      {/* Interactive Cursor Glow is handled by InteractiveBackground component in the layout/page now, so it is removed from here to prevent duplication */}
 
       {/* ─── Hero Header ─────────────────────────────────────────────────── */}
       <div id="tour-student-hero" className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
