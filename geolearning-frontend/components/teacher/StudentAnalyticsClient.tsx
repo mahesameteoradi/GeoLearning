@@ -372,7 +372,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
 
           {/* Competency Profile Radar */}
           <div id="tour-teacher-student-spider" className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
-            <h3 className="mb-5 font-bold text-slate-800">Profil Kompetensi Siswa</h3>
+            <h3 className="mb-5 font-bold text-slate-800">Profil Partisipasi Siswa</h3>
             <div className="flex-1 min-h-[250px] w-full relative">
               {topicBreakdown.length > 0 ? (
                 <div className="absolute inset-0">
@@ -384,7 +384,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                     <Radar name="Siswa" dataKey="rata_rata_skor_siswa" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6} />
                     <Tooltip 
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                      formatter={(value: any) => [`${Number(value).toFixed(1)} Poin`, 'Skor Kompetensi']}
+                      formatter={(value: any) => [`${Number(value).toFixed(1)} Poin`, 'Skor Partisipasi']}
                     />
                   </RadarChart>
                 </ResponsiveContainer>

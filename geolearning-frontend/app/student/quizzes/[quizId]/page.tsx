@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { CheckCircle, Clock, Zap, AlertTriangle, ArrowRight, Loader2, Play, MapPin, Search, ChevronRight, XCircle, Shield, ArrowLeft, Trophy, RefreshCw } from 'lucide-react'
+import { CheckCircle, Clock, Zap, AlertTriangle, ArrowRight, Loader2, Play, MapPin, Search, ChevronRight, XCircle, Shield, ArrowLeft, Trophy, RefreshCw, BookOpen } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import toast from 'react-hot-toast'
 import dynamic from 'next/dynamic'
@@ -84,6 +84,7 @@ interface QuizData {
   time_limit: number | null
   xp_reward: number
   passing_score: number | null
+  class_id: string | null
   questions: Question[]
 }
 
@@ -154,6 +155,10 @@ function ResultScreen({
   passingScore,
   onRetry,
   onBack,
+  attemptsCount,
+  justFinished,
+  classId,
+  router,
 }: {
   score: number
   xpEarned: number
@@ -164,6 +169,10 @@ function ResultScreen({
   passingScore?: number
   onRetry?: () => void
   onBack: () => void
+  attemptsCount?: number
+  justFinished?: boolean
+  classId?: string | null
+  router?: any
 }) {
   useEffect(() => {
     if (score >= 70) {
@@ -281,14 +290,44 @@ function ResultScreen({
           )}
 
           <div className="mt-10 flex flex-col gap-3 pb-12">
-            {onRetry && score < (passingScore || 0) && (
-              <button
-                onClick={onRetry}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Coba Lagi
-              </button>
+            {score < (passingScore || 0) && (
+              <>
+                {attemptsCount === 1 && justFinished ? (
+                  <button
+                    onClick={() => {
+                      if (classId && router) {
+                        router.push(`/student/classes/${classId}`)
+                      } else {
+                        onBack()
+                      }
+                    }}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    Pelajari Materi Kembali
+                  </button>
+                ) : attemptsCount === 1 && !justFinished ? (
+                  <button
+                    onClick={onRetry}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+                  >
+                    <Play className="h-4 w-4" />
+                    Mulai Percobaan ke-2
+                  </button>
+                ) : (attemptsCount ?? 0) >= 2 ? (
+                  <div className="p-3 text-sm text-center text-rose-300 bg-rose-500/10 rounded-xl border border-rose-500/20 mb-2 font-medium">
+                    Batas percobaan (2x) telah habis. Tetap semangat belajar!
+                  </div>
+                ) : onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Coba Lagi
+                  </button>
+                )}
+              </>
             )}
             <button
               onClick={onBack}
@@ -323,6 +362,8 @@ export default function QuizPlayerPage() {
   const [attemptId, setAttemptId] = useState<string | null>(null)
   const [result, setResult] = useState<{ score: number; xpEarned: number; correctCount: number } | null>(null)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [attemptsCount, setAttemptsCount] = useState(0)
+  const [justFinished, setJustFinished] = useState(false)
   const [userId, setUserId] = useState('')
   const [streak, setStreak] = useState(0)
   const [shake, setShake] = useState(false)
@@ -347,7 +388,7 @@ export default function QuizPlayerPage() {
       const { data: q } = await supabase
         .from('quizzes')
         .select(`
-          id, title, time_limit, xp_reward, passing_score,
+          id, title, time_limit, xp_reward, passing_score, class_id,
           questions(id, text, type, options, correct_answer, explanation, points, duration, order, image_url)
         `)
         .eq('id', quizId)
@@ -369,6 +410,8 @@ export default function QuizPlayerPage() {
         .order('score', { ascending: false })
 
       if (existingList && existingList.length > 0) {
+        setAttemptsCount(existingList.length)
+        setJustFinished(false)
         const bestAttempt = existingList[0]
         let correctCount = 0
         const ansObj = (bestAttempt.answers as Record<string, string>) || {}
@@ -597,7 +640,9 @@ export default function QuizPlayerPage() {
     }
 
     setResult({ score, xpEarned, correctCount: correct })
-  }, [quiz, attemptId, answers, supabase, userId])
+    setAttemptsCount(prev => prev + 1)
+    setJustFinished(true)
+  }, [quiz, attemptId, answers, supabase, userId, retriedIds])
 
   // Ref to hold handleNext so setTimeout can call it with fresh state
   const handleNextRef = useRef<(() => void) | null>(null)
@@ -701,6 +746,10 @@ export default function QuizPlayerPage() {
         passingScore={quiz?.passing_score || 0}
         onRetry={handleRetry}
         onBack={() => router.push('/student/quizzes')}
+        attemptsCount={attemptsCount}
+        justFinished={justFinished}
+        classId={quiz?.class_id}
+        router={router}
       />
     )
   }
