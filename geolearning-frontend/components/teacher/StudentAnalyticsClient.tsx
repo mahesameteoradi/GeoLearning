@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { AreaChart, Area, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend, PieChart, Pie, Cell } from 'recharts'
 import { Award, AlertCircle, CheckCircle, AlertTriangle, Plus, X, Info } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { ALL_BADGES } from '@/components/ui/BadgeGrid'
+import { ALL_BADGES, BadgeIcon, BadgeShieldContainer } from '@/components/ui/BadgeGrid'
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
@@ -426,19 +426,15 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                   {badgeTimeline.map((b, i) => (
                     <div 
                       key={i} 
-                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-white p-4 text-center transition-all hover:border-indigo-300 hover:shadow-md"
+                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-white p-4 text-center transition-all hover:border-indigo-300 hover:shadow-md group"
                     >
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100 p-1">
-                        {b.icon ? (
-                          b.icon.startsWith('http') || b.icon.startsWith('data:image') ? (
-                            <img src={b.icon} alt={b.badge_name} className="w-full h-full object-contain" />
-                          ) : (
-                            <span className="text-2xl leading-none">{b.icon}</span>
-                          )
-                        ) : (
-                          <Award className="h-6 w-6 text-indigo-400" />
-                        )}
-                      </div>
+                      <BadgeShieldContainer 
+                        isEarned={true}
+                        hoverGlow={true}
+                        className="h-14 w-14 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+                      >
+                        <BadgeIcon id={ALL_BADGES.find(badge => badge.display_name === b.badge_name)?.id || 'first_quiz'} />
+                      </BadgeShieldContainer>
                       <div>
                         <p className="text-sm font-bold text-slate-800 line-clamp-2">{b.badge_name}</p>
                         <p className="text-[10px] font-semibold text-slate-500 uppercase mt-0.5">{format(new Date(b.earned_at), 'dd MMM yyyy', { locale: id })}</p>
@@ -466,14 +462,14 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
             
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {ALL_BADGES.map(badge => (
-                <div key={badge.id} className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md">
-                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border border-slate-100 p-1">
-                    {badge.icon.startsWith('http') || badge.icon.startsWith('data:image') ? (
-                      <img src={badge.icon} alt={badge.display_name} className="h-full w-full object-contain" />
-                    ) : (
-                      <span className="text-xl leading-none">{badge.icon}</span>
-                    )}
-                  </div>
+                <div key={badge.id} className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md">
+                  <BadgeShieldContainer 
+                        isEarned={true}
+                        hoverGlow={true}
+                        className="h-14 w-14 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+                      >
+                    <BadgeIcon id={badge.id} />
+                  </BadgeShieldContainer>
                   <div className="flex flex-col">
                     <span className="text-[11px] font-bold text-slate-800">{badge.display_name}</span>
                     <span className="text-[10px] text-slate-500 leading-snug line-clamp-2 mt-0.5" title={badge.description}>

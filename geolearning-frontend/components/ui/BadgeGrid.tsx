@@ -1,4 +1,9 @@
 import { cn } from '@/lib/utils/cn'
+import { 
+  Target, Star, Flame, Shield, Library, Zap, 
+  Settings, Trophy, Rocket, Globe, Crown, 
+  Leaf, Medal, Award
+} from 'lucide-react'
 
 interface BadgeData {
   id: string
@@ -37,18 +42,95 @@ export const ALL_BADGES: BadgeData[] = [
   { id: 'top_10',        icon: '🥇', tier: 'diamond', display_name: 'Elite',           description: 'Masuk dalam peringkat 10 besar' },
 ]
 
-const TIER_STYLES = {
-  bronze:  'from-orange-400 via-orange-500 to-orange-600 border-orange-300/50 text-orange-950 shadow-[inset_0_1px_2px_rgba(255,255,255,0.4)] ring-orange-200/50',
-  silver:  'from-slate-200 via-slate-300 to-slate-400 border-white/60 text-slate-800 shadow-[inset_0_2px_4px_rgba(255,255,255,0.9)] ring-slate-200/50',
-  gold:    'from-amber-200 via-yellow-400 to-amber-500 border-yellow-200/60 text-amber-950 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8)] ring-amber-300/50',
-  diamond: 'from-cyan-300 via-blue-400 to-fuchsia-400 border-cyan-200/60 text-indigo-950 shadow-[inset_0_2px_5px_rgba(255,255,255,0.9)] ring-cyan-300/50',
+export const BadgeIcon = ({ id, className }: { id: string, className?: string }) => {
+  const baseClass = cn("w-full h-full drop-shadow-sm", className);
+  
+  switch(id) {
+    case 'first_quiz': return <Target className={cn(baseClass, "text-rose-400")} />;
+    case 'xp_100': return <Star className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'level_5': return (
+      <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
+        <Settings className="w-[90%] h-[90%] text-slate-300" />
+        <Leaf className="absolute w-[45%] h-[45%] text-emerald-400 fill-emerald-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      </div>
+    );
+    case 'streak_3': return <Flame className={cn(baseClass, "text-orange-500 fill-orange-500")} />;
+    case 'xp_500': return (
+      <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
+        <Shield className="w-full h-full text-slate-200 fill-slate-200" />
+        <Star className="absolute w-[45%] h-[45%] text-amber-500 fill-amber-500 top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]" />
+      </div>
+    );
+    case 'level_10': return <Library className={cn(baseClass, "text-amber-200")} />;
+    case 'streak_7': return <Zap className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'perfect_score': return (
+      <div className={cn("flex flex-col items-center justify-center w-full h-full text-emerald-400", className)}>
+        <span className="font-black italic text-[0.6em] leading-none -mb-[2px]">100</span>
+        <div className="w-[60%] h-[3px] bg-emerald-400 rounded-full mt-[2px]" />
+      </div>
+    );
+    case 'xp_1000': return <Settings className={cn(baseClass, "text-cyan-400")} />;
+    case 'level_20': return <Trophy className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'streak_30': return (
+      <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
+        <Rocket className="w-[80%] h-[80%] text-rose-400 fill-rose-400 -rotate-45" />
+      </div>
+    );
+    case 'xp_5000': return <Globe className={cn(baseClass, "text-blue-300")} />;
+    case 'level_50': return <Crown className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'top_10': return (
+      <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
+        <Award className="w-[85%] h-[85%] text-fuchsia-400 fill-fuchsia-400" />
+      </div>
+    );
+    default: return <Award className={cn(baseClass, "text-white")} />;
+  }
 }
 
-const TIER_HOVER_GLOW = {
-  bronze:  'hover:shadow-[0_0_15px_rgba(249,115,22,0.5)]',
-  silver:  'hover:shadow-[0_0_15px_rgba(148,163,184,0.5)]',
-  gold:    'hover:shadow-[0_0_20px_rgba(250,204,21,0.6)]',
-  diamond: 'hover:shadow-[0_0_25px_rgba(34,211,238,0.7)]',
+export const BadgeShieldContainer = ({ children, className, isEarned = true, hoverGlow = false }: { children: React.ReactNode, className?: string, isEarned?: boolean, hoverGlow?: boolean }) => {
+  return (
+    <div className={cn("relative flex items-center justify-center transition-all duration-300 z-10", className, hoverGlow && "group-hover:drop-shadow-[0_0_15px_rgba(37,99,235,0.6)]")}>
+      <svg 
+        className={cn("absolute inset-0 w-full h-full drop-shadow-sm transition-all duration-300", !isEarned && "opacity-50 grayscale")} 
+        xmlns="http://www.w3.org/2000/svg" 
+        viewBox="0 0 100 115"
+      >
+        <defs>
+          <path id="shield" d="M50 3 Q75 11 95 16 C95 61 75 96 50 112 C25 96 5 61 5 16 Q25 11 50 3 Z" />
+          <clipPath id="leftHalf">
+            <rect x="0" y="0" width="50" height="115" />
+          </clipPath>
+          <clipPath id="rightHalf">
+            <rect x="50" y="0" width="50" height="115" />
+          </clipPath>
+          
+          <linearGradient id="leftGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#1d4ed8" />
+          </linearGradient>
+          <linearGradient id="rightGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#2563eb" />
+            <stop offset="100%" stopColor="#1e3a8a" />
+          </linearGradient>
+        </defs>
+
+        {/* Outer border (dark slate) */}
+        <use href="#shield" fill="#1e293b" />
+        
+        {/* Inner white border */}
+        <use href="#shield" fill="#ffffff" style={{ transformOrigin: '50px 57px', transform: 'scale(0.92)' }} />
+        
+        {/* Blue split background */}
+        <g style={{ transformOrigin: '50px 57px', transform: 'scale(0.85)' }}>
+          <use href="#shield" fill="url(#leftGrad)" clipPath="url(#leftHalf)" />
+          <use href="#shield" fill="url(#rightGrad)" clipPath="url(#rightHalf)" />
+        </g>
+      </svg>
+      <div className="relative z-10 w-[42%] h-[42%] mt-[-5%] flex items-center justify-center transition-transform duration-300 group-hover:scale-110 text-white">
+        {children}
+      </div>
+    </div>
+  )
 }
 
 export function BadgeGrid({ earned, equippedId, className, compact = false }: BadgeGridProps) {
@@ -66,10 +148,6 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
         const isEarned = earnedIds.has(badge.id)
         const isEquipped = badge.id === equippedId
         const tier = badge.tier || 'bronze'
-        
-        const style = isEarned 
-          ? `bg-gradient-to-br border-2 ring-4 ring-offset-2 ${TIER_STYLES[tier]} ${TIER_HOVER_GLOW[tier]}`
-          : 'bg-slate-100 border-2 border-slate-200 shadow-inner opacity-50 grayscale'
 
         return (
           <div
@@ -93,22 +171,13 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
             )}
 
             {/* Badge container shape */}
-            <div className={cn(
-              'relative z-10 flex items-center justify-center rounded-full transition-all duration-300',
-              compact ? 'h-12 w-12 sm:h-14 sm:w-14' : 'h-16 w-16 sm:h-20 sm:w-20',
-              style
-            )}>
-              <span className={cn(
-                'flex items-center justify-center leading-none drop-shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6',
-                compact ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl'
-              )}>
-                {badge.icon.startsWith('http') || badge.icon.startsWith('data:image') ? (
-                  <img src={badge.icon} alt={badge.display_name} className="w-full h-full object-contain drop-shadow-sm" />
-                ) : (
-                  badge.icon
-                )}
-              </span>
-            </div>
+            <BadgeShieldContainer 
+              isEarned={isEarned} 
+              hoverGlow={isEarned}
+              className={compact ? 'h-14 w-14 sm:h-16 sm:w-16' : 'h-20 w-20 sm:h-24 sm:w-24'}
+            >
+              <BadgeIcon id={badge.id} />
+            </BadgeShieldContainer>
 
             {!compact && (
               <div className="flex flex-col items-center mt-1 w-full px-1">
