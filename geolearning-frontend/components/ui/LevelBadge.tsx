@@ -23,15 +23,15 @@ export function LevelBadge({ xp, level: levelProp, size = 'sm', className }: Lev
       : 'bg-gradient-to-r from-slate-600 to-slate-700 text-slate-800'
 
   const sizeClass = {
-    xs: 'px-1.5 py-0.5 text-[10px]',
-    sm: 'px-2 py-0.5 text-xs',
-    md: 'px-3 py-1 text-sm',
+    xs: 'px-1 py-[1px] text-[8px]',
+    sm: 'px-1.5 py-[1px] text-[9px]',
+    md: 'px-2 py-[2px] text-[10px]',
   }[size]
 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full font-bold tracking-wide',
+        'inline-flex items-center rounded-full font-bold',
         colorClass,
         sizeClass,
         className

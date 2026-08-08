@@ -431,7 +431,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                       <BadgeShieldContainer 
                         isEarned={true}
                         hoverGlow={true}
-                        className="h-14 w-14 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        className="h-10 w-10 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
                       >
                         <BadgeIcon id={ALL_BADGES.find(badge => badge.display_name === b.badge_name)?.id || 'first_quiz'} />
                       </BadgeShieldContainer>
@@ -466,7 +466,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                   <BadgeShieldContainer 
                         isEarned={true}
                         hoverGlow={true}
-                        className="h-14 w-14 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        className="h-10 w-10 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
                       >
                     <BadgeIcon id={badge.id} />
                   </BadgeShieldContainer>

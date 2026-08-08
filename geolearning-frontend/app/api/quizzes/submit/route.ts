@@ -10,6 +10,34 @@ export async function POST(req: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
+    // First, fetch the current attempt to get the quiz_id
+    const { data: currentAttempt, error: fetchError } = await supabase
+      .from('quiz_attempts')
+      .select('quiz_id')
+      .eq('id', attemptId)
+      .single()
+      
+    if (fetchError || !currentAttempt) {
+      return NextResponse.json({ success: false, error: 'Attempt not found' }, { status: 404 })
+    }
+    
+    // Find previous max XP for this quiz by this user
+    const { data: previousAttempts } = await supabase
+      .from('quiz_attempts')
+      .select('xp_earned')
+      .eq('quiz_id', currentAttempt.quiz_id)
+      .eq('user_id', userId)
+      .not('id', 'eq', attemptId)
+      .not('completed_at', 'is', null)
+      
+    let maxPreviousXp = 0
+    if (previousAttempts && previousAttempts.length > 0) {
+      maxPreviousXp = Math.max(...previousAttempts.map(a => a.xp_earned || 0))
+    }
+
+    // Calculate how much NEW xp should be awarded
+    const newXpToAward = Math.max(0, xpEarned - maxPreviousXp)
+
     // Update the attempt record
     const { error: updateError } = await supabase
       .from('quiz_attempts')
@@ -28,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     // Call gamification backend to award XP and unlock badges
-    if (xpEarned > 0 && accessToken) {
+    if (newXpToAward > 0 && accessToken) {
       try {
         const { count } = await supabase
           .from('quiz_attempts')
@@ -44,7 +72,7 @@ export async function POST(req: Request) {
           },
           body: JSON.stringify({
             userId,
-            xpAmount: xpEarned,
+            xpAmount: newXpToAward,
             quizAttemptId: attemptId,
             quizScore: score,
             isFirstQuiz: count === 1

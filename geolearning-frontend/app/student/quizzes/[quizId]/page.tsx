@@ -501,7 +501,11 @@ export default function QuizPlayerPage() {
         const studentPos = JSON.parse(optionLabel)
         const { target_lat, target_lng, radius_toleransi_meter, radius_maksimal_meter } = q.options
         const distance = hitungJarakMeter(studentPos.lat, studentPos.lng, target_lat, target_lng)
-        const qPoints = q.points ?? quiz?.xp_reward ?? 100
+        
+        const uniqueQCount = new Set(quiz?.questions.map(q => q.id)).size || 1
+        const defaultPoints = quiz?.xp_reward ? Math.max(1, Math.round(quiz.xp_reward / uniqueQCount)) : 100
+        const qPoints = q.points ?? defaultPoints
+        
         const scoreEarned = hitungSkorPeta(distance, radius_toleransi_meter, radius_maksimal_meter, qPoints)
         correct = scoreEarned > 0
         answerObj = { lat: studentPos.lat, lng: studentPos.lng, distance, score: scoreEarned }
@@ -593,8 +597,12 @@ export default function QuizPlayerPage() {
     let maxTotalPoints = 0
 
     const uniqueQuestions = Array.from(new Map(quiz.questions.map(q => [q.id, q])).values())
+    const defaultPointsPerQuestion = uniqueQuestions.length > 0 && quiz.xp_reward 
+      ? Math.max(1, Math.round(quiz.xp_reward / uniqueQuestions.length))
+      : 100
+
     for (const q of uniqueQuestions) {
-      const qPoints = q.points ?? quiz.xp_reward ?? 100
+      const qPoints = q.points ?? defaultPointsPerQuestion
       maxTotalPoints += qPoints
 
       if (q.type === 'MAP_PINPOINT') {

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { Search, Flame, ChevronDown, ChevronUp, X, BookOpen, Shield, Medal } from 'lucide-react'
 import { calculateLevel, xpForLevel, getLevelMeaning } from '@/lib/utils/level'
 import { cn } from '@/lib/utils/cn'
+import { ALL_BADGES, BadgeIcon, BadgeShieldContainer } from '@/components/ui/BadgeGrid'
 
 interface Student {
   id: string
@@ -321,21 +322,26 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
               <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">Pencapaian Badges</p>
               {(selectedStudent.badges ?? []).length > 0 ? (
                 <div className="grid grid-cols-4 gap-2">
-                  {(selectedStudent.badges ?? []).map((badge) => (
-                    <div 
-                      key={badge.id}
-                      className="group flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-center transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm"
-                      title={badge.display_name}
-                    >
-                      <span className="flex items-center justify-center text-xl leading-none w-7 h-7">
-                        {badge.icon.startsWith('http') || badge.icon.startsWith('data:image') ? (
-                          <img src={badge.icon} alt={badge.display_name} className="w-full h-full object-contain" />
-                        ) : (
-                          badge.icon
-                        )}
-                      </span>
-                    </div>
-                  ))}
+                  {(selectedStudent.badges ?? []).map((badge) => {
+                    const mappedBadge = ALL_BADGES.find(b => b.display_name === badge.display_name) || ALL_BADGES.find(b => b.id === badge.id)
+                    const badgeId = mappedBadge?.id || 'first_quiz'
+                    
+                    return (
+                      <div 
+                        key={badge.id}
+                        className="group flex flex-col items-center justify-center text-center"
+                        title={badge.display_name}
+                      >
+                        <BadgeShieldContainer 
+                          isEarned={true}
+                          hoverGlow={true}
+                          className="h-10 w-10 flex-shrink-0 group-hover:scale-110 transition-transform duration-300"
+                        >
+                          <BadgeIcon id={badgeId} />
+                        </BadgeShieldContainer>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
                 <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">

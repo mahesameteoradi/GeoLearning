@@ -265,7 +265,7 @@ export function DashboardClient() {
           // Fetch ALL quiz attempts for exact XP
           supabase
             .from('quiz_attempts')
-            .select('xp_earned')
+            .select('xp_earned, quiz_id')
             .eq('user_id', user.id)
             .not('completed_at', 'is', null),
             
@@ -367,7 +367,18 @@ export function DashboardClient() {
         const allMaterialCompletions = allMaterialCompletionsRes.data || []
         const allProjectSubmissions = allProjectSubmissionsRes.data || []
         
-        const quizXp = allQuizAttempts.reduce((sum: number, q: any) => sum + (q.xp_earned || 0), 0)
+        // Only count the best score per quiz for quizXp
+        const bestQuizXp = new Map<string, number>()
+        allQuizAttempts.forEach((q: any) => {
+          if (q.quiz_id) {
+             const currentBest = bestQuizXp.get(q.quiz_id) || 0
+             if ((q.xp_earned || 0) > currentBest) {
+               bestQuizXp.set(q.quiz_id, q.xp_earned || 0)
+             }
+          }
+        })
+        const quizXp = Array.from(bestQuizXp.values()).reduce((sum, xp) => sum + xp, 0)
+        
         const materialXp = allMaterialCompletions.length * 15
         const projectXp = allProjectSubmissions.reduce((sum: number, p: any) => sum + (p.xp_earned || 0), 0)
 
@@ -647,7 +658,7 @@ export function DashboardClient() {
               📊 Distribusi XP
             </h2>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className={`grid gap-4 ${xpBreakdown.lainnya > 0 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
+              <div className="grid gap-4 grid-cols-3">
                 <div className="flex flex-col gap-1 rounded-xl bg-amber-50 p-3">
                    <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
                    <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
@@ -660,12 +671,6 @@ export function DashboardClient() {
                    <span className="text-xs font-semibold text-emerald-700">Dari Proyek</span>
                    <span className="text-xl font-black text-emerald-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
                 </div>
-                {xpBreakdown.lainnya > 0 && (
-                  <div className="flex flex-col gap-1 rounded-xl bg-violet-50 p-3">
-                     <span className="text-xs font-semibold text-violet-700">Flashcard & Bonus</span>
-                     <span className="text-xl font-black text-violet-600">{xpBreakdown.lainnya.toLocaleString()} XP</span>
-                  </div>
-                )}
               </div>
             </div>
           </section>

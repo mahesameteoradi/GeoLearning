@@ -10,8 +10,6 @@ import toast from 'react-hot-toast'
 export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: string, customFlashcards?: { question: string, answer: string }[] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
-  const [claimed, setClaimed] = useState(false)
-  const [claiming, setClaiming] = useState(false)
 
   if (!customFlashcards || customFlashcards.length === 0) {
     return (
@@ -37,38 +35,7 @@ export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: str
     }, 150)
   }
 
-  const handleClaimXP = async () => {
-    if (claimed || claiming) return
-    setClaiming(true)
-    
-    try {
-      const supabase = createClient()
-      
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        // Add 10 XP via backend Gamification API
-        await fetch('http://localhost:3001/v1/gamification/award-xp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            userId,
-            xpAmount: 10
-          })
-        })
-        
-        toast.success('+10 XP dari Flashcard Harian!', { icon: '✨' })
-        setClaimed(true)
-      }
-    } catch (err) {
-      console.error(err)
-      toast.error('Gagal klaim XP')
-    } finally {
-      setClaiming(false)
-    }
-  }
+
 
   return (
     <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-blue-50 p-4 shadow-sm relative overflow-hidden">
@@ -80,15 +47,6 @@ export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: str
           <Sparkles className="h-3.5 w-3.5" />
           Tebak Cepat (Flashcard)
         </h2>
-        {!claimed ? (
-          <span className="text-[10px] font-bold text-indigo-500 bg-indigo-100 px-2 py-0.5 rounded-full">
-            +10 XP
-          </span>
-        ) : (
-          <span className="text-[10px] font-bold text-emerald-500 bg-emerald-100 px-2 py-0.5 rounded-full">
-            Diklaim
-          </span>
-        )}
       </div>
 
       <div className="relative h-32 w-full perspective-1000">
@@ -96,9 +54,6 @@ export function FlashcardWidget({ userId, customFlashcards = [] }: { userId: str
           className={`w-full h-full transition-transform duration-500 preserve-3d cursor-pointer ${isFlipped ? 'rotate-y-180' : ''}`}
           onClick={() => {
             setIsFlipped(!isFlipped)
-            if (!claimed && !isFlipped) {
-              handleClaimXP()
-            }
           }}
         >
           {/* Front */}

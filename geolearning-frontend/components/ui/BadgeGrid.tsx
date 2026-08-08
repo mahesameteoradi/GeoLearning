@@ -174,7 +174,7 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
             <BadgeShieldContainer 
               isEarned={isEarned} 
               hoverGlow={isEarned}
-              className={compact ? 'h-14 w-14 sm:h-16 sm:w-16' : 'h-20 w-20 sm:h-24 sm:w-24'}
+              className={compact ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'}
             >
               <BadgeIcon id={badge.id} />
             </BadgeShieldContainer>
