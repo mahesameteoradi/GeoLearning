@@ -2,12 +2,26 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Camera, Loader2, User, Save, Building, Hash, GraduationCap, KeyRound, Eye, EyeOff } from 'lucide-react'
+import { Camera, Loader2, User, Save, Building, Hash, GraduationCap, KeyRound, Eye, EyeOff, Trophy, Flame, Target, Book, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
 import { AvatarDisplay } from '@/components/ui/AvatarDisplay'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { profileStudentSteps, profileTeacherSteps } from '@/lib/utils/tourSteps'
+import { levelProgressPercent, getLevelMeaning } from '@/lib/utils/level'
+
+interface Badge {
+  id: string
+  display_name: string
+  description: string
+  icon: string
+}
+
+interface UserBadge {
+  id: string
+  earned_at: string
+  badge: Badge
+}
 
 interface UserProfile {
   id: string
@@ -16,6 +30,11 @@ interface UserProfile {
   avatar_url: string | null
   nis_nip: string | null
   school_class: string | null
+  xp: number
+  level: number
+  current_streak: number
+  longest_streak: number
+  badges: UserBadge[]
 }
 
 interface ProfileClientProps {
@@ -41,12 +60,30 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
 
+  // Gamification stats
+  const [stats, setStats] = useState({
+    quizCount: 0,
+    materialCount: 0
+  })
+
+  const [teacherStats, setTeacherStats] = useState({
+    classCount: 0,
+    studentCount: 0,
+    quizCount: 0
+  })
+
   useEffect(() => {
     async function fetchProfile() {
       const supabase = createClient()
       const { data, error } = await supabase
         .from('users')
-        .select('id, name, email, avatar_url, nis_nip, school_class')
+        .select(`
+          id, name, email, avatar_url, nis_nip, school_class, xp, level, current_streak, longest_streak,
+          badges:user_badges!user_id(
+            id, earned_at,
+            badge:badges(id, display_name, description, icon)
+          )
+        `)
         .eq('id', userId)
         .single()
 
@@ -54,15 +91,71 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
         toast.error('Gagal memuat profil')
         console.error(error)
       } else if (data) {
-        setProfile(data as UserProfile)
+        setProfile(data as unknown as UserProfile)
         setName(data.name || '')
         setNisNip(data.nis_nip || '')
         setSchoolClass(data.school_class || '')
       }
+
+      if (role === 'STUDENT') {
+        const { count: quizCount } = await supabase
+          .from('quiz_attempts')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .not('completed_at', 'is', null)
+
+        const { count: materialCount } = await supabase
+          .from('material_completions')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+
+        setStats({
+          quizCount: quizCount || 0,
+          materialCount: materialCount || 0
+        })
+      } else if (role === 'TEACHER') {
+        const { count: classCount } = await supabase
+          .from('classes')
+          .select('*', { count: 'exact', head: true })
+          .eq('teacher_id', userId)
+          
+        const { data: classesData } = await supabase
+          .from('classes')
+          .select('id')
+          .eq('teacher_id', userId)
+          
+        let studentCount = 0
+        let tQuizCount = 0
+        
+        if (classesData && classesData.length > 0) {
+          const classIds = classesData.map((c: any) => c.id)
+          
+          const { count: sCount } = await supabase
+            .from('class_students')
+            .select('*', { count: 'exact', head: true })
+            .in('class_id', classIds)
+            
+          studentCount = sCount || 0
+          
+          const { count: qCount } = await supabase
+            .from('quizzes')
+            .select('*', { count: 'exact', head: true })
+            .in('class_id', classIds)
+            
+          tQuizCount = qCount || 0
+        }
+
+        setTeacherStats({
+          classCount: classCount || 0,
+          studentCount,
+          quizCount: tQuizCount
+        })
+      }
+
       setLoading(false)
     }
     fetchProfile()
-  }, [userId])
+  }, [userId, role])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -207,6 +300,124 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
           </div>
         </div>
       </div>
+
+      {/* ── Gamification Section (STUDENT ONLY) ──────────────────────────── */}
+      {role === 'STUDENT' && (
+        <div className="mb-8 grid gap-6 md:grid-cols-2">
+          {/* Status & Progress */}
+          <div id="tour-student-profile-gamification" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Star className="h-5 w-5 text-amber-500" /> Status Gamifikasi
+            </h2>
+            
+            <div className="flex flex-col md:flex-row items-center gap-5 mb-5">
+              <div className="relative w-24 h-24 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 border-4 border-indigo-200">
+                <div className="text-center">
+                  <p className="text-xs font-bold text-indigo-500 uppercase">Level</p>
+                  <p className="text-3xl font-black text-indigo-700">{profile.level}</p>
+                </div>
+              </div>
+              
+              <div className="flex-1 w-full text-center md:text-left">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-bold text-slate-700">{getLevelMeaning(profile.level).title}</span>
+                  <span className="font-semibold text-slate-500">{profile.xp} XP</span>
+                </div>
+                <div className="h-4 w-full rounded-full bg-slate-100 overflow-hidden shadow-inner">
+                  <div 
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 relative"
+                    style={{ width: `${levelProgressPercent(profile.xp)}%` }}
+                  >
+                    <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white/30 to-transparent"></div>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">{getLevelMeaning(profile.level).description}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
+                <Flame className="mx-auto h-6 w-6 text-orange-500 mb-1" />
+                <p className="text-xl font-bold text-slate-800">{profile.current_streak}</p>
+                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Streak Hari</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
+                <Book className="mx-auto h-6 w-6 text-emerald-500 mb-1" />
+                <p className="text-xl font-bold text-slate-800">{stats.materialCount}</p>
+                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Materi Dibaca</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
+                <Target className="mx-auto h-6 w-6 text-blue-500 mb-1" />
+                <p className="text-xl font-bold text-slate-800">{stats.quizCount}</p>
+                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Kuis Selesai</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Badge Showcase */}
+          <div id="tour-student-profile-badges" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" /> Pameran Lencana
+            </h2>
+            
+            {profile.badges && profile.badges.length > 0 ? (
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                {profile.badges.map((ub) => (
+                  <div key={ub.id} className="group relative flex flex-col items-center">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 border border-amber-200 shadow-sm transition-transform group-hover:scale-110 group-hover:shadow-md cursor-help">
+                      <span className="text-3xl drop-shadow-sm">{ub.badge.icon}</span>
+                    </div>
+                    
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full mb-2 hidden w-max max-w-[140px] flex-col items-center group-hover:flex z-10">
+                      <div className="rounded-lg bg-slate-900/95 px-3 py-2 text-center text-xs text-white shadow-xl backdrop-blur-sm border border-slate-700">
+                        <p className="font-bold mb-0.5">{ub.badge.display_name}</p>
+                        <p className="text-slate-300 text-[10px] leading-tight">{ub.badge.description}</p>
+                        <p className="text-slate-400 text-[9px] mt-1.5 border-t border-slate-700 pt-1">Diperoleh: {new Date(ub.earned_at).toLocaleDateString('id-ID')}</p>
+                      </div>
+                      <div className="-mt-1 h-2 w-2 rotate-45 bg-slate-900/95 border-r border-b border-slate-700"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
+                <Trophy className="mb-2 h-8 w-8 opacity-20 grayscale" />
+                <p className="text-sm">Belum ada lencana yang diraih</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Gamification Section (TEACHER ONLY) ──────────────────────────── */}
+      {role === 'TEACHER' && (
+        <div className="mb-8">
+          <div id="tour-teacher-profile-stats" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-slate-900 flex items-center gap-2">
+              <Star className="h-5 w-5 text-amber-500" /> Statistik Mengajar
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="rounded-xl bg-slate-50 p-5 text-center border border-slate-100 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 hover:shadow-md">
+                <Building className="h-8 w-8 text-blue-500 mb-2" />
+                <p className="text-3xl font-black text-slate-800">{teacherStats.classCount}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Kelas Aktif</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-5 text-center border border-slate-100 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 hover:shadow-md">
+                <GraduationCap className="h-8 w-8 text-emerald-500 mb-2" />
+                <p className="text-3xl font-black text-slate-800">{teacherStats.studentCount}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Siswa Diajar</p>
+              </div>
+              <div className="rounded-xl bg-slate-50 p-5 text-center border border-slate-100 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 hover:shadow-md">
+                <Target className="h-8 w-8 text-indigo-500 mb-2" />
+                <p className="text-3xl font-black text-slate-800">{teacherStats.quizCount}</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Kuis Dibuat</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-8 md:grid-cols-3">
         {/* Left Column: Avatar */}

@@ -33,6 +33,18 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
   const [search, setSearch] = useState('')
   const [selectedStudents, setSelectedStudents] = useState<string[]>([])
   const [isDeleting, setIsDeleting] = useState(false)
+  const [teacherId, setTeacherId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const getTeacherId = async () => {
+      const supabase = createClient()
+      const { data } = await supabase.auth.getUser()
+      if (data?.user?.id) {
+        setTeacherId(data.user.id)
+      }
+    }
+    getTeacherId()
+  }, [])
 
   const fetchStudents = useCallback(async () => {
     setLoading(true)
@@ -303,12 +315,12 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
         />
       )}
 
-      {unlockStudent && (
+      {unlockStudent && teacherId && (
         <UnlockModuleModal
           classId={classId}
           studentId={unlockStudent.student.id}
           studentName={unlockStudent.student.name}
-          teacherId={unlockStudent.student.id} // wait, I need the actual teacher id!
+          teacherId={teacherId}
           onClose={() => setUnlockStudent(null)}
           onSuccess={() => setUnlockStudent(null)}
         />

@@ -137,6 +137,14 @@ export const profileStudentSteps: Step[] = [
     content: 'Di halaman Profil Saya, kamu bisa mengatur akun dan melihat seluruh pencapaianmu.',
   },
   {
+    target: '#tour-student-profile-gamification',
+    content: 'Di sini kamu bisa memantau Status Gamifikasi, seperti Level, total XP, dan rekor belajarmu.',
+  },
+  {
+    target: '#tour-student-profile-badges',
+    content: 'Semua lencana (badges) yang telah kamu raih akan dipamerkan di rak ini. Terus berprestasi untuk mengumpulkan semuanya!',
+  },
+  {
     target: '#tour-student-profile-edit',
     content: 'Gunakan formulir ini untuk mengubah nama, email, atau foto profilmu.',
   },
@@ -249,6 +257,10 @@ export const profileTeacherSteps: Step[] = [
     target: 'body',
     placement: 'center',
     content: 'Halaman Profil Guru. Anda dapat memperbarui informasi pribadi dan mengubah foto profil di sini.',
+  },
+  {
+    target: '#tour-teacher-profile-stats',
+    content: 'Di sini Anda dapat melihat ringkasan statistik mengajar secara real-time, seperti kelas aktif dan total siswa.',
   },
   {
     target: '#tour-teacher-profile-edit',

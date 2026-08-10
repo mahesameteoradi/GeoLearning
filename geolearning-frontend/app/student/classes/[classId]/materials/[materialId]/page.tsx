@@ -217,13 +217,21 @@ export default function MaterialReaderPage() {
                 <div className="bg-slate-900/5 rounded-2xl overflow-hidden relative w-full flex items-center justify-center min-h-[250px]">
                   {(() => {
                     const url = material.content_url;
-                    const isRawVideo = url.match(/\.(mp4|webm|ogg)$/i);
-                    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
                     
                     let embedUrl = url;
+                    if (!embedUrl.startsWith('http://') && !embedUrl.startsWith('https://')) {
+                      embedUrl = 'https://' + embedUrl;
+                    }
+
+                    const isRawVideo = embedUrl.match(/\.(mp4|webm|ogg)$/i);
+                    const isYouTube = embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be');
+                    
                     if (isYouTube) {
-                      const videoId = url.includes('v=') ? new URL(url).searchParams.get('v') : url.split('youtu.be/')[1]?.split('?')[0];
+                      const videoId = embedUrl.includes('v=') ? new URL(embedUrl).searchParams.get('v') : embedUrl.split('youtu.be/')[1]?.split('?')[0];
                       if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0`;
+                    } else if (embedUrl.includes('drive.google.com/file/d/')) {
+                      const fileId = embedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
+                      if (fileId) embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
                     }
 
                     if (isRawVideo) {

@@ -1,30 +1,30 @@
 /**
  * Level & XP Utilities — GeoLearning Frontend
  *
+ * Formula: level = floor(sqrt(xp / 25)) + 1
  *
- * Formula: level = floor((sqrt(81 + 0.4 * xp) - 9) / 2)
- *
- * XP checkpoints (Kebutuhan XP meningkat 20 setiap level):
- *   Level 0  →    0 XP (Butuh 100 XP ke Lv.1)
- *   Level 1  →  100 XP (Butuh 120 XP ke Lv.2)
- *   Level 2  →  220 XP (Butuh 140 XP ke Lv.3)
- *   Level 3  →  360 XP
- *   Level 10 → 1900 XP
+ * XP checkpoints (Lebih Cepat / Mudah):
+ *   Level 1  →    0 XP
+ *   Level 2  →   25 XP  (needs 25 more)
+ *   Level 3  →  100 XP  (needs 75 more)
+ *   Level 5  →  400 XP  (needs 300 more)
+ *   Level 10 → 2025 XP  (needs 1625 more)
+ *   Level 20 → 9025 XP
  */
 
 export const MAX_LEVEL = 100
 
 /** Calculates the level for a given XP amount (1 – MAX_LEVEL). */
 export function calculateLevel(xp: number): number {
-  if (xp < 0) return 0
-  const level = Math.floor((Math.sqrt(81 + 0.4 * xp) - 9) / 2)
+  if (xp < 0) return 1
+  const level = Math.floor(Math.sqrt(xp / 25)) + 1
   return Math.min(level, MAX_LEVEL)
 }
 
 /** Total XP required to reach a given level. */
 export function xpForLevel(level: number): number {
-  if (level <= 0) return 0
-  return 10 * level * level + 90 * level
+  if (level <= 1) return 0
+  return Math.pow(level - 1, 2) * 25
 }
 
 /** XP still needed to reach the next level. */
