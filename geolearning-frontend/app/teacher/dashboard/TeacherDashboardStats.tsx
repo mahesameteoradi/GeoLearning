@@ -83,8 +83,9 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
                 }, 0)
                 classAvgXp = Math.round(totalClassXp / studentCount)
               }
+              const moduleCount = Array.isArray(cls.modules) ? cls.modules.length : 0;
               return (
-                <ClassCard key={cls.id} id={cls.id} name={cls.name} description={cls.description} joinCode={cls.join_code} flashcards={cls.flashcards} studentCount={studentCount} moduleCount={(cls.modules as { id: string }[]).length} avgXp={classAvgXp} gamificationMode={cls.gamification_mode} />
+                <ClassCard key={cls.id} id={cls.id} name={cls.name} description={cls.description} joinCode={cls.join_code} flashcards={cls.flashcards} studentCount={studentCount} moduleCount={moduleCount} avgXp={classAvgXp} gamificationMode={cls.gamification_mode} />
               )
             })}
           </div>

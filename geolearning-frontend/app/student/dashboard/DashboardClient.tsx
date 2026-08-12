@@ -12,7 +12,7 @@ import { BadgeGrid } from '@/components/ui/BadgeGrid'
 // import { StatsCard } from '@/components/student/StatsCard'
 import { ActivityFeed } from '@/components/student/ActivityFeed'
 import { LeaderboardWidget } from '@/components/student/LeaderboardWidget'
-import { FlashcardWidget } from './FlashcardWidget'
+// import { FlashcardWidget } from './FlashcardWidget'
 import { calculateLevel, xpForLevel } from '@/lib/utils/level'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { dashboardStudentSteps } from '@/lib/utils/tourSteps'
@@ -182,9 +182,9 @@ export function DashboardClient() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [availableClasses, setAvailableClasses] = useState<AvailableClassItem[]>([])
   const [availableLoading, setAvailableLoading] = useState(true)
-  const [enrolledFlashcards, setEnrolledFlashcards] = useState<{question:string, answer:string}[]>([])
+  const [enrolledFlashcards, setEnrolledFlashcards] = useState<{ question: string, answer: string }[]>([])
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
-  const [interventions, setInterventions] = useState<{id: string, note: string, type: string, teacher: string, created_at: string}[]>([])
+  const [interventions, setInterventions] = useState<{ id: string, note: string, type: string, teacher: string, created_at: string }[]>([])
   const [xpBreakdown, setXpBreakdown] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -261,20 +261,20 @@ export function DashboardClient() {
             .eq('user_id', user.id)
             .order('submitted_at', { ascending: false })
             .limit(5),
-            
+
           // Fetch ALL quiz attempts for exact XP
           supabase
             .from('quiz_attempts')
             .select('xp_earned, quiz_id')
             .eq('user_id', user.id)
             .not('completed_at', 'is', null),
-            
+
           // Fetch ALL material completions for exact XP (assume 15 XP each)
           supabase
             .from('material_completions')
             .select('id')
             .eq('user_id', user.id),
-            
+
           // Fetch ALL project submissions for exact XP
           supabase
             .from('project_submissions')
@@ -344,7 +344,7 @@ export function DashboardClient() {
         }))
 
         let allAttempts = [...quizItems, ...materialItems, ...projectItems]
-        
+
         allAttempts = allAttempts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
         setAttempts(allAttempts.slice(0, 15))
@@ -363,22 +363,22 @@ export function DashboardClient() {
         setNotifications(notifItems)
 
         // Calculate exact XP Breakdown from source tables
-        const allQuizAttempts = allQuizAttemptsRes.data || [] 
+        const allQuizAttempts = allQuizAttemptsRes.data || []
         const allMaterialCompletions = allMaterialCompletionsRes.data || []
         const allProjectSubmissions = allProjectSubmissionsRes.data || []
-        
+
         // Only count the best score per quiz for quizXp
         const bestQuizXp = new Map<string, number>()
         allQuizAttempts.forEach((q: any) => {
           if (q.quiz_id) {
-             const currentBest = bestQuizXp.get(q.quiz_id) || 0
-             if ((q.xp_earned || 0) > currentBest) {
-               bestQuizXp.set(q.quiz_id, q.xp_earned || 0)
-             }
+            const currentBest = bestQuizXp.get(q.quiz_id) || 0
+            if ((q.xp_earned || 0) > currentBest) {
+              bestQuizXp.set(q.quiz_id, q.xp_earned || 0)
+            }
           }
         })
         const quizXp = Array.from(bestQuizXp.values()).reduce((sum, xp) => sum + xp, 0)
-        
+
         const materialXp = allMaterialCompletions.length * 15
         const projectXp = allProjectSubmissions.reduce((sum: number, p: any) => sum + (p.xp_earned || 0), 0)
 
@@ -410,7 +410,7 @@ export function DashboardClient() {
 
         // Fetch available classes (not yet enrolled)
         const enrolledIds = (enrolledRes.data ?? []).map((r) => r.class_id)
-        
+
         // --- Leaderboard logic ---
         let leaderboardData: LeaderboardEntry[] = []
         if (enrolledIds.length > 0) {
@@ -418,9 +418,9 @@ export function DashboardClient() {
             .from('class_students')
             .select('student_id')
             .in('class_id', enrolledIds)
-            
+
           const classmateIds = Array.from(new Set((classMatesRes ?? []).map(c => c.student_id)))
-          
+
           if (classmateIds.length > 0) {
             const { data: topStudents } = await supabase
               .from('users')
@@ -429,14 +429,14 @@ export function DashboardClient() {
               .in('id', classmateIds)
               .order('xp', { ascending: false })
               .limit(5)
-              
+
             leaderboardData = topStudents ?? []
           }
         }
         setLeaderboard(leaderboardData)
-        
+
         // Extract flashcards from enrolled classes
-        const customCards: {question:string, answer:string}[] = []
+        const customCards: { question: string, answer: string }[] = []
         for (const item of (enrolledRes.data ?? [])) {
           const cls = Array.isArray(item.class) ? item.class[0] : item.class
           if (cls && Array.isArray(cls.flashcards)) {
@@ -565,7 +565,7 @@ export function DashboardClient() {
   return (
     <div className="min-h-full p-3 md:p-5 lg:p-7 relative overflow-x-hidden">
       <OnboardingTour tourKey="dashboard_student" steps={dashboardStudentSteps} />
-      
+
       {/* Interactive Cursor Glow is handled by InteractiveBackground component in the layout/page now, so it is removed from here to prevent duplication */}
 
       {/* ─── Hero Header ─────────────────────────────────────────────────── */}
@@ -573,10 +573,10 @@ export function DashboardClient() {
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        
+
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
           <div className="flex-shrink-0 transition-transform duration-500 hover:scale-105 hover:rotate-3 drop-shadow-xl">
-             <AvatarDisplay
+            <AvatarDisplay
               avatarUrl={profile.avatar_url}
               name={profile.name}
               xp={profile.xp}
@@ -610,10 +610,10 @@ export function DashboardClient() {
       {/* ─── Stats Row ───────────────────────────────────────────────────── */}
       <div id="tour-student-stats" className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { label: 'Total XP',    value: profile.xp.toLocaleString(),   icon: Zap,          color: 'text-amber-500',   bg: 'bg-amber-50',   border: 'border-amber-100',   gradient: 'from-amber-500/5 to-transparent',   subtitle: 'Keep going!' },
-          { label: 'Level',       value: level,                         icon: Trophy,       color: 'text-indigo-600',  bg: 'bg-indigo-50',  border: 'border-indigo-100',  gradient: 'from-indigo-500/5 to-transparent',  subtitle: `Max: ${xpForLevel(level + 1).toLocaleString()} XP` },
-          { label: 'Streak',      value: `${profile.current_streak}d`,  icon: Flame,        color: 'text-orange-500',  bg: 'bg-orange-50',  border: 'border-orange-100',  gradient: 'from-orange-500/5 to-transparent',  subtitle: `Best: ${profile.longest_streak}d` },
-          { label: 'Kuis Selesai',value: attempts.length,               icon: CheckCircle,  color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', gradient: 'from-emerald-500/5 to-transparent', subtitle: 'Great work!' },
+          { label: 'Total XP', value: profile.xp.toLocaleString(), icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent', subtitle: 'Keep going!' },
+          { label: 'Level', value: level, icon: Trophy, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent', subtitle: `Max: ${xpForLevel(level + 1).toLocaleString()} XP` },
+          { label: 'Streak', value: `${profile.current_streak}d`, icon: Flame, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100', gradient: 'from-orange-500/5 to-transparent', subtitle: `Best: ${profile.longest_streak}d` },
+          { label: 'Kuis Selesai', value: attempts.length, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', gradient: 'from-emerald-500/5 to-transparent', subtitle: 'Great work!' },
         ].map(({ label, value, icon: Icon, color, bg, border, gradient, subtitle }) => (
           <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
@@ -635,9 +635,9 @@ export function DashboardClient() {
       <div className="grid gap-5 xl:grid-cols-3">
         {/* Left — flashcards + badges + activity */}
         <div className="space-y-5 xl:col-span-2">
-          <section id="tour-student-flashcard">
+          {/* <section id="tour-student-flashcard">
             <FlashcardWidget userId={profile.id} customFlashcards={enrolledFlashcards} />
-          </section>
+          </section> */}
 
           <section id="tour-student-badges">
             <div className="mb-2.5 flex items-center justify-between">
@@ -660,16 +660,16 @@ export function DashboardClient() {
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
               <div className="grid gap-4 grid-cols-3">
                 <div className="flex flex-col gap-1 rounded-xl bg-amber-50 p-3">
-                   <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
-                   <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
+                  <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
+                  <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
                 </div>
                 <div className="flex flex-col gap-1 rounded-xl bg-indigo-50 p-3">
-                   <span className="text-xs font-semibold text-indigo-700">Dari Materi</span>
-                   <span className="text-xl font-black text-indigo-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
+                  <span className="text-xs font-semibold text-indigo-700">Dari Materi</span>
+                  <span className="text-xl font-black text-indigo-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
                 </div>
                 <div className="flex flex-col gap-1 rounded-xl bg-emerald-50 p-3">
-                   <span className="text-xs font-semibold text-emerald-700">Dari Proyek</span>
-                   <span className="text-xl font-black text-emerald-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
+                  <span className="text-xs font-semibold text-emerald-700">Dari Proyek</span>
+                  <span className="text-xl font-black text-emerald-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
                 </div>
               </div>
             </div>
@@ -688,38 +688,38 @@ export function DashboardClient() {
           <div id="tour-student-leaderboard">
             <LeaderboardWidget entries={leaderboard} currentUserId={profile.id} />
           </div>
-          
+
           {/* Interventions (Catatan Guru) */}
           <div id="tour-student-interventions" className="rounded-2xl border border-slate-200 bg-white p-4">
-             <div className="flex items-center justify-between mb-4">
-               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
-                 💬 Pesan Guru
-               </h2>
-             </div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                💬 Pesan Guru
+              </h2>
+            </div>
 
-             {interventions.length > 0 ? (
-               <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-                 {interventions.map((intv) => (
-                   <div key={intv.id} className="rounded-xl bg-orange-50 p-3 border border-orange-100">
-                     <div className="flex justify-between items-start mb-1.5">
-                       <p className="text-[11px] font-bold text-slate-700">
-                         {intv.teacher}
-                       </p>
-                       <span className="text-[9px] text-slate-500 font-medium bg-white px-2 py-0.5 rounded-full border border-slate-200">
-                         {new Date(intv.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                       </span>
-                     </div>
-                     <p className="text-[12px] text-slate-600 leading-relaxed italic">
-                       "{intv.note}"
-                     </p>
-                   </div>
-                 ))}
-               </div>
-             ) : (
-               <div className="text-[12px] text-slate-500 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                 Belum ada catatan atau teguran dari guru Anda.
-               </div>
-             )}
+            {interventions.length > 0 ? (
+              <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                {interventions.map((intv) => (
+                  <div key={intv.id} className="rounded-xl bg-orange-50 p-3 border border-orange-100">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <p className="text-[11px] font-bold text-slate-700">
+                        {intv.teacher}
+                      </p>
+                      <span className="text-[9px] text-slate-500 font-medium bg-white px-2 py-0.5 rounded-full border border-slate-200">
+                        {new Date(intv.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-slate-600 leading-relaxed italic">
+                      "{intv.note}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-[12px] text-slate-500 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                Belum ada catatan atau teguran dari guru Anda.
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -11,6 +11,12 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClassesService } from './classes.service';
+import {
+  AddStudentDto,
+  UpdateStudentDto,
+  BulkRemoveStudentsDto,
+  UnlockModuleDto,
+} from './dto/classes.dto';
 
 @Controller('kelas')
 export class ClassesController {
@@ -31,14 +37,7 @@ export class ClassesController {
   @Post(':classId/students')
   async addStudent(
     @Param('classId') classId: string,
-    @Body()
-    body: {
-      name: string;
-      email: string;
-      nis_nip?: string;
-      no_absen?: number;
-      password?: string;
-    },
+    @Body() body: AddStudentDto,
   ) {
     return this.classesService.addStudent(classId, body);
   }
@@ -47,14 +46,7 @@ export class ClassesController {
   async updateStudent(
     @Param('classId') classId: string,
     @Param('classStudentId') classStudentId: string,
-    @Body()
-    body: {
-      no_absen?: number;
-      nis_nip?: string;
-      name?: string;
-      email?: string;
-      password?: string;
-    },
+    @Body() body: UpdateStudentDto,
   ) {
     return this.classesService.updateStudent(classId, classStudentId, body);
   }
@@ -70,11 +62,8 @@ export class ClassesController {
   @Post(':classId/students/bulk-delete')
   async bulkRemoveStudents(
     @Param('classId') classId: string,
-    @Body() body: { studentIds: string[] },
+    @Body() body: BulkRemoveStudentsDto,
   ) {
-    if (!body.studentIds || !Array.isArray(body.studentIds)) {
-      throw new BadRequestException('studentIds must be an array');
-    }
     return this.classesService.bulkRemoveStudents(classId, body.studentIds);
   }
 
@@ -82,11 +71,8 @@ export class ClassesController {
   async unlockModule(
     @Param('classId') classId: string,
     @Param('studentId') studentId: string,
-    @Body() body: { module_id: string; note: string; teacher_id: string },
+    @Body() body: UnlockModuleDto,
   ) {
-    if (!body.module_id || !body.teacher_id) {
-      throw new BadRequestException('module_id and teacher_id are required');
-    }
     return this.classesService.unlockModule(
       classId,
       studentId,

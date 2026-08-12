@@ -399,7 +399,7 @@ export class ClassesService {
     studentId: string,
     moduleId: string,
     teacherId: string,
-    note: string,
+    note?: string,
   ) {
     // Check if the student is in the class
     const classStudent = await this.prisma.classStudent.findFirst({

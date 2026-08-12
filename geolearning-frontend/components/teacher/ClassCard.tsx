@@ -65,16 +65,16 @@ export function ClassCard({
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    
+
     // Filter out empty cards
     const validCards = cards.filter(c => c.question.trim() || c.answer.trim())
-    
+
     const supabase = createClient()
     const { error } = await supabase
       .from('classes')
       .update({ flashcards: validCards })
       .eq('id', id)
-      
+
     if (error) {
       toast.error('Gagal menyimpan reminder flashcard')
       console.error(error)
@@ -84,7 +84,7 @@ export function ClassCard({
       setCards(validCards)
       setIsEditing(false)
     }
-    
+
     setIsSaving(false)
   }
 
@@ -119,15 +119,15 @@ export function ClassCard({
       </div>
 
       {/* Reminder Section */}
-      <div className="mb-4 relative z-10">
+      {/* <div className="mb-4 relative z-10">
         {!isEditing ? (
           <div className="rounded-lg bg-amber-50/50 p-3 border border-amber-100/50 transition-colors hover:bg-amber-50 hover:border-amber-200">
             <div className="flex items-center justify-between mb-1.5">
               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                 <BellRing className="w-3 h-3" /> Reminder Materi
               </p>
-              <button 
-                onClick={(e) => { e.preventDefault(); setIsEditing(true) }} 
+              <button
+                onClick={(e) => { e.preventDefault(); setIsEditing(true) }}
                 className="text-amber-600/50 hover:text-amber-700 transition-colors"
                 title="Edit Reminder"
               >
@@ -154,27 +154,27 @@ export function ClassCard({
             <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700 mb-3 flex items-center justify-between gap-1.5">
               <span className="flex items-center gap-1.5"><Edit2 className="w-3 h-3" /> Edit Flashcards</span>
             </p>
-            
+
             <div className="space-y-3 mb-3">
               {cards.map((card, idx) => (
                 <div key={idx} className="relative rounded-md border border-slate-100 bg-slate-50 p-2">
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] font-semibold text-slate-500">Kartu {idx + 1}</span>
-                    <button 
+                    <button
                       onClick={(e) => handleRemoveCard(e, idx)}
                       className="text-slate-400 hover:text-red-500"
                     >
                       <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                  <input 
+                  <input
                     type="text"
                     value={card.question}
                     onChange={(e) => handleUpdateCard(idx, 'question', e.target.value)}
                     className="w-full text-xs p-1.5 mb-1.5 rounded border border-slate-200 bg-white focus:border-blue-500 focus:outline-none"
                     placeholder="Materi / Pertanyaan..."
                   />
-                  <input 
+                  <input
                     type="text"
                     value={card.answer}
                     onChange={(e) => handleUpdateCard(idx, 'answer', e.target.value)}
@@ -185,7 +185,7 @@ export function ClassCard({
               ))}
             </div>
 
-            <button 
+            <button
               onClick={handleAddCard}
               className="w-full mb-3 flex items-center justify-center gap-1 text-[10px] py-1.5 rounded border border-dashed border-slate-300 text-slate-500 hover:border-blue-300 hover:text-blue-600 transition-colors"
             >
@@ -193,14 +193,14 @@ export function ClassCard({
             </button>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-              <button 
-                onClick={handleCancel} 
+              <button
+                onClick={handleCancel}
                 className="text-[10px] px-3 py-1.5 rounded-md text-slate-600 hover:bg-slate-100 font-semibold transition-colors"
               >
                 Batal
               </button>
-              <button 
-                onClick={handleSave} 
+              <button
+                onClick={handleSave}
                 disabled={isSaving}
                 className="text-[10px] px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 font-semibold disabled:opacity-50 transition-colors"
               >
@@ -209,7 +209,7 @@ export function ClassCard({
             </div>
           </div>
         )}
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-3 gap-3 relative z-10">
         <div className="flex flex-col items-center rounded-xl bg-white/60 py-3 shadow-sm border border-slate-100">
