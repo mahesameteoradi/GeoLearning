@@ -175,21 +175,36 @@ function getGreeting() {
 
 // ─── Main Client Component ────────────────────────────────────────────────────
 
-export function DashboardClient() {
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [attempts, setAttempts] = useState<AttemptItem[]>([])
-  const [notifications, setNotifications] = useState<NotifItem[]>([])
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [availableClasses, setAvailableClasses] = useState<AvailableClassItem[]>([])
-  const [availableLoading, setAvailableLoading] = useState(true)
-  const [enrolledFlashcards, setEnrolledFlashcards] = useState<{ question: string, answer: string }[]>([])
+interface DashboardClientProps {
+  initialData?: {
+    profile: Profile
+    attempts: AttemptItem[]
+    notifications: NotifItem[]
+    leaderboard: LeaderboardEntry[]
+    availableClasses: AvailableClassItem[]
+    interventions: { id: string, note: string, type: string, teacher: string, created_at: string }[]
+    xpBreakdown: Record<string, number>
+  }
+  initialError?: string
+}
+
+export function DashboardClient({ initialData, initialError }: DashboardClientProps = {}) {
+  const [profile, setProfile] = useState<Profile | null>(initialData?.profile ?? null)
+  const [attempts, setAttempts] = useState<AttemptItem[]>(initialData?.attempts ?? [])
+  const [notifications, setNotifications] = useState<NotifItem[]>(initialData?.notifications ?? [])
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(initialData?.leaderboard ?? [])
+  const [availableClasses, setAvailableClasses] = useState<AvailableClassItem[]>(initialData?.availableClasses ?? [])
+  const [availableLoading, setAvailableLoading] = useState(!initialData)
   const [enrollingId, setEnrollingId] = useState<string | null>(null)
-  const [interventions, setInterventions] = useState<{ id: string, note: string, type: string, teacher: string, created_at: string }[]>([])
-  const [xpBreakdown, setXpBreakdown] = useState<Record<string, number>>({})
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [interventions, setInterventions] = useState<{ id: string, note: string, type: string, teacher: string, created_at: string }[]>(initialData?.interventions ?? [])
+  const [xpBreakdown, setXpBreakdown] = useState<Record<string, number>>(initialData?.xpBreakdown ?? {})
+  const [loading, setLoading] = useState(!initialData)
+  const [error, setError] = useState<string | null>(initialError ?? null)
 
   useEffect(() => {
+    // If we have initialData from SSR, skip client-side fetch entirely!
+    if (initialData || initialError) return;
+
     const supabase = createClient()
 
     async function fetchAll() {
@@ -230,12 +245,10 @@ export function DashboardClient() {
             .order('created_at', { ascending: false })
             .limit(5),
 
-          // Fetch enrolled class IDs to exclude from available list and get their flashcards
           supabase
             .from('class_students')
             .select(`
-              class_id,
-              class:classes(flashcards)
+              class_id
             `)
             .eq('student_id', user.id),
 
@@ -435,15 +448,7 @@ export function DashboardClient() {
         }
         setLeaderboard(leaderboardData)
 
-        // Extract flashcards from enrolled classes
-        const customCards: { question: string, answer: string }[] = []
-        for (const item of (enrolledRes.data ?? [])) {
-          const cls = Array.isArray(item.class) ? item.class[0] : item.class
-          if (cls && Array.isArray(cls.flashcards)) {
-            customCards.push(...cls.flashcards)
-          }
-        }
-        setEnrolledFlashcards(customCards)
+
 
         const allClassesRes = await supabase
           .from('classes')
@@ -635,9 +640,7 @@ export function DashboardClient() {
       <div className="grid gap-5 xl:grid-cols-3">
         {/* Left — flashcards + badges + activity */}
         <div className="space-y-5 xl:col-span-2">
-          {/* <section id="tour-student-flashcard">
-            <FlashcardWidget userId={profile.id} customFlashcards={enrolledFlashcards} />
-          </section> */}
+
 
           <section id="tour-student-badges">
             <div className="mb-2.5 flex items-center justify-between">

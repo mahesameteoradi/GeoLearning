@@ -11,7 +11,7 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
   const { data: classes } = await supabase
     .from('classes')
     .select(`
-      id, name, description, join_code, flashcards, gamification_mode,
+      id, name, description, join_code, gamification_mode,
       modules(id),
       class_students(
         student:users!class_students_student_id_fkey(id, name, email, xp, current_streak, avatar_url)
@@ -85,7 +85,7 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
               }
               const moduleCount = Array.isArray(cls.modules) ? cls.modules.length : 0;
               return (
-                <ClassCard key={cls.id} id={cls.id} name={cls.name} description={cls.description} joinCode={cls.join_code} flashcards={cls.flashcards} studentCount={studentCount} moduleCount={moduleCount} avgXp={classAvgXp} gamificationMode={cls.gamification_mode} />
+                <ClassCard key={cls.id} id={cls.id} name={cls.name} description={cls.description} joinCode={cls.join_code} studentCount={studentCount} moduleCount={moduleCount} avgXp={classAvgXp} gamificationMode={cls.gamification_mode} />
               )
             })}
           </div>

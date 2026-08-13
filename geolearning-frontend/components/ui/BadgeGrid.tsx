@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils/cn'
 import { 
   Target, Star, Flame, Shield, Library, Zap, 
   Settings, Trophy, Rocket, Globe, Crown, 
-  Leaf, Medal, Award
+  Leaf, Medal, Award, Lock
 } from 'lucide-react'
 
 interface BadgeData {
@@ -152,7 +152,7 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
         return (
           <div
             key={badge.id}
-            title={isEarned ? `${badge.display_name}: ${badge.description}` : 'Belum diraih'}
+            title={isEarned ? `${badge.display_name}: ${badge.description}` : `Terkunci — ${badge.display_name}: Syarat: ${badge.description}`}
             className={cn(
               'group relative flex flex-col items-center gap-2 transition-all duration-300',
               isEarned ? 'cursor-pointer hover:scale-110 hover:-translate-y-1 hover:z-10' : 'cursor-default'
@@ -171,13 +171,21 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
             )}
 
             {/* Badge container shape */}
-            <BadgeShieldContainer 
-              isEarned={isEarned} 
-              hoverGlow={isEarned}
-              className={compact ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'}
-            >
-              <BadgeIcon id={badge.id} />
-            </BadgeShieldContainer>
+            <div className="relative">
+              <BadgeShieldContainer 
+                isEarned={isEarned} 
+                hoverGlow={isEarned}
+                className={compact ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'}
+              >
+                <BadgeIcon id={badge.id} />
+              </BadgeShieldContainer>
+              
+              {!isEarned && (
+                <div className="absolute -bottom-1 -right-1 z-30 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-slate-700 shadow-sm border border-slate-600">
+                  <Lock className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-slate-300" />
+                </div>
+              )}
+            </div>
 
             {!compact && (
               <div className="flex flex-col items-center mt-1 w-full px-1">

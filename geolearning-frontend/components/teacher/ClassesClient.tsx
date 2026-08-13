@@ -18,7 +18,7 @@ interface ClassItem {
   description: string | null
   gamification_mode?: string
   join_code: string
-  flashcards?: any
+
   moduleCount: number
   studentCount: number
 }

@@ -14,10 +14,7 @@ export const dashboardStudentSteps: Step[] = [
     target: '#tour-student-stats',
     content: 'Ini adalah ringkasan prestasimu. Kamu bisa melihat jumlah kuis yang diselesaikan dan rekor beruntun (streak) belajarmu.',
   },
-  {
-    target: '#tour-student-flashcard',
-    content: 'Gunakan fitur Flashcard ini untuk melatih ingatanmu tentang materi geografi secara cepat dan menyenangkan.',
-  },
+
   {
     target: '#tour-student-badges',
     content: 'Kumpulkan lencana (badges) dari setiap pencapaian. Lencana yang paling keren bisa kamu lengkapi agar terlihat oleh teman-teman!',

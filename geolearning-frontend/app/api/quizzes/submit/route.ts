@@ -3,24 +3,60 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
   try {
-    const { attemptId, userId, score, xpEarned, finalAnswers, accessToken } = await req.json()
+    const { attemptId, userId, finalAnswers, accessToken } = await req.json()
 
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // First, fetch the current attempt to get the quiz_id
+    // Fetch the current attempt and its quiz details
     const { data: currentAttempt, error: fetchError } = await supabase
       .from('quiz_attempts')
-      .select('quiz_id')
+      .select('quiz_id, quiz:quizzes(xp_reward, questions(*))')
       .eq('id', attemptId)
       .single()
       
-    if (fetchError || !currentAttempt) {
-      return NextResponse.json({ success: false, error: 'Attempt not found' }, { status: 404 })
+    if (fetchError || !currentAttempt || !currentAttempt.quiz) {
+      return NextResponse.json({ success: false, error: 'Attempt or Quiz not found' }, { status: 404 })
     }
     
+    // Server-side Score and XP Calculation
+    let correct = 0
+    let totalXp = 0
+    let maxTotalPoints = 0
+    
+    const quizData = Array.isArray(currentAttempt.quiz) ? currentAttempt.quiz[0] : currentAttempt.quiz;
+    const questions = quizData.questions || []
+    
+    const defaultPointsPerQuestion = questions.length > 0 && quizData.xp_reward 
+      ? Math.max(1, Math.round(quizData.xp_reward / questions.length))
+      : 100
+
+    for (const q of questions) {
+      const qPoints = q.points ?? defaultPointsPerQuestion
+      maxTotalPoints += qPoints
+
+      if (q.type === 'MAP_PINPOINT') {
+        try {
+          const answerObj = JSON.parse(finalAnswers[q.id] || '{}')
+          if (answerObj.score > 0) {
+            correct++
+            totalXp += (answerObj.score || 0)
+          }
+        } catch (e) {}
+      } else {
+        if (finalAnswers[q.id] === q.correct_answer) {
+          correct++
+          totalXp += qPoints
+        }
+      }
+    }
+    
+    const rawScore = maxTotalPoints > 0 ? (totalXp / maxTotalPoints) * 100 : 0
+    const serverScore = Math.round(rawScore)
+    const serverXpEarned = Math.round(totalXp)
+
     // Find previous max XP for this quiz by this user
     const { data: previousAttempts } = await supabase
       .from('quiz_attempts')
@@ -36,14 +72,14 @@ export async function POST(req: Request) {
     }
 
     // Calculate how much NEW xp should be awarded
-    const newXpToAward = Math.max(0, xpEarned - maxPreviousXp)
+    const newXpToAward = Math.max(0, serverXpEarned - maxPreviousXp)
 
     // Update the attempt record
     const { error: updateError } = await supabase
       .from('quiz_attempts')
       .update({
-        score,
-        xp_earned: xpEarned,
+        score: serverScore,
+        xp_earned: serverXpEarned,
         answers: finalAnswers,
         completed_at: new Date().toISOString(),
       })
@@ -64,7 +100,8 @@ export async function POST(req: Request) {
           .eq('user_id', userId)
           .not('completed_at', 'is', null)
 
-        await fetch(process.env.NEXT_PUBLIC_API_URL + '/gamification/award-xp', {
+        // Asynchronous fire-and-forget: do not await the fetch so we don't block the quiz submission response
+        fetch(process.env.NEXT_PUBLIC_API_URL + '/gamification/award-xp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -74,12 +111,12 @@ export async function POST(req: Request) {
             userId,
             xpAmount: newXpToAward,
             quizAttemptId: attemptId,
-            quizScore: score,
+            quizScore: serverScore,
             isFirstQuiz: count === 1
           })
-        })
+        }).catch(err => console.error('Failed to trigger gamification (async):', err))
       } catch (err) {
-        console.error('Failed to trigger gamification:', err)
+        console.error('Failed to query quiz count for gamification:', err)
       }
     }
 

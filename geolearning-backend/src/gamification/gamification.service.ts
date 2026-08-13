@@ -115,7 +115,7 @@ export class GamificationService {
       this.prisma.user.update({
         where: { id: userId },
         data: {
-          xp: newXp,
+          xp: { increment: xpAmount },
           level: newLevel,
           current_streak: streakResult.currentStreak,
           longest_streak: streakResult.longestStreak,
@@ -140,13 +140,19 @@ export class GamificationService {
 
     // ── 4. Check & award badges ─────────────────────────────────────────────
     const existingBadgeIds = user.badges.map((b) => b.badge_id);
+    // Check if user is in Top 10 by counting users with more XP
+    const higherXpCount = await this.prisma.user.count({
+      where: { xp: { gt: newXp } }
+    });
+    const isTopTen = higherXpCount < 10;
+
     const badgeContext: BadgeContext = {
       xp: newXp,
       level: newLevel,
       currentStreak: streakResult.currentStreak,
       quizScore: context.quizScore,
       isFirstQuiz: context.isFirstQuiz,
-      isTopTen: context.isTopTen,
+      isTopTen,
     };
 
     const newBadges = await this.checkAndAwardBadges(
@@ -445,7 +451,10 @@ export class GamificationService {
     try {
       const topTen = await this.prisma.user.findMany({
         take: 10,
-        orderBy: { xp: 'desc' },
+        orderBy: [
+          { xp: 'desc' },
+          { updated_at: 'asc' }
+        ],
         select: {
           id: true,
           name: true,

@@ -7,9 +7,9 @@ export default function CTASection() {
   return (
     <section className="relative py-28 overflow-hidden">
       {/* Dynamic Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 -z-20" />
-      <div className="absolute top-0 left-0 w-full h-full bg-[url('/grid.svg')] opacity-20 -z-10" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/30 rounded-full blur-[100px] -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900" />
+
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/30 rounded-full blur-[100px]" />
 
       <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
         <motion.div

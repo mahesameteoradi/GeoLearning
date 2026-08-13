@@ -5,7 +5,7 @@ import Hero from '@/components/landing/Hero'
 import FiturSection from '@/components/landing/FiturSection'
 import CaraKerjaSection from '@/components/landing/CaraKerjaSection'
 import UntukGuruSection from '@/components/landing/UntukGuruSection'
-import StatistikSection from '@/components/landing/StatistikSection'
+
 import CTASection from '@/components/landing/CTASection'
 import Footer from '@/components/landing/Footer'
 import WelcomeScreen from '@/components/landing/WelcomeScreen'
@@ -44,7 +44,7 @@ export default async function LandingPage() {
         <FiturSection />
         <CaraKerjaSection />
         <UntukGuruSection />
-        <StatistikSection />
+
         <CTASection />
       </main>
       <Footer />

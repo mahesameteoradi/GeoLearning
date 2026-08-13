@@ -24,7 +24,7 @@ export default async function TeacherClassesPage() {
   const { data: rawClasses } = await supabase
     .from('classes')
     .select(`
-      id, name, description, join_code, flashcards, gamification_mode,
+      id, name, description, join_code, gamification_mode,
       modules(id),
       class_students(student_id)
     `)
@@ -46,7 +46,7 @@ export default async function TeacherClassesPage() {
     description: cls.description,
     join_code: cls.join_code,
     gamification_mode: cls.gamification_mode,
-    flashcards: cls.flashcards,
+
     moduleCount: (cls.modules as { id: string }[]).length,
     studentCount: (cls.class_students as { student_id: string }[]).length,
   }))

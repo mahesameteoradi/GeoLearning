@@ -72,9 +72,30 @@ export function QuizLiveMonitorModal({ quiz, onClose }: QuizLiveMonitorModalProp
         schema: 'public',
         table: 'quiz_attempts',
         filter: `quiz_id=eq.${quiz.id}`,
-      }, () => {
-        // Reload data to get the latest progress
-        loadAttempts()
+      }, (payload) => {
+        if (payload.eventType === 'UPDATE') {
+          // Hanya update state lokal untuk event UPDATE, tidak perlu SELECT ulang (mencegah spam)
+          setAttempts(prev => {
+            const newRow = payload.new as any;
+            const answersObj = newRow.answers as Record<string, any> | null;
+            const answersCount = answersObj ? Object.keys(answersObj).length : 0;
+            
+            return prev.map(attempt => {
+              if (attempt.id === newRow.id) {
+                return {
+                  ...attempt,
+                  answers_count: answersCount,
+                  is_completed: !!newRow.completed_at,
+                  score: newRow.score ?? attempt.score,
+                };
+              }
+              return attempt;
+            });
+          });
+        } else {
+          // Untuk INSERT (siswa baru masuk) atau DELETE, fetch ulang untuk mendapat relasi nama user
+          loadAttempts()
+        }
       })
       .subscribe()
 

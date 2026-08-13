@@ -9,6 +9,7 @@ import { AvatarDisplay } from '@/components/ui/AvatarDisplay'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { profileStudentSteps, profileTeacherSteps } from '@/lib/utils/tourSteps'
 import { levelProgressPercent, getLevelMeaning } from '@/lib/utils/level'
+import { BadgeGrid } from '@/components/ui/BadgeGrid'
 
 interface Badge {
   id: string
@@ -360,32 +361,17 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
               <Trophy className="h-5 w-5 text-yellow-500" /> Pameran Lencana
             </h2>
             
-            {profile.badges && profile.badges.length > 0 ? (
-              <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
-                {profile.badges.map((ub) => (
-                  <div key={ub.id} className="group relative flex flex-col items-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 border border-amber-200 shadow-sm transition-transform group-hover:scale-110 group-hover:shadow-md cursor-help">
-                      <span className="text-3xl drop-shadow-sm">{ub.badge.icon}</span>
-                    </div>
-                    
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full mb-2 hidden w-max max-w-[140px] flex-col items-center group-hover:flex z-10">
-                      <div className="rounded-lg bg-slate-900/95 px-3 py-2 text-center text-xs text-white shadow-xl backdrop-blur-sm border border-slate-700">
-                        <p className="font-bold mb-0.5">{ub.badge.display_name}</p>
-                        <p className="text-slate-300 text-[10px] leading-tight">{ub.badge.description}</p>
-                        <p className="text-slate-400 text-[9px] mt-1.5 border-t border-slate-700 pt-1">Diperoleh: {new Date(ub.earned_at).toLocaleDateString('id-ID')}</p>
-                      </div>
-                      <div className="-mt-1 h-2 w-2 rotate-45 bg-slate-900/95 border-r border-b border-slate-700"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 text-slate-400">
-                <Trophy className="mb-2 h-8 w-8 opacity-20 grayscale" />
-                <p className="text-sm">Belum ada lencana yang diraih</p>
-              </div>
-            )}
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <BadgeGrid 
+                earned={profile.badges.map(ub => ({
+                  id: ub.badge.id,
+                  display_name: ub.badge.display_name,
+                  description: ub.badge.description,
+                  icon: ub.badge.icon,
+                  earned_at: ub.earned_at
+                }))} 
+              />
+            </div>
           </div>
         </div>
       )}
