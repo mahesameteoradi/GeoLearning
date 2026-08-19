@@ -6,6 +6,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class AddStudentDto {
   @IsString()
@@ -19,6 +20,7 @@ export class AddStudentDto {
   nis_nip?: string;
 
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   no_absen?: number;
 
@@ -30,6 +32,7 @@ export class AddStudentDto {
 
 export class UpdateStudentDto {
   @IsOptional()
+  @Type(() => Number)
   @IsNumber()
   no_absen?: number;
 

@@ -179,16 +179,31 @@ export class ClassesService {
           existingUsersByNis.set(nis.toString(), user);
         }
 
+        const parsedNoAbsen =
+          no_absen !== undefined && no_absen !== null && no_absen.toString().trim() !== ''
+            ? parseInt(no_absen.toString().trim(), 10)
+            : null;
+        const validNoAbsen = Number.isNaN(parsedNoAbsen) ? null : parsedNoAbsen;
+
         // Add to class if not already in it
         if (!studentsInClass.has(user.id)) {
           await this.prisma.classStudent.create({
             data: {
               class_id: classId,
               student_id: user.id,
-              no_absen: no_absen ? parseInt(no_absen.toString()) : null,
+              no_absen: validNoAbsen,
             },
           });
           studentsInClass.add(user.id);
+        } else if (validNoAbsen !== null) {
+          await this.prisma.classStudent.update({
+            where: {
+              class_id_student_id: { class_id: classId, student_id: user.id },
+            },
+            data: {
+              no_absen: validNoAbsen,
+            },
+          });
         }
 
         successCount++;
