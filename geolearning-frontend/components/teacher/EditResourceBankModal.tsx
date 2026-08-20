@@ -29,7 +29,8 @@ export function EditResourceBankModal({
       
       const { error } = await supabase.from('teacher_resources').update({
         title: title.trim(),
-        description: description.trim() || null
+        description: description.trim() || null,
+        updated_at: new Date().toISOString()
       }).eq('id', item.id)
 
       if (error) throw new Error(error.message)

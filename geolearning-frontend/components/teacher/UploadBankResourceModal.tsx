@@ -73,7 +73,8 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
         description: description.trim() || null,
         type: finalType,
         file_url: finalUrl,
-        content: null
+        content: null,
+        updated_at: new Date().toISOString()
       })
 
       if (saveErr) throw new Error(saveErr.message)
