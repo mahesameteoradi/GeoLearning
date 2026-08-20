@@ -57,7 +57,7 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
       const { data, error } = await supabase
         .from('quizzes')
         .select(`
-          id, title, time_limit, xp_reward, passing_score,
+          id, title, time_limit, xp_reward, passing_score, quiz_type,
           questions(id)
         `)
         .eq('teacher_id', user.id)
@@ -72,6 +72,7 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
         time_limit: q.time_limit,
         xp_reward: q.xp_reward,
         passing_score: q.passing_score,
+        quiz_type: q.quiz_type,
         question_count: q.questions?.length ?? 0
       })))
     } catch (err) {
@@ -277,7 +278,10 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
                   <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
                     <span className="flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> {quiz.question_count} Soal</span>
                     <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {quiz.time_limit ? `${quiz.time_limit} detik` : '∞'}</span>
-                    <span className="flex items-center gap-1"><Trophy className="h-3.5 w-3.5" /> {quiz.passing_score ?? 0}</span>
+                    <span className="flex items-center gap-1 text-emerald-500"><Trophy className="h-3 w-3" /> {quiz.passing_score} KKM</span>
+                    {quiz.quiz_type === 'SUMATIF' && (
+                      <span className="flex items-center gap-1 text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded text-[10px]">SUMATIF</span>
+                    )}
                   </div>
                   <button
                     onClick={() => handleClone(quiz)}

@@ -66,6 +66,8 @@ interface QuizItem {
   passing_score: number | null
   order: number
   is_published: boolean
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
+  max_attempts?: number
   created_at: string
 }
 
@@ -89,6 +91,8 @@ export interface CourseItem {
   xp_reward?: number
   passing_score?: number | null
   is_published?: boolean
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
+  max_attempts?: number
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -584,7 +588,9 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
       time_limit: q.time_limit,
       xp_reward: q.xp_reward,
       passing_score: q.passing_score,
-      is_published: q.is_published
+      is_published: q.is_published,
+      quiz_type: q.quiz_type,
+      max_attempts: q.max_attempts
     }))
   ]).sort((a, b) => a.order - b.order)
 
@@ -982,7 +988,9 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
             time_limit: editingQuiz.time_limit ?? null,
             xp_reward: editingQuiz.xp_reward ?? 100,
             passing_score: editingQuiz.passing_score ?? null,
-            is_published: editingQuiz.is_published ?? false
+            is_published: editingQuiz.is_published ?? false,
+            quiz_type: editingQuiz.quiz_type,
+            max_attempts: editingQuiz.max_attempts
           } : null}
           onClose={() => setEditingQuiz(null)}
           onSaved={(newMod: any) => {
