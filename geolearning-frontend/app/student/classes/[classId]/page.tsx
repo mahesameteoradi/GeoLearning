@@ -228,8 +228,8 @@ export default function StudentClassDetailPage() {
           teacher:users!classes_teacher_id_fkey(name),
           modules(
             id, title, order,
-            materials(id, title, type, content_url, content_text, order, created_at),
-            quizzes(id, title, xp_reward, passing_score, order, created_at, quiz_type, max_attempts)
+            materials(id, title, type, content_url, content_text, order, created_at, is_published),
+            quizzes(id, title, xp_reward, passing_score, order, created_at, quiz_type, max_attempts, is_published)
           )
         `)
         .eq('id', classId)
@@ -301,15 +301,21 @@ export default function StudentClassDetailPage() {
         ? classData.teacher[0]
         : classData.teacher
 
+      const processedModules = (classData.modules ?? []).map((m: any) => ({
+        ...m,
+        materials: (m.materials ?? []).filter((mat: any) => mat.is_published === true),
+        quizzes: (m.quizzes ?? []).filter((quiz: any) => quiz.is_published === true)
+      })).sort((a: { order: number }, b: { order: number }) => a.order - b.order)
+
       const processed = {
         ...classData,
         teacher,
-        modules: (classData.modules ?? []).sort((a: { order: number }, b: { order: number }) => a.order - b.order),
+        modules: processedModules,
       }
 
       // Flatten all materials sorted by created_at
-      const flat = (classData.modules ?? [])
-        .flatMap((m: { materials: MaterialItem[] }) => m.materials ?? [])
+      const flat = processedModules
+        .flatMap((m: any) => m.materials ?? [])
         .sort((a: MaterialItem, b: MaterialItem) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )

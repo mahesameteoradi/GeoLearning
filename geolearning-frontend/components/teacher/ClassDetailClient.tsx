@@ -1048,3 +1048,5 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
     </div>
   )
 }
+
+

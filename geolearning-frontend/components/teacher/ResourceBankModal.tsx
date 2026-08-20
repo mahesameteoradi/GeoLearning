@@ -126,6 +126,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
         content_url: resource.file_url,
         content_text: resource.description,
         order: resourceOrder + idx,
+        is_published: false,
         updated_at: new Date().toISOString()
       }))
 
