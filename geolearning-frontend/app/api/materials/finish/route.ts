@@ -36,8 +36,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: completionError }, { status: 400 })
     }
 
-    // Award XP
-    const xpAmount = materialType === 'INTERACTIVE_MAP' ? 0 : 15
+    // Fetch material's XP reward from database (set by teacher)
+    const { data: materialData } = await supabase
+      .from('materials')
+      .select('xp_reward')
+      .eq('id', materialId)
+      .single()
+
+    const xpAmount = materialData?.xp_reward ?? 15
     
     if (xpAmount > 0) {
       await supabase.from('xp_logs').insert({

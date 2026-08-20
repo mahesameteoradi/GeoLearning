@@ -261,6 +261,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
   const [description, setDescription] = useState(editMaterial?.content_text || '')
   const [linkUrl, setLinkUrl] = useState(editMaterial?.type === 'LINK' ? (editMaterial.content_url || '') : '')
   const [file, setFile] = useState<File | null>(null)
+  const [xpReward, setXpReward] = useState<string>(editMaterial?.xp_reward?.toString() ?? '15')
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [dragOver, setDragOver] = useState(false)
@@ -373,6 +374,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const { data: mat, error: matErr } = await supabase.from('materials').update({
           module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
+          xp_reward: parseInt(xpReward) || 15,
           updated_at: new Date().toISOString(),
         }).eq('id', editMaterial.id).select().single()
         if (matErr) throw new Error(matErr.message)
@@ -384,6 +386,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const { data: mat, error: matErr } = await supabase.from('materials').insert({
           id: crypto.randomUUID(), module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
+          xp_reward: parseInt(xpReward) || 15,
           updated_at: new Date().toISOString(),
         }).select().single()
         if (matErr) throw new Error(matErr.message)
@@ -514,6 +517,11 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Deskripsi <span className="text-slate-600">(opsional)</span></label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} maxLength={500} placeholder="Jelaskan isi materi ini…"
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">XP Reward <span className="text-slate-400">(reward untuk siswa)</span></label>
+            <input type="number" min="0" max="1000" value={xpReward} onChange={e => setXpReward(e.target.value)} placeholder="15"
+              className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
           </div>
           {isLink ? (
             <div>
