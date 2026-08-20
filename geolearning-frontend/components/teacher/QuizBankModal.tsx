@@ -11,6 +11,7 @@ interface QuizItem {
   time_limit: number | null
   xp_reward: number
   passing_score: number | null
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
   question_count: number
 }
 
