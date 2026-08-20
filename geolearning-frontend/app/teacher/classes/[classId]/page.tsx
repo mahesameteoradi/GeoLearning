@@ -29,7 +29,7 @@ export default async function TeacherClassDetailPage({
       id, name, description, join_code,
       modules(
         id, class_id, title, order,
-        materials(id, module_id, title, type, content_url, content_text, order, created_at),
+        materials(id, module_id, title, type, content_url, content_text, order, is_published, created_at),
         quizzes(id, module_id, title, time_limit, xp_reward, passing_score, order, is_published, created_at, quiz_type, max_attempts)
       )
     `)

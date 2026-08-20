@@ -18,6 +18,8 @@ interface QuizItem {
   is_published: boolean
   created_at: string
   passing_score: number | null
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
+  max_attempts?: number
   question_count: number
 }
 
@@ -48,7 +50,7 @@ export default function TeacherQuizzesPage() {
         .from('quizzes')
         .select(`
           id, title, time_limit, xp_reward, is_published, created_at,
-          passing_score,
+          passing_score, quiz_type, max_attempts,
           questions(id)
         `)
         .eq('teacher_id', user.id)
@@ -69,6 +71,8 @@ export default function TeacherQuizzesPage() {
         is_published: q.is_published,
         created_at: q.created_at,
         passing_score: q.passing_score,
+        quiz_type: q.quiz_type,
+        max_attempts: q.max_attempts,
         question_count: q.questions?.length ?? 0
       }))
 
@@ -247,22 +251,25 @@ export default function TeacherQuizzesPage() {
                     {quiz.title}
                   </h3>
                   
-                  <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <FileText className="h-4 w-4 shrink-0 text-slate-400" />
-                      <span className="truncate">{quiz.question_count} Soal</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <Clock className="h-4 w-4 shrink-0 text-slate-400" />
-                      <span className="truncate">{quiz.time_limit ? `${quiz.time_limit} detik` : '∞'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <Trophy className="h-4 w-4 shrink-0 text-slate-400" />
-                      <span className="truncate">{quiz.passing_score ?? 0} KKM</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <Star className="h-4 w-4 shrink-0 text-amber-500" />
-                      <span className="truncate">{quiz.xp_reward} XP</span>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500 mb-6">
+                    <span className="flex items-center gap-1">
+                      <FileText className="h-3.5 w-3.5" />
+                      {quiz.question_count} Soal
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {quiz.time_limit ? `${quiz.time_limit} detik` : 'Tanpa waktu'}
+                    </span>
+                    <span className="flex items-center gap-1 text-emerald-500">
+                      <Trophy className="h-3.5 w-3.5" />
+                      {quiz.passing_score} KKM
+                    </span>
+                    {quiz.quiz_type === 'SUMATIF' && (
+                      <span className="flex items-center gap-1 text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded text-[10px]">SUMATIF</span>
+                    )}
+                    <div className="flex items-center gap-1 text-amber-600">
+                      <Star className="h-3.5 w-3.5" />
+                      {quiz.xp_reward} XP
                     </div>
                   </div>
 
