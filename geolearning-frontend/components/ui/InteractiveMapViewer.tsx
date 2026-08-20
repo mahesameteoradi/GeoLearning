@@ -26,7 +26,7 @@ export function InteractiveMapViewer({ title, dataString, onClose }: Props) {
     }
   }
 
-  if (!data || !data.markers) {
+  if (!data) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
         <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center">

@@ -85,6 +85,8 @@ interface QuizData {
   xp_reward: number
   passing_score: number | null
   class_id: string | null
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
+  max_attempts?: number | null
   questions: Question[]
 }
 
@@ -159,6 +161,8 @@ function ResultScreen({
   justFinished,
   classId,
   router,
+  quizType,
+  maxAttempts,
 }: {
   score: number
   xpEarned: number
@@ -173,6 +177,8 @@ function ResultScreen({
   justFinished?: boolean
   classId?: string | null
   router?: any
+  quizType?: 'FORMATIF' | 'SUMATIF'
+  maxAttempts?: number | null
 }) {
   useEffect(() => {
     if (score >= 70) {
@@ -314,9 +320,14 @@ function ResultScreen({
                     <Play className="h-4 w-4" />
                     Mulai Percobaan ke-2
                   </button>
-                ) : (attemptsCount ?? 0) >= 2 ? (
-                  <div className="p-3 text-sm text-center text-rose-300 bg-rose-500/10 rounded-xl border border-rose-500/20 mb-2 font-medium">
-                    Batas percobaan (2x) telah habis. Tetap semangat belajar!
+                ) : (maxAttempts != null && (attemptsCount ?? 0) >= maxAttempts && score < (passingScore || 0)) ? (
+                  <div className="p-4 text-sm text-center text-rose-100 bg-rose-600/90 rounded-xl border border-rose-500 shadow-xl shadow-rose-900/20 mb-2 font-medium">
+                    <p className="font-black text-lg mb-1 uppercase tracking-widest text-white">REMEDIAL</p>
+                    Batas percobaan maksimal ({maxAttempts}x) telah habis dan nilai Anda di bawah KKM. Silakan hubungi Guru Anda untuk penugasan Remedial metode lain.
+                  </div>
+                ) : (maxAttempts != null && (attemptsCount ?? 0) >= maxAttempts && score >= (passingScore || 0)) ? (
+                  <div className="p-3 text-sm text-center text-emerald-300 bg-emerald-500/10 rounded-xl border border-emerald-500/20 mb-2 font-medium">
+                    Selamat! Anda sudah lulus KKM dan percobaan maksimal ({maxAttempts}x) telah habis.
                   </div>
                 ) : onRetry && (
                   <button
@@ -388,7 +399,7 @@ export default function QuizPlayerPage() {
       const { data: q } = await supabase
         .from('quizzes')
         .select(`
-          id, title, time_limit, xp_reward, passing_score, class_id,
+          id, title, time_limit, xp_reward, passing_score, class_id, quiz_type, max_attempts,
           questions(id, text, type, options, correct_answer, explanation, points, duration, order, image_url)
         `)
         .eq('id', quizId)
@@ -758,6 +769,8 @@ export default function QuizPlayerPage() {
         justFinished={justFinished}
         classId={quiz?.class_id}
         router={router}
+        quizType={quiz?.quiz_type}
+        maxAttempts={quiz?.max_attempts}
       />
     )
   }

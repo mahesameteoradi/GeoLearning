@@ -1,46 +1,29 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents, Popup } from 'react-leaflet'
+import { useState, useRef, useEffect } from 'react'
+import { MapContainer, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import { MapPin, X, Plus, Image as ImageIcon, Trash2, UploadCloud, Loader2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import toast from 'react-hot-toast'
-
-// Fix missing marker icons in leaflet
-const icon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-})
-
-export interface MapMarker {
-  id: string
-  lat: number
-  lng: number
-  title: string
-  description: string
-  uniqueFact?: string
-  imageUrl?: string
-  xpReward?: number
-}
+import { MapPin, X, Sparkles, Map as MapIcon } from 'lucide-react'
+import { MapThemeLayer, MapTheme } from '@/components/ui/MapThemeLayer'
 
 export interface InteractiveMapData {
   center: { lat: number; lng: number }
   zoom: number
-  markers: MapMarker[]
-  baseMapId?: string
+  themes?: MapTheme[]
+  theme?: MapTheme // Kept for backwards compatibility
+  markers?: any[] // Kept for backwards compatibility, not used
 }
 
-const BASE_MAPS = [
-  { id: 'satellite', name: 'Satelit (Esri)', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri &mdash; Source: Esri, i-cubed, USDA' },
-  { id: 'osm', name: 'Standar (OSM)', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
-  { id: 'topo', name: 'Topografi', url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap (CC-BY-SA)' },
-  { id: 'light', name: 'Bersih (Light)', url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attribution: '&copy; CARTO' },
+export const MAP_TYPES = [
+  { id: 'topography', category: 'Peta Umum', name: 'Peta Topografi', baseMap: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenTopoMap (CC-BY-SA)' },
+  { id: 'chorography', category: 'Peta Umum', name: 'Peta Korografi', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
+  { id: 'geology', category: 'Peta Tematik', name: 'Peta Geologi', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
+  { id: 'climate', category: 'Peta Tematik', name: 'Peta Iklim & Curah Hujan', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
+  { id: 'land_use', category: 'Peta Tematik', name: 'Peta Penggunaan Lahan', baseMap: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri' },
+  { id: 'population', category: 'Peta Tematik', name: 'Peta Kepadatan Penduduk', baseMap: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attribution: '&copy; CARTO' },
+  { id: 'flora_fauna', category: 'Peta Tematik', name: 'Peta Flora & Fauna', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
+  { id: 'mining', category: 'Peta Tematik', name: 'Peta Potensi Tambang', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
+  { id: 'maritime', category: 'Peta Tematik', name: 'Peta Poros Maritim Dunia', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' }
 ]
 
 interface ClientProps {
@@ -53,34 +36,24 @@ interface ClientProps {
   onCancel: () => void
 }
 
-function MapEventsHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng.lat, e.latlng.lng)
-    }
-  })
-  return null
-}
-
 export default function InteractiveMapEditorClient({ initialData, existingModules, defaultModuleId, nextOrderMap, defaultTitle, onSave, onCancel }: ClientProps) {
-  const [markers, setMarkers] = useState<MapMarker[]>(initialData?.markers || [])
   const [center] = useState(initialData?.center || { lat: -0.7893, lng: 113.9213 })
   const [zoom] = useState(initialData?.zoom || 5)
   const [mapTitle, setMapTitle] = useState(defaultTitle)
   const [moduleId, setModuleId] = useState(defaultModuleId)
   const [order, setOrder] = useState(nextOrderMap?.[defaultModuleId] ?? 1)
+  
+  // Use existing themes array if available, or fallback to the single theme, or default to topography
+  const [selectedThemes, setSelectedThemes] = useState<MapTheme[]>(
+    initialData?.themes ? initialData.themes : (initialData?.theme ? [initialData.theme] : ['topography'])
+  )
+  
+  // The theme currently being previewed in the editor map
+  const [previewTheme, setPreviewTheme] = useState<MapTheme>(selectedThemes[0] || 'topography')
+  
   const mapRef = useRef<L.Map | null>(null)
   
-  const [editingMarkerId, setEditingMarkerId] = useState<string | null>(null)
-  const [editTitle, setEditTitle] = useState('')
-  const [editDesc, setEditDesc] = useState('')
-  const [editFact, setEditFact] = useState('')
-  const [editImg, setEditImg] = useState('')
-  const [isUploadingImg, setIsUploadingImg] = useState(false)
-  const [editXp, setEditXp] = useState(5)
-  const [baseMapId, setBaseMapId] = useState(initialData?.baseMapId || 'satellite')
-
-  const activeBaseMap = BASE_MAPS.find(b => b.id === baseMapId) || BASE_MAPS[0]
+  const activeMapType = MAP_TYPES.find(m => m.id === previewTheme) || MAP_TYPES[0]
 
   useEffect(() => {
     if (nextOrderMap) {
@@ -88,101 +61,13 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
     }
   }, [moduleId, nextOrderMap])
 
-  const handleMapClick = useCallback((lat: number, lng: number) => {
-    const newMarker: MapMarker = {
-      id: Date.now().toString(),
-      lat,
-      lng,
-      title: 'Pin Baru',
-      description: '',
-    }
-    setMarkers(prev => [...prev, newMarker])
-    openEditor(newMarker)
-  }, [])
-
-  function openEditor(marker: MapMarker) {
-    setEditingMarkerId(marker.id)
-    setEditTitle(marker.title)
-    setEditDesc(marker.description)
-    setEditFact(marker.uniqueFact || '')
-    setEditImg(marker.imageUrl || '')
-    setEditXp(marker.xpReward ?? 5)
-  }
-
-  function saveEditingMarker() {
-    if (!editingMarkerId) return
-    setMarkers(prev => prev.map(m => m.id === editingMarkerId ? {
-      ...m,
-      title: editTitle || 'Pin Tanpa Judul',
-      description: editDesc,
-      uniqueFact: editFact,
-      imageUrl: editImg,
-      xpReward: editXp
-    } : m))
-    setEditingMarkerId(null)
-  }
-
-  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (!file.type.startsWith('image/')) {
-      toast.error('File harus berupa gambar')
-      return
-    }
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Ukuran gambar maksimal 2MB')
-      return
-    }
-
-    setIsUploadingImg(true)
-    const supabase = createClient()
-    const fileExt = file.name.split('.').pop()
-    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
-    const path = `map-pins/${fileName}`
-
-    const { error: uploadError } = await supabase.storage
-      .from('class-materials')
-      .upload(path, file, { cacheControl: '3600', upsert: false })
-
-    if (uploadError) {
-      toast.error(`Gagal mengunggah gambar: ${uploadError.message}`)
-      setIsUploadingImg(false)
-      return
-    }
-
-    const { data } = supabase.storage.from('class-materials').getPublicUrl(path)
-    setEditImg(data.publicUrl)
-    setIsUploadingImg(false)
-    toast.success('Gambar berhasil diunggah')
-  }
-
-  function deleteMarker(id: string) {
-    if (editingMarkerId === id) setEditingMarkerId(null)
-    setMarkers(prev => prev.filter(m => m.id !== id))
-  }
-
-  function moveMarker(index: number, direction: 'up' | 'down') {
-    if (editingMarkerId) return // Disable reordering while editing
-    setMarkers(prev => {
-      const newMarkers = [...prev]
-      if (direction === 'up' && index > 0) {
-        [newMarkers[index - 1], newMarkers[index]] = [newMarkers[index], newMarkers[index - 1]]
-      } else if (direction === 'down' && index < newMarkers.length - 1) {
-        [newMarkers[index], newMarkers[index + 1]] = [newMarkers[index + 1], newMarkers[index]]
-      }
-      return newMarkers
-    })
-  }
-
   function handleSaveAll() {
     const currentMap = mapRef.current
     onSave({
       center: currentMap ? { lat: currentMap.getCenter().lat, lng: currentMap.getCenter().lng } : center,
       zoom: currentMap ? currentMap.getZoom() : zoom,
-      markers,
-      baseMapId
+      themes: selectedThemes,
+      theme: selectedThemes[0] // for backwards compatibility
     }, {
       title: mapTitle,
       moduleId,
@@ -197,149 +82,113 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={zoom}
+          minZoom={4}
+          maxBounds={[[-15.0, 90.0], [10.0, 145.0]]}
+          maxBoundsViscosity={1.0}
           ref={mapRef}
           className="h-full w-full z-0"
         >
           <TileLayer
-            key={activeBaseMap.id}
-            attribution={activeBaseMap.attribution}
-            url={activeBaseMap.url}
+            key={activeMapType.id}
+            attribution={activeMapType.attribution}
+            url={activeMapType.baseMap}
           />
-          <MapEventsHandler onMapClick={handleMapClick} />
-          
-          {markers.map((m) => (
-            <Marker key={m.id} position={[m.lat, m.lng]} icon={icon} eventHandlers={{ click: () => openEditor(m) }}>
-              <Popup>
-                <div className="font-semibold">{m.title}</div>
-                <div className="text-xs text-slate-500">Klik untuk mengedit</div>
-              </Popup>
-            </Marker>
-          ))}
+          <MapThemeLayer theme={previewTheme} />
         </MapContainer>
-        <div className="absolute top-4 left-4 z-[400] rounded-xl bg-white/90 backdrop-blur-sm p-3 shadow-lg pointer-events-none">
-          <p className="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-blue-600" />
-            Mode Editor
-          </p>
-          <p className="text-xs text-slate-500 mt-1">Klik sembarang tempat di peta untuk menambah Pin</p>
+        
+        <div className="absolute top-4 left-4 z-[400] rounded-xl bg-white/95 backdrop-blur-sm p-4 shadow-lg flex items-center gap-3 border border-slate-200">
+          <div className="bg-indigo-100 p-2 rounded-lg">
+            <MapIcon className="h-5 w-5 text-indigo-600" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pratinjau</p>
+            <p className="text-sm font-black text-slate-800">{activeMapType.name}</p>
+          </div>
         </div>
       </div>
 
-      {/* Sidebar Area */}
-      <div className="w-full md:w-80 flex flex-col border-t md:border-t-0 md:border-l border-slate-200 bg-white z-10 flex-1 md:flex-none min-h-0">
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
-          <h2 className="font-bold text-slate-800">Detail & Pin Peta</h2>
-          <button onClick={onCancel} className="p-1 hover:bg-slate-200 rounded-lg text-slate-500"><X className="h-5 w-5" /></button>
+      {/* Editor Sidebar */}
+      <div className="flex w-full md:w-[350px] flex-col bg-white border-l border-slate-200 shadow-[-10px_0_20px_rgba(0,0,0,0.03)] z-[10]">
+        <div className="flex items-center justify-between border-b border-slate-200 p-4 bg-slate-50/50">
+          <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+            Pengaturan Peta
+          </h2>
+          <button onClick={onCancel} className="rounded-full p-2 hover:bg-slate-200 text-slate-500 transition-colors">
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          <div className="space-y-3 pb-4 border-b border-slate-200">
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Judul Peta <span className="text-red-500">*</span></label>
-              <input value={mapTitle} onChange={e => setMapTitle(e.target.value)} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" />
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Bab / Modul <span className="text-red-500">*</span></label>
-              <select value={moduleId} onChange={e => setModuleId(e.target.value)} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white">
-                {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Tema Peta <span className="text-red-500">*</span></label>
-              <select value={baseMapId} onChange={e => setBaseMapId(e.target.value)} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white">
-                {BASE_MAPS.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">Urutan ke- <span className="text-red-500">*</span></label>
-              <input type="number" min={0} value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full mt-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:bg-white" />
-            </div>
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Judul Peta <span className="text-red-500">*</span></label>
+            <input value={mapTitle} onChange={e => setMapTitle(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" placeholder="Contoh: Peta Persebaran Flora" />
+          </div>
+          
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Bab / Modul <span className="text-red-500">*</span></label>
+            <select value={moduleId} onChange={e => setModuleId(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800">
+              {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+            </select>
+          </div>
+          
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Urutan ke- <span className="text-red-500">*</span></label>
+            <input type="number" min={0} value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" />
           </div>
 
-          <h3 className="font-bold text-slate-700 text-sm">Daftar Pin ({markers.length})</h3>
-
-          {editingMarkerId ? (
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
-              <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-                <MapPin className="h-4 w-4" /> Edit Pin
-              </h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-blue-700">Judul</label>
-                  <input value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-blue-700">Deskripsi</label>
-                  <textarea value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={3} className="w-full resize-none rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-blue-700">Fakta Unik (Opsional)</label>
-                  <textarea value={editFact} onChange={e => setEditFact(e.target.value)} rows={2} placeholder="Tahukah kamu..." className="w-full resize-none rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500 bg-blue-50/50" />
-                </div>
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-blue-700">Gambar Lokasi (Opsional)</label>
-                  <div className="mt-1 flex gap-2">
-                    <input value={editImg} onChange={e => setEditImg(e.target.value)} placeholder="URL https://..." className="flex-1 rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500 min-w-0" />
-                    <label className="flex-shrink-0 cursor-pointer flex items-center justify-center bg-blue-100 hover:bg-blue-200 text-blue-700 px-3 py-2 rounded-lg transition" title="Unggah Gambar">
-                      {isUploadingImg ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={isUploadingImg} />
-                    </label>
+          <div className="pt-4 border-t border-slate-100">
+            <label className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2 flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" /> Jenis Peta
+            </label>
+            <div className="space-y-2 mt-3 max-h-48 overflow-y-auto pr-1">
+              {MAP_TYPES.map(m => (
+                <label key={m.id} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedThemes.includes(m.id as MapTheme) ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 hover:border-indigo-200'}`}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedThemes.includes(m.id as MapTheme)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedThemes(prev => [...prev, m.id as MapTheme]);
+                        setPreviewTheme(m.id as MapTheme); // Auto preview the newly checked theme
+                      } else {
+                        setSelectedThemes(prev => prev.filter(t => t !== m.id));
+                        if (previewTheme === m.id) {
+                          // Change preview if we unchecked the current preview
+                          setPreviewTheme(selectedThemes.filter(t => t !== m.id)[0] || 'topography');
+                        }
+                      }
+                    }}
+                    className="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">{m.name}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500 mt-0.5">{m.category}</p>
                   </div>
-                  {editImg && (
-                    <div className="mt-2 relative rounded-lg overflow-hidden border border-slate-200 h-24 bg-slate-100">
-                      <img src={editImg} alt="Preview" className="w-full h-full object-cover" />
-                    </div>
+                  {selectedThemes.includes(m.id as MapTheme) && (
+                    <button 
+                      onClick={(e) => { e.preventDefault(); setPreviewTheme(m.id as MapTheme) }} 
+                      className={`ml-auto text-xs px-2 py-1 rounded-md font-bold ${previewTheme === m.id ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                    >
+                      {previewTheme === m.id ? 'Pratinjau Aktif' : 'Lihat'}
+                    </button>
                   )}
-                </div>
-                <div>
-                  <label className="text-[10px] font-semibold uppercase text-blue-700">Hadiah XP</label>
-                  <input type="number" min={0} value={editXp} onChange={e => setEditXp(Number(e.target.value))} className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:border-blue-500" />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <button onClick={saveEditingMarker} className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700">Simpan Pin</button>
-                </div>
-              </div>
+                </label>
+              ))}
             </div>
-          ) : (
-            markers.length === 0 ? (
-              <div className="text-center py-10 px-4">
-                <MapPin className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                <p className="text-sm text-slate-500">Belum ada pin. Klik area peta untuk menambahkan.</p>
-              </div>
-            ) : (
-              markers.map((m, index) => (
-                <div key={m.id} className="group rounded-xl border border-slate-200 p-3 hover:border-blue-300 hover:bg-blue-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-800">{index + 1}. {m.title}</h4>
-                      <div className="flex gap-2 mt-1">
-                        {m.imageUrl && <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 inline-flex items-center gap-1 border border-slate-200"><ImageIcon className="h-3 w-3" /> Gambar</span>}
-                        <span className="text-[10px] bg-amber-100 px-2 py-0.5 rounded text-amber-700 font-bold border border-amber-200">+{m.xpReward ?? 5} XP</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-1 items-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="flex gap-1">
-                        <button onClick={() => openEditor(m)} className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md"><MapPin className="h-3.5 w-3.5" /></button>
-                        <button onClick={() => deleteMarker(m.id)} className="p-1.5 text-red-600 hover:bg-red-100 rounded-md"><Trash2 className="h-3.5 w-3.5" /></button>
-                      </div>
-                      <div className="flex gap-1 mt-1 bg-slate-100 rounded border border-slate-200 overflow-hidden">
-                        <button onClick={() => moveMarker(index, 'up')} disabled={index === 0} className="px-2 py-0.5 text-[10px] text-slate-500 hover:bg-slate-200 hover:text-slate-800 disabled:opacity-30 border-r border-slate-200">▲</button>
-                        <button onClick={() => moveMarker(index, 'down')} disabled={index === markers.length - 1} className="px-2 py-0.5 text-[10px] text-slate-500 hover:bg-slate-200 hover:text-slate-800 disabled:opacity-30">▼</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )
-          )}
+            <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
+              Peta dan legendanya akan otomatis dihasilkan saat siswa membuka materi ini.
+            </p>
+          </div>
         </div>
 
-        <div className="p-4 border-t border-slate-200 bg-white">
-          <button onClick={handleSaveAll} disabled={!!editingMarkerId || !mapTitle.trim()} 
-            className="w-full rounded-xl bg-emerald-600 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 disabled:opacity-50 transition-all">
-            Simpan Peta Interaktif
+        <div className="border-t border-slate-200 p-4 bg-slate-50">
+          <button
+            onClick={handleSaveAll}
+            disabled={!mapTitle}
+            className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+          >
+            Simpan Peta Pembelajaran
           </button>
-          <p className="text-[10px] text-center text-slate-500 mt-2">Pastikan posisi peta (zoom & geser) sudah pas sebelum menyimpan.</p>
         </div>
       </div>
     </div>

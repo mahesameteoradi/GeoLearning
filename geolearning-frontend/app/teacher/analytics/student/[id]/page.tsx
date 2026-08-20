@@ -37,9 +37,16 @@ export default async function StudentDetailAnalyticsPage({ params }: { params: P
       student = await res.json()
     } else {
       errorMessage = `API Error: ${res.status} ${res.statusText} - ${await res.text()}`
+      if (res.status === 401) {
+        // This usually happens when the token was just refreshed by middleware,
+        // but this Server Component still holds the old token from the request cookie.
+        // We can safely redirect them to the dashboard, or force a re-login.
+        redirect('/login');
+      }
       console.error(errorMessage)
     }
   } catch (error: any) {
+    if (error.message === 'NEXT_REDIRECT') throw error; // Allow Next.js redirect to bubble up
     errorMessage = `Fetch Error: ${error.message}`
     console.error(errorMessage)
   }

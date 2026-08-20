@@ -32,6 +32,8 @@ interface QuizItem {
   attempt_count: number
   avg_score: number | null
   class_name?: string
+  passing_score: number | null
+  max_attempts: number | null
 }
 
 interface ClassOption {
@@ -242,8 +244,10 @@ export default function TeacherQuizzesPage() {
       .from('quizzes')
       .select(`
         id, title, class_id, module_id, time_limit, xp_reward, is_published, created_at,
+        passing_score, max_attempts,
+        classes(name),
         questions(id),
-        quiz_attempts(score, user_id)
+        quiz_attempts(id, score)
       `)
       .in('class_id', classIds)
       .order('created_at', { ascending: false })
@@ -251,7 +255,7 @@ export default function TeacherQuizzesPage() {
     const classMap = Object.fromEntries((cls ?? []).map(c => [c.id, c.name]))
 
     const mapped: QuizItem[] = (rawQuizzes ?? []).map((q) => {
-      const attempts = (q.quiz_attempts as { score: number; user_id: string }[]) ?? []
+      const attempts = (q.quiz_attempts as unknown as { score: number; id: string }[]) ?? []
       const completed = attempts.filter(a => a.score >= 0)
       const avgScore = completed.length > 0
         ? completed.reduce((s, a) => s + a.score, 0) / completed.length
@@ -269,6 +273,8 @@ export default function TeacherQuizzesPage() {
         attempt_count: attempts.length,
         avg_score: avgScore,
         class_name: q.class_id ? classMap[q.class_id] : undefined,
+        passing_score: q.passing_score,
+        max_attempts: q.max_attempts,
       }
     })
     setQuizzes(mapped)

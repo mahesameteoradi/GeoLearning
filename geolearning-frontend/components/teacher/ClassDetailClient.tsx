@@ -9,7 +9,7 @@ import {
   FileImage, Download, BookOpen, Hash, X,
   UploadCloud, CheckCircle, ClipboardList,
   Eye, EyeOff, Edit3, BarChart3, Clock, Star, Users,
-  ArrowUp, ArrowDown, Settings, ChevronUp, ChevronDown
+  ArrowUp, ArrowDown, Settings, ChevronUp, ChevronDown, BookMarked
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { InteractiveMapEditorModal } from '@/components/teacher/InteractiveMapEditorModal'
@@ -101,7 +101,7 @@ function getCategoryFromUrl(url: string | null, type: string): FileCategoryExpan
   return 'pdf'
 }
 
-type FileCategoryExpanded = FileCategory | 'interactive_map'
+type FileCategoryExpanded = FileCategory | 'interactive_map' | 'bank'
 
 const CATEGORY_META: Record<FileCategoryExpanded, { icon: React.ElementType; color: string; bg: string; border: string; label: string }> = {
   pdf:   { icon: FileText,     color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    label: 'PDF' },
@@ -110,7 +110,8 @@ const CATEGORY_META: Record<FileCategoryExpanded, { icon: React.ElementType; col
   doc:   { icon: FileText,     color: 'text-sky-600',    bg: 'bg-sky-50',    border: 'border-sky-200',    label: 'Dokumen' },
   link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-violet-50', border: 'border-blue-300', label: 'Link' },
   image: { icon: FileImage,    color: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-200',label: 'Gambar' },
-  interactive_map: { icon: MapIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Peta Interaktif' },
+  interactive_map: { icon: MapIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Peta Pembelajaran' },
+  bank: { icon: BookMarked, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Bank Materi' },
 }
 
 function formatTime(seconds: number) {
@@ -121,7 +122,7 @@ function formatTime(seconds: number) {
 // ─── Material Card ────────────────────────────────────────────────────────────
 
 function CourseItemCard({ 
-  item, index, total, onMove, onDelete, onViewMap, onEditQuiz, onEditMaterial
+  item, index, total, onMove, onDelete, onViewMap, onEditQuiz, onEditMaterial, onViewFile
 }: { 
   item: CourseItem; 
   index: number; 
@@ -131,6 +132,7 @@ function CourseItemCard({
   onViewMap: (item: CourseItem) => void;
   onEditQuiz: (item: CourseItem) => void;
   onEditMaterial: (item: CourseItem) => void;
+  onViewFile: (url: string, title: string) => void;
 }) {
   const isMaterial = item.itemType === 'material'
   
@@ -169,15 +171,15 @@ function CourseItemCard({
         {item.content_text && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{item.content_text}</p>}
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-2 py-1 opacity-0 transition-all group-hover:opacity-100">
+      <div className="flex flex-shrink-0 items-center gap-2 py-1 transition-all">
         {isMaterial && item.type === 'INTERACTIVE_MAP' ? (
-          <button onClick={() => onViewMap(item)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm">
-            <Eye className="h-4 w-4" />
+          <button onClick={() => onViewMap(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm text-xs font-bold" title="Lihat Peta">
+            <Eye className="h-4 w-4" /> Lihat
           </button>
         ) : isMaterial && item.content_url && (
-          <a href={item.content_url} target="_blank" rel="noopener noreferrer" className="flex h-10 w-10 items-center justify-center rounded-xl border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm">
-            {cat === 'link' ? <ExternalLink className="h-4 w-4" /> : <Download className="h-4 w-4" />}
-          </a>
+          <button onClick={() => onViewFile(item.content_url!, item.title)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm text-xs font-bold" title="Buka Materi">
+            {cat === 'link' ? <ExternalLink className="h-4 w-4" /> : <Eye className="h-4 w-4" />} Lihat
+          </button>
         )}
         {!isMaterial && (
           <button onClick={() => onEditQuiz(item)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600 hover:bg-fuchsia-600 hover:text-white hover:border-fuchsia-600 transition-all shadow-sm">
@@ -201,19 +203,20 @@ function CourseItemCard({
 
 // ─── Upload Modal ─────────────────────────────────────────────────────────────
 
-type UploadTab = 'pdf' | 'video' | 'ppt' | 'doc' | 'link'
+type UploadTab = 'pdf' | 'video' | 'ppt' | 'doc' | 'link' | 'bank'
 const UPLOAD_TABS: { key: UploadTab; label: string; icon: React.ElementType; accept: string; dbType: string }[] = [
   { key: 'pdf',   label: 'PDF',        icon: FileText,     accept: '.pdf',                 dbType: 'PDF'   },
   { key: 'video', label: 'Video',      icon: Video,        accept: '.mp4,.webm,.mov,.avi', dbType: 'VIDEO' },
   { key: 'ppt',   label: 'Presentasi', icon: Presentation, accept: '.ppt,.pptx',           dbType: 'PDF'   },
   { key: 'doc',   label: 'Dokumen',    icon: FileText,     accept: '.doc,.docx',           dbType: 'PDF'   },
   { key: 'link',  label: 'Link',       icon: LinkIcon,     accept: '',                     dbType: 'LINK'  },
+  { key: 'bank',  label: 'Dari Bank',  icon: BookMarked,   accept: '',                     dbType: 'BANK'  },
 ]
 
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 
-function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, onSuccess, onModuleAdded, editMaterial }: {
-  classId: string; existingModules: {id: string, title: string}[]; nextOrderMap?: Record<string, number>; onClose: () => void; onSuccess: (mat: MaterialItem, newModule?: any, isUpdate?: boolean) => void; onModuleAdded: (mod: any) => void; editMaterial?: CourseItem | null
+function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, onSuccess, onModuleAdded, editMaterial, teacherId }: {
+  classId: string; existingModules: {id: string, title: string}[]; nextOrderMap?: Record<string, number>; onClose: () => void; onSuccess: (mat: MaterialItem, newModule?: any, isUpdate?: boolean) => void; onModuleAdded: (mod: any) => void; editMaterial?: CourseItem | null; teacherId?: string
 }) {
   const { confirm } = useConfirm()
   const [tab, setTab] = useState<UploadTab>(() => {
@@ -245,6 +248,24 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const currentTab = UPLOAD_TABS.find(t => t.key === tab)!
   const isLink = tab === 'link'
+  const isBank = tab === 'bank'
+
+  const [bankItems, setBankItems] = useState<any[]>([])
+  const [loadingBank, setLoadingBank] = useState(false)
+  const [selectedBankItem, setSelectedBankItem] = useState<any | null>(null)
+
+  useEffect(() => {
+    if (tab === 'bank' && teacherId) {
+      setLoadingBank(true)
+      const fetchBank = async () => {
+        const supabase = createClient()
+        const { data } = await supabase.from('teacher_resources').select('*').eq('teacher_id', teacherId).order('created_at', { ascending: false })
+        setBankItems(data || [])
+        setLoadingBank(false)
+      }
+      fetchBank()
+    }
+  }, [tab, teacherId])
 
   useEffect(() => {
     if (!editMaterial && selectedModuleId !== 'new' && nextOrderMap) {
@@ -299,22 +320,38 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
     }
   }
 
-  function handleFile(f: File) { setFile(f); if (!title) setTitle(f.name.replace(/\.[^.]+$/, '')) }
+  function handleFile(f: File) { 
+    if (f.size > 500 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal adalah 500MB');
+      return;
+    }
+    setFile(f); 
+    if (!title) setTitle(f.name.replace(/\.[^.]+$/, ''));
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return
     if (isLink && !linkUrl.trim()) return
-    if (!isLink && !file) return
+    if (isBank && !selectedBankItem) { toast.error("Pilih materi dari Bank terlebih dahulu"); return }
+    if (!isLink && !isBank && !file) return
     setUploading(true); setUploadProgress(0)
     const supabase = createClient()
     let contentUrl: string | null = null
+    let finalType = currentTab.dbType
     try {
-      if (!isLink && file) {
+      if (isBank) {
+        finalType = selectedBankItem.type
+        contentUrl = selectedBankItem.file_url || ''
+      } else if (!isLink && file) {
         const ext = file.name.split('.').pop()
         const path = `${classId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`
         setUploadProgress(20)
-        const { error: uploadErr } = await supabase.storage.from('class-materials').upload(path, file, { cacheControl: '3600', upsert: false })
+        const { error: uploadErr } = await supabase.storage.from('class-materials').upload(path, file, { 
+          cacheControl: '3600', 
+          upsert: false,
+          contentType: file.type
+        })
         if (uploadErr) throw new Error(uploadErr.message)
         setUploadProgress(70)
         const { data: { publicUrl } } = supabase.storage.from('class-materials').getPublicUrl(path)
@@ -337,7 +374,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
 
       if (editMaterial) {
         const { data: mat, error: matErr } = await supabase.from('materials').update({
-          module_id: targetModuleId, title: title.trim(), type: currentTab.dbType,
+          module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
           updated_at: new Date().toISOString(),
         }).eq('id', editMaterial.id).select().single()
@@ -348,11 +385,29 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         onClose()
       } else {
         const { data: mat, error: matErr } = await supabase.from('materials').insert({
-          id: crypto.randomUUID(), module_id: targetModuleId, title: title.trim(), type: currentTab.dbType,
+          id: crypto.randomUUID(), module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
           updated_at: new Date().toISOString(),
         }).select().single()
         if (matErr) throw new Error(matErr.message)
+
+        if (teacherId && !isBank) {
+          // Resolve module title for the bank
+          const modTitle = selectedModuleId === 'new' ? newModuleTitle.trim() : existingModules.find(m => m.id === selectedModuleId)?.title;
+          
+          // Auto-save to TeacherResource bank
+          const { error: saveErr } = await supabase.from('teacher_resources').insert({
+            id: crypto.randomUUID(),
+            teacher_id: teacherId,
+            title: title.trim(),
+            type: finalType,
+            description: description.trim() || null,
+            file_url: contentUrl,
+            content: modTitle ? { chapter: modTitle } : null,
+            updated_at: new Date().toISOString(),
+          })
+          if (saveErr) console.error(saveErr) // Best effort
+        }
 
         // Notify students
         const { data: students } = await supabase.from('class_students').select('student_id').eq('class_id', classId)
@@ -463,7 +518,32 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} maxLength={500} placeholder="Jelaskan isi materi ini…"
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
           </div>
-          {isLink ? (
+          {isBank ? (
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Pilih dari Bank Materi <span className="text-red-600">*</span></label>
+              <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2 space-y-2">
+                {loadingBank ? (
+                  <div className="py-8 text-center text-slate-500 text-sm"><Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />Memuat...</div>
+                ) : bankItems.length === 0 ? (
+                  <div className="py-8 text-center text-slate-500 text-sm">Bank Materi kosong.</div>
+                ) : (
+                  bankItems.filter(b => b.type !== 'QUIZ').map(item => (
+                    <button key={item.id} type="button" onClick={() => {
+                      setSelectedBankItem(item)
+                      setTitle(item.title)
+                      setDescription(item.description || '')
+                    }} className={cn("w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3", selectedBankItem?.id === item.id ? "bg-blue-50 border-blue-300 ring-1 ring-blue-300" : "bg-white border-slate-200 hover:border-slate-300")}>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>
+                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1">{item.type}</p>
+                      </div>
+                      {selectedBankItem?.id === item.id && <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />}
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : isLink ? (
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">URL <span className="text-red-600">*</span></label>
               <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} required type="url" placeholder="https://..."
@@ -486,7 +566,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
                       <p className="mt-3 border-t border-slate-200 pt-3 text-[10px] text-slate-500">Klik / drag file baru ke sini untuk mengganti</p>
                     </div>
                   )
-                  : (<><UploadCloud className="h-7 w-7 text-slate-600" /><p className="text-xs font-semibold text-slate-500">Drag &amp; drop atau klik untuk pilih file</p><p className="text-[11px] text-slate-600">{currentTab.accept.replace(/\./g, '').toUpperCase()} · Maks. 100MB</p></>)}
+                  : (<><UploadCloud className="h-7 w-7 text-slate-600" /><p className="text-xs font-semibold text-slate-500">Drag &amp; drop atau klik untuk pilih file</p><p className="text-[11px] text-slate-600">{currentTab.accept.replace(/\./g, '').toUpperCase()} · Maks. 500MB</p></>)}
               </div>
               <input ref={fileInputRef} type="file" accept={currentTab.accept} className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
             </div>
@@ -501,7 +581,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
           )}
           <div className="flex gap-2.5 pt-1">
             <button type="button" onClick={onClose} disabled={uploading} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-800 disabled:opacity-50">Batal</button>
-            <button type="submit" disabled={uploading || !title.trim() || (isLink ? !linkUrl.trim() : (!file && !editMaterial))}
+            <button type="submit" disabled={uploading || !title.trim() || (isBank ? !selectedBankItem : isLink ? !linkUrl.trim() : (!file && !editMaterial))}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50">
               {uploading ? <><Loader2 className="h-4 w-4 animate-spin" />{editMaterial ? 'Menyimpan…' : 'Mengunggah…'}</> : <><UploadCloud className="h-4 w-4" />{editMaterial ? 'Simpan Perubahan' : 'Unggah Materi'}</>}
             </button>
@@ -528,6 +608,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   const [editingQuiz, setEditingQuiz] = useState<CourseItem | null>(null)
   const [showMapEditor, setShowMapEditor] = useState(false)
   const [viewingMap, setViewingMap] = useState<CourseItem | null>(null)
+  const [viewingFile, setViewingFile] = useState<{ url: string, title: string } | null>(null)
   const [editingMaterial, setEditingMaterial] = useState<CourseItem | null>(null)
   const [initializingModule, setInitializingModule] = useState(false)
   const [activeTab, setActiveTab] = useState<PageTab>('materi')
@@ -713,7 +794,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                 {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <MapPin className="h-7 w-7" />}
               </div>
               <div>
-                <h3 className="font-black text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">Buat Peta Interaktif</h3>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">Buat Peta Pembelajaran</h3>
                 <p className="text-sm text-slate-500 mt-1">Editor peta visual dengan penanda kustom</p>
               </div>
             </button>
@@ -770,6 +851,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                                 onViewMap={setViewingMap}
                                 onEditQuiz={setEditingQuiz}
                                 onEditMaterial={setEditingMaterial}
+                                onViewFile={(url, title) => setViewingFile({ url, title })}
                               />
                             ))
                           ) : (
@@ -803,6 +885,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
           existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))} 
           nextOrderMap={nextOrderMap}
           editMaterial={editingMaterial}
+          teacherId={teacherId}
           onClose={() => { setShowModal(false); setEditingMaterial(null); }} 
           onSuccess={handleMaterialAdded} 
           onModuleAdded={(mod) => {
@@ -843,7 +926,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
           existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))}
           defaultModuleId={moduleId}
           nextOrderMap={nextOrderMap}
-          defaultTitle={`Peta Interaktif: ${cls.name}`}
+          defaultTitle={`Peta Pembelajaran: ${cls.name}`}
           onClose={() => setShowMapEditor(false)} 
           onSuccess={handleMaterialAdded} 
         />
@@ -856,6 +939,65 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
           dataString={viewingMap.content_text ?? null}
           onClose={() => setViewingMap(null)}
         />
+      )}
+
+      {/* File Viewer Modal */}
+      {viewingFile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-6xl h-[85vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <h3 className="font-bold text-slate-800 text-lg truncate pr-4">{viewingFile.title}</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a 
+                  href={viewingFile.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm"
+                >
+                  Buka di Tab Baru
+                </a>
+                <button 
+                  onClick={() => setViewingFile(null)}
+                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-100 p-4 flex items-center justify-center">
+              {(() => {
+                const url = viewingFile.url;
+                const ext = url.split('.').pop()?.toLowerCase() || '';
+                
+                if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
+                  return <img src={url} alt={viewingFile.title} className="max-w-full max-h-full rounded-xl object-contain shadow-sm" />;
+                }
+                if (['mp4', 'webm', 'ogg'].includes(ext)) {
+                  return <video src={url} controls className="max-w-full max-h-full rounded-xl shadow-sm" />;
+                }
+                if (['doc', 'docx', 'ppt', 'pptx'].includes(ext)) {
+                  const gviewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+                  return (
+                    <div className="w-full h-full flex flex-col">
+                      <div className="bg-amber-50 text-amber-800 text-xs p-2 text-center rounded-t-xl border border-amber-200">
+                        Pratinjau dokumen Office. Jika gagal memuat, silakan klik <b>Buka di Tab Baru</b>.
+                      </div>
+                      <iframe src={gviewUrl} className="w-full flex-1 rounded-b-xl border-0 shadow-inner bg-white" title={viewingFile.title} />
+                    </div>
+                  );
+                }
+                
+                // Fallback / Native PDF
+                return <iframe src={url} className="w-full h-full rounded-2xl border-0 shadow-inner bg-white" title={viewingFile.title} />;
+              })()}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

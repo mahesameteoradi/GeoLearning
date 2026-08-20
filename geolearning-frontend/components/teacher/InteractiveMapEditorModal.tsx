@@ -47,7 +47,7 @@ export function InteractiveMapEditorModal({ existingModules, defaultModuleId, ne
       return
     }
 
-    toast.success('Peta Interaktif berhasil disimpan! 🎉')
+    toast.success('Peta Pembelajaran berhasil disimpan! 🎉')
     onSuccess(mat)
     onClose()
   }

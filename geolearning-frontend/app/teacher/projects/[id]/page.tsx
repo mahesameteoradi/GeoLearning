@@ -201,6 +201,11 @@ export default function ProjectSubmissionsPage() {
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{project.title}</h1>
               <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">{project.class?.name} • Max {project.xp_reward} XP</p>
+              {project.steam_integration && (
+                <span className="inline-block mt-2 px-2.5 py-1 text-[10px] font-bold text-white bg-blue-500/50 border border-blue-400/50 rounded-full backdrop-blur-sm">
+                  Berbasis STEAM
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -226,8 +231,8 @@ export default function ProjectSubmissionsPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {submissions.map((sub, i) => (
-              <div key={sub.id} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 md:p-6 transition-colors hover:bg-indigo-50/30 group">
-                <div className="flex items-start md:items-center gap-3 md:gap-4">
+              <div key={sub.id} className="flex flex-col md:flex-row md:items-start justify-between gap-4 p-4 md:p-6 transition-colors hover:bg-indigo-50/30 group">
+                <div className="flex items-start md:items-center gap-3 md:gap-4 flex-1">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600 overflow-hidden">
                     {sub.user?.avatar_url ? (
                       <img src={sub.user.avatar_url} alt="" className="h-full w-full object-cover" />
@@ -266,17 +271,17 @@ export default function ProjectSubmissionsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 md:gap-6 w-full md:w-auto">
+                <div className="flex flex-col md:flex-row items-end md:items-start gap-4 md:gap-6 w-full md:w-auto mt-4 md:mt-0">
                   <a 
                     href={sub.file_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
                   >
                     <ExternalLink className="h-3.5 w-3.5" /> Buka File
                   </a>
                   
-                  <div className="w-[1px] h-8 bg-slate-200" />
+                  <div className="hidden md:block w-[1px] h-16 bg-slate-200" />
                   
                   {sub.score !== null ? (
                     <div className="flex flex-col items-end">
@@ -297,21 +302,63 @@ export default function ProjectSubmissionsPage() {
                       </button>
                     </div>
                   ) : gradingSubId === sub.id ? (
-                    <div className="flex flex-col gap-2 w-full max-w-xs items-end">
-                      <div className="flex w-full items-center gap-2">
+                    <div className="flex flex-col gap-3 w-full max-w-2xl bg-slate-50 border border-slate-200 rounded-xl p-4">
+                      {project.steam_integration && (
+                        <div className="mb-2 bg-white rounded-lg border border-blue-100 p-3 shadow-sm">
+                          <h5 className="text-[10px] font-bold text-blue-800 uppercase mb-2 flex items-center gap-1">
+                            <span className="bg-blue-600 text-white rounded-[4px] px-1 text-[8px] leading-tight">STM</span> 
+                            Rubrik Penilaian STEAM
+                          </h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {project.steam_integration.science && (
+                              <div className="bg-emerald-50 rounded p-1.5 text-[9px] text-emerald-900 leading-tight">
+                                <strong className="text-emerald-700 block mb-0.5">Sains:</strong>
+                                {project.steam_integration.science}
+                              </div>
+                            )}
+                            {project.steam_integration.technology && (
+                              <div className="bg-blue-50 rounded p-1.5 text-[9px] text-blue-900 leading-tight">
+                                <strong className="text-blue-700 block mb-0.5">Teknologi:</strong>
+                                {project.steam_integration.technology}
+                              </div>
+                            )}
+                            {project.steam_integration.engineering && (
+                              <div className="bg-amber-50 rounded p-1.5 text-[9px] text-amber-900 leading-tight">
+                                <strong className="text-amber-700 block mb-0.5">Teknik:</strong>
+                                {project.steam_integration.engineering}
+                              </div>
+                            )}
+                            {project.steam_integration.art && (
+                              <div className="bg-rose-50 rounded p-1.5 text-[9px] text-rose-900 leading-tight">
+                                <strong className="text-rose-700 block mb-0.5">Seni:</strong>
+                                {project.steam_integration.art}
+                              </div>
+                            )}
+                            {project.steam_integration.mathematics && (
+                              <div className="bg-purple-50 rounded p-1.5 text-[9px] text-purple-900 leading-tight">
+                                <strong className="text-purple-700 block mb-0.5">Matematika:</strong>
+                                {project.steam_integration.mathematics}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex w-full items-center justify-end gap-2">
+                        <span className="text-xs font-semibold text-slate-700">Nilai Akhir:</span>
                         <input 
                           type="number"
                           min="0" max="100"
                           value={scoreInput}
                           onChange={(e) => setScoreInput(Number(e.target.value))}
-                          className="w-20 rounded border border-slate-300 px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          placeholder="Nilai (0-100)"
+                          className="w-20 rounded border border-slate-300 px-2 py-1.5 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-bold"
+                          placeholder="0-100"
                           autoFocus
                         />
                         <button 
                           onClick={() => handleSaveScore(sub.id)}
                           disabled={savingScore}
-                          className="flex-1 rounded bg-emerald-500 py-1.5 px-3 text-white text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 flex justify-center items-center gap-1.5"
+                          className="rounded bg-emerald-500 py-1.5 px-4 text-white text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 flex justify-center items-center gap-1.5"
                         >
                           {savingScore ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Simpan</>}
                         </button>
@@ -320,7 +367,7 @@ export default function ProjectSubmissionsPage() {
                             setGradingSubId(null)
                             setFeedbackInput('')
                           }}
-                          className="rounded bg-slate-200 p-1.5 text-slate-600 hover:bg-slate-300"
+                          className="rounded border border-slate-300 bg-white p-1.5 text-slate-600 hover:bg-slate-50"
                         >
                           Tutup
                         </button>
@@ -329,7 +376,7 @@ export default function ProjectSubmissionsPage() {
                         value={feedbackInput}
                         onChange={(e) => setFeedbackInput(e.target.value)}
                         className="w-full h-20 rounded border border-slate-300 p-2 text-xs outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none"
-                        placeholder="Tambahkan feedback / catatan untuk siswa (Opsional)"
+                        placeholder="Tambahkan feedback / catatan untuk siswa terkait evaluasi tugas mereka (Opsional)"
                       />
                     </div>
                   ) : (

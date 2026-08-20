@@ -165,6 +165,178 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
     }
   }
 
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExportFinalGrades = async () => {
+    if (students.length === 0) {
+      toast.error('Belum ada siswa di kelas ini.')
+      return
+    }
+
+    setIsExporting(true)
+    const toastId = toast.loading('Mengambil data nilai...')
+    try {
+      const supabase = createClient()
+      
+      // 1. Ambil data tugas proyek dan nilainya
+      const { data: projects } = await supabase
+        .from('project_assignments')
+        .select('id, title, is_group_project')
+        .eq('class_id', classId)
+        .order('created_at', { ascending: true })
+
+      const projectIds = projects?.map(p => p.id) || []
+      let projectSubmissions: any[] = []
+      if (projectIds.length > 0) {
+        const { data: pSubs } = await supabase
+          .from('project_submissions')
+          .select('user_id, assignment_id, score, group_members')
+          .in('assignment_id', projectIds)
+        projectSubmissions = pSubs || []
+      }
+
+      // 2. Ambil data kuis dan nilainya (pastikan relasi kuis terhubung ke kelas jika ada)
+      // Karena quiz terhubung via class_modules -> quizzes, kita ambil semua kuis di kelas ini
+      const { data: modules } = await supabase
+        .from('class_modules')
+        .select('id')
+        .eq('class_id', classId)
+      
+      const moduleIds = modules?.map(m => m.id) || []
+      let quizzes: any[] = []
+      let quizSubmissions: any[] = []
+      
+      if (moduleIds.length > 0) {
+        const { data: qz } = await supabase
+          .from('quizzes')
+          .select('id, title')
+          .in('module_id', moduleIds)
+          .order('created_at', { ascending: true })
+        quizzes = qz || []
+        
+        const quizIds = quizzes.map(q => q.id)
+        if (quizIds.length > 0) {
+          const { data: qSubs } = await supabase
+            .from('quiz_submissions')
+            .select('user_id, quiz_id, final_score')
+            .in('quiz_id', quizIds)
+          quizSubmissions = qSubs || []
+        }
+      }
+
+      // 3. Susun data CSV
+      // Baris Pertama (Header)
+      const headers = [
+        'No. Absen',
+        'Nama Siswa',
+        'NIS',
+        ...projects!.map(p => `Tugas: ${p.title}`),
+        'Rata-rata Tugas',
+        ...quizzes.map(q => `Kuis: ${q.title}`),
+        'Rata-rata Kuis',
+        'NILAI AKHIR'
+      ]
+
+      const rows = [headers]
+
+      // Helper untuk mencari nilai tugas (individu & kelompok)
+      const getProjectScore = (studentId: string, projectId: string, isGroup: boolean) => {
+        if (!isGroup) {
+          const sub = projectSubmissions.find(s => s.assignment_id === projectId && s.user_id === studentId)
+          return sub?.score ?? null
+        }
+        // Group logic
+        const sub = projectSubmissions.find(s => {
+          if (s.assignment_id !== projectId) return false
+          if (s.user_id === studentId) return true
+          if (s.group_members) {
+            try {
+              const members = typeof s.group_members === 'string' ? JSON.parse(s.group_members) : s.group_members
+              if (Array.isArray(members) && members.includes(studentId)) return true
+              if (members.members && Array.isArray(members.members) && members.members.includes(studentId)) return true
+            } catch (e) {}
+          }
+          return false
+        })
+        return sub?.score ?? null
+      }
+
+      // Helper untuk mencari nilai kuis (ambil nilai tertinggi jika ada beberapa submission)
+      const getQuizScore = (studentId: string, quizId: string) => {
+        const subs = quizSubmissions.filter(s => s.quiz_id === quizId && s.user_id === studentId)
+        if (subs.length === 0) return null
+        return Math.max(...subs.map(s => s.final_score || 0))
+      }
+
+      // Map tiap siswa ke baris CSV
+      students.forEach(s => {
+        const sData = s.student
+        
+        let totalProjectScore = 0
+        let projectCount = 0
+        const projectColumns = projects!.map(p => {
+          const score = getProjectScore(sData.id, p.id, p.is_group_project)
+          if (score !== null) {
+            totalProjectScore += score
+            projectCount++
+          }
+          return score !== null ? score : '0'
+        })
+        const avgProject = projectCount > 0 ? (totalProjectScore / projects!.length) : 0
+
+        let totalQuizScore = 0
+        let quizCount = 0
+        const quizColumns = quizzes.map(q => {
+          const score = getQuizScore(sData.id, q.id)
+          if (score !== null) {
+            totalQuizScore += score
+            quizCount++
+          }
+          return score !== null ? score : '0'
+        })
+        const avgQuiz = quizzes.length > 0 ? (totalQuizScore / quizzes.length) : 0
+
+        // Asumsi Nilai Akhir = (Rata-rata Tugas + Rata-rata Kuis) / 2
+        // Jika kuis tidak ada, murni dari tugas (dan sebaliknya)
+        let finalScore = 0
+        if (projects!.length > 0 && quizzes.length > 0) {
+          finalScore = (avgProject + avgQuiz) / 2
+        } else if (projects!.length > 0) {
+          finalScore = avgProject
+        } else if (quizzes.length > 0) {
+          finalScore = avgQuiz
+        }
+
+        rows.push([
+          s.no_absen?.toString() ?? '-',
+          sData.name,
+          sData.nis_nip ?? '-',
+          ...projectColumns,
+          avgProject.toFixed(2),
+          ...quizColumns,
+          avgQuiz.toFixed(2),
+          finalScore.toFixed(2)
+        ])
+      })
+
+      // Generate CSV file
+      const csv = rows.map(r => r.map(c => `"${c.toString().replace(/"/g, '""')}"`).join(',')).join('\n')
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Rekap_Nilai_Kelas.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+
+      toast.success('Nilai akhir berhasil diekspor!', { id: toastId })
+    } catch (error: any) {
+      toast.error('Gagal mengekspor nilai: ' + error.message, { id: toastId })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
@@ -172,7 +344,7 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
           <h2 className="text-lg font-bold text-slate-800">Daftar Siswa</h2>
           <p className="text-sm text-slate-500">Total: {students.length} siswa</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 justify-end">
           {selectedStudents.length > 0 && (
             <button 
               onClick={handleBulkDelete}

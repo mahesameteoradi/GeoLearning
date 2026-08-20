@@ -23,23 +23,23 @@ interface BadgeGridProps {
 
 // All possible badges — assigned with tiers
 export const ALL_BADGES: BadgeData[] = [
-  { id: 'first_quiz',    icon: '🎯', tier: 'bronze',  display_name: 'First Steps',     description: 'Telah menyelesaikan kuis pertama' },
-  { id: 'xp_100',        icon: '⭐', tier: 'bronze',  display_name: 'Getting Started', description: 'Berhasil mengumpulkan 100 XP' },
-  { id: 'level_5',       icon: '🔥', tier: 'bronze',  display_name: 'Apprentice',      description: 'Telah mencapai Level 5' },
-  { id: 'streak_3',      icon: '🔥', tier: 'bronze',  display_name: 'On a Roll',       description: 'Belajar 3 hari berturut-turut' },
+  { id: 'first_quiz',    icon: '🎯', tier: 'bronze',  display_name: 'Langkah Pertama',     description: 'Menyelesaikan kuis pertama kamu' },
+  { id: 'xp_100',        icon: '⭐', tier: 'bronze',  display_name: 'Mulai Berkembang',    description: 'Mendapatkan total 100 XP' },
+  { id: 'level_5',       icon: '🔥', tier: 'bronze',  display_name: 'Pelajar',             description: 'Mencapai Level 5' },
+  { id: 'streak_3',      icon: '🔥', tier: 'bronze',  display_name: 'Makin Lancar',        description: 'Belajar 3 hari berturut-turut' },
   
-  { id: 'xp_500',        icon: '🌟', tier: 'silver',  display_name: 'Rising Star',     description: 'Berhasil mengumpulkan 500 XP' },
-  { id: 'level_10',      icon: '📚', tier: 'silver',  display_name: 'Scholar',         description: 'Telah mencapai Level 10' },
-  { id: 'streak_7',      icon: '⚡', tier: 'silver',  display_name: 'Week Warrior',    description: 'Belajar 7 hari berturut-turut' },
+  { id: 'xp_500',        icon: '🌟', tier: 'silver',  display_name: 'Bintang Baru',        description: 'Mendapatkan total 500 XP' },
+  { id: 'level_10',      icon: '📚', tier: 'silver',  display_name: 'Sarjana',             description: 'Mencapai Level 10' },
+  { id: 'streak_7',      icon: '⚡', tier: 'silver',  display_name: 'Pejuang Mingguan',    description: 'Belajar 7 hari berturut-turut' },
 
-  { id: 'perfect_score', icon: '💯', tier: 'gold',    display_name: 'Perfectionist',   description: 'Mendapatkan skor 100% pada kuis' },
-  { id: 'xp_1000',       icon: '💫', tier: 'gold',    display_name: 'XP Machine',      description: 'Berhasil mengumpulkan 1.000 XP' },
-  { id: 'level_20',      icon: '🏆', tier: 'gold',    display_name: 'Expert',          description: 'Telah mencapai Level 20' },
-  { id: 'streak_30',     icon: '🌈', tier: 'gold',    display_name: 'Unstoppable',     description: 'Belajar 30 hari berturut-turut' },
+  { id: 'perfect_score', icon: '💯', tier: 'gold',    display_name: 'Si Paling Sempurna',  description: 'Mendapatkan nilai 100% pada sebuah kuis' },
+  { id: 'xp_1000',       icon: '💫', tier: 'gold',    display_name: 'Mesin XP',            description: 'Mendapatkan total 1.000 XP' },
+  { id: 'level_20',      icon: '🏆', tier: 'gold',    display_name: 'Ahli',                description: 'Mencapai Level 20' },
+  { id: 'streak_30',     icon: '🌈', tier: 'gold',    display_name: 'Tak Terhentikan',     description: 'Belajar 30 hari berturut-turut' },
 
-  { id: 'xp_5000',       icon: '🔮', tier: 'diamond', display_name: 'Veteran',         description: 'Berhasil mengumpulkan 5.000 XP' },
-  { id: 'level_50',      icon: '👑', tier: 'diamond', display_name: 'Master',          description: 'Telah mencapai Level 50' },
-  { id: 'top_10',        icon: '🥇', tier: 'diamond', display_name: 'Elite',           description: 'Masuk dalam peringkat 10 besar' },
+  { id: 'xp_5000',       icon: '🔮', tier: 'diamond', display_name: 'Veteran',             description: 'Mendapatkan total 5.000 XP' },
+  { id: 'level_50',      icon: '👑', tier: 'diamond', display_name: 'Master',              description: 'Mencapai Level 50' },
+  { id: 'top_10',        icon: '🥇', tier: 'diamond', display_name: 'Elit',                description: 'Masuk dalam peringkat 10 besar' },
 ]
 
 export const BadgeIcon = ({ id, className }: { id: string, className?: string }) => {

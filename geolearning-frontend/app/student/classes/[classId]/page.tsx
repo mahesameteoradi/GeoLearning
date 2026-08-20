@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import {
   ArrowLeft, FileText, Video, Presentation, LinkIcon,
   FileImage, Download, ExternalLink, BookOpen, GraduationCap,
-  Hash, Loader2, Users, MessageSquare, Trophy
+  Hash, Loader2, Users, MessageSquare, Trophy, CheckCircle
 } from 'lucide-react'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { InteractiveMapViewer } from '@/components/ui/InteractiveMapViewer'
@@ -37,6 +37,8 @@ interface QuizItem {
   passing_score: number | null
   order: number
   created_at: string
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
+  max_attempts?: number | null
 }
 
 interface ClassInfo {
@@ -81,7 +83,7 @@ const CATEGORY_META: Record<FileCategoryExpanded, {
   doc:   { icon: FileText,     color: 'text-sky-600',    bg: 'bg-sky-50',    border: 'border-sky-200',    label: 'Dokumen',    actionLabel: 'Unduh' },
   link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-violet-50', border: 'border-violet-200', label: 'Link',       actionLabel: 'Buka' },
   image: { icon: FileImage,    color: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-200',label: 'Gambar',     actionLabel: 'Lihat' },
-  interactive_map: { icon: MapIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Peta Interaktif', actionLabel: 'Buka Peta' },
+  interactive_map: { icon: MapIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Peta Pembelajaran', actionLabel: 'Buka Peta' },
 }
 
 function Skeleton({ className }: { className?: string }) {
@@ -189,7 +191,7 @@ export default function StudentClassDetailPage() {
   const [loading, setLoading] = useState(true)
   const [notEnrolled, setNotEnrolled] = useState(false)
   const [allMaterials, setAllMaterials] = useState<MaterialItem[]>([])
-  const [activeTab, setActiveTab] = useState<'materi' | 'peringkat'>('materi')
+  const [activeTab, setActiveTab] = useState<'materi' | 'ujian' | 'peringkat'>('materi')
   const [userId, setUserId] = useState<string>('')
   const [viewingMap, setViewingMap] = useState<MaterialItem | null>(null)
   const [completedMaterials, setCompletedMaterials] = useState<Set<string>>(new Set())
@@ -227,7 +229,7 @@ export default function StudentClassDetailPage() {
           modules(
             id, title, order,
             materials(id, title, type, content_url, content_text, order, created_at),
-            quizzes(id, title, xp_reward, passing_score, order, created_at)
+            quizzes(id, title, xp_reward, passing_score, order, created_at, quiz_type, max_attempts)
           )
         `)
         .eq('id', classId)
@@ -423,18 +425,31 @@ export default function StudentClassDetailPage() {
 
       {/* Tabs */}
       <div className="mb-8 flex items-center justify-center px-4">
-        <div className="w-full max-w-xs sm:max-w-md lg:max-w-xl flex items-center gap-1.5 rounded-full border border-slate-200/60 bg-white/60 p-1.5 shadow-sm backdrop-blur-md">
+        <div className="w-full max-w-sm sm:max-w-xl lg:max-w-2xl flex items-center gap-1.5 rounded-full border border-slate-200/60 bg-white/60 p-1.5 shadow-sm backdrop-blur-md">
           <button
             onClick={() => setActiveTab('materi')}
             className={cn(
-              'w-1/2 flex justify-center items-center gap-2 rounded-full px-4 sm:px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300',
+              'flex-1 flex justify-center items-center gap-2 rounded-full px-2 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300',
               activeTab === 'materi'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
                 : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
             )}
           >
             <BookOpen className={cn("h-4 w-4", activeTab === 'materi' ? "text-blue-200" : "text-slate-400")} />
-            Materi Kelas
+            Materi
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ujian')}
+            className={cn(
+              'flex-1 flex justify-center items-center gap-2 rounded-full px-2 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300',
+              activeTab === 'ujian'
+                ? 'bg-red-500 text-white shadow-md shadow-red-500/25 scale-[1.02]'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
+            )}
+          >
+            <FileText className={cn("h-4 w-4", activeTab === 'ujian' ? "text-red-200" : "text-slate-400")} />
+            Ujian Akhir
           </button>
 
           <button
@@ -471,7 +486,10 @@ export default function StudentClassDetailPage() {
               🗺️ Peta Ekspedisi
             </h2>
             <ExpeditionMap 
-              modules={cls.modules} 
+              modules={cls.modules.map(m => ({
+                ...m,
+                quizzes: m.quizzes?.filter(q => !q.quiz_type || q.quiz_type === 'FORMATIF') || []
+              }))} 
               completedMaterials={completedMaterials}
               completedQuizzes={completedQuizzes}
               unlockedModules={unlockedModuleIds}
@@ -481,6 +499,57 @@ export default function StudentClassDetailPage() {
         )
       )}
 
+      {activeTab === 'ujian' && (
+        <div className="w-full max-w-4xl mx-auto mt-4">
+          <div className="mb-6 flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-rose-600 p-8 text-center text-white shadow-lg">
+            <FileText className="mb-3 h-12 w-12 text-red-200" />
+            <h2 className="text-2xl font-black">Ujian Akhir (Sumatif)</h2>
+            <p className="mt-2 text-sm text-red-100 max-w-lg">
+              Evaluasi akhir yang mencakup seluruh materi di kelas ini. Kerjakan dengan teliti karena ini sangat berpengaruh pada nilai akhir Anda!
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {cls.modules.flatMap(m => m.quizzes || [])
+              .filter(q => q.quiz_type === 'SUMATIF')
+              .map(quiz => {
+                const isCompleted = completedQuizzes.has(quiz.id)
+                return (
+                  <Link
+                    key={quiz.id}
+                    href={`/student/quizzes/${quiz.id}`}
+                    className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md hover:border-red-200"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-bold tracking-wider text-red-700">UJIAN SUMATIF</span>
+                        {isCompleted && (
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700">
+                            <CheckCircle className="h-3 w-3" /> Selesai
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="mt-4 font-bold text-slate-800">{quiz.title}</h3>
+                    </div>
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                        <Trophy className="h-4 w-4 text-amber-400" />
+                        {quiz.xp_reward} XP
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-600">
+                        Mulai Ujian &rarr;
+                      </div>
+                    </div>
+                  </Link>
+                )
+            })}
+            {cls.modules.flatMap(m => m.quizzes || []).filter(q => q.quiz_type === 'SUMATIF').length === 0 && (
+              <div className="col-span-full py-12 text-center text-sm font-semibold text-slate-500">
+                Belum ada Ujian Akhir untuk kelas ini.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {activeTab === 'peringkat' && (
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

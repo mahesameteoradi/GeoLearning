@@ -33,10 +33,12 @@ model User {
   projectSubmissions     ProjectSubmission[]
   unlocked_modules       ModuleUnlock[]      @relation("UnlockedModules")
   teacher_unlocked_modules ModuleUnlock[]    @relation("TeacherUnlockedModules")
+  resources              TeacherResource[]   @relation("TeacherResources")
   
   verification_status    VerificationStatus  @default(UNVERIFIED)
   created_codes          InvitationCode[]    @relation("AdminCreatedCodes")
   used_codes             InvitationCodeLog[] @relation("TeacherUsedCodes")
+  learning_style         String?
 
   @@map("users")
 }
@@ -229,6 +231,7 @@ model ProjectAssignment {
   xp_reward    Int                 @default(100)
   is_published Boolean             @default(false)
   is_group_project Boolean         @default(false)
+  steam_integration Json?
   created_at   DateTime            @default(now())
   updated_at   DateTime            @updatedAt
   class        Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
@@ -355,6 +358,7 @@ enum MaterialType {
   IMAGE
   INTERACTIVE_MAP
   SIMULATION
+  QUIZ
 }
 
 enum NotificationType {
@@ -376,4 +380,20 @@ enum InterventionType {
 enum QuestionType {
   MULTIPLE_CHOICE
   MAP_PINPOINT
+}
+
+model TeacherResource {
+  id           String       @id @default(dbgenerated("gen_random_uuid()"))
+  teacher_id   String
+  title        String
+  description  String?
+  type         MaterialType @default(TEXT)
+  file_url     String?
+  content      Json?
+  created_at   DateTime     @default(now())
+  updated_at   DateTime     @updatedAt
+
+  teacher      User         @relation("TeacherResources", fields: [teacher_id], references: [id], onDelete: Cascade)
+
+  @@map("teacher_resources")
 }

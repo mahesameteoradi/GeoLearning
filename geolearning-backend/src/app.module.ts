@@ -8,6 +8,7 @@ import { LeaderboardModule } from './leaderboard/leaderboard.module';
 import { AdminModule } from './admin/admin.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ClassesModule } from './classes/classes.module';
+import { ResourcesModule } from './teacher/resources/resources.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -42,6 +43,9 @@ import { AppService } from './app.service';
 
     // Feature: Classes
     ClassesModule,
+
+    // Feature: Teacher Resources
+    ResourcesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -158,6 +158,35 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
     fetchProfile()
   }, [userId, role])
 
+  // ── Realtime Subscription ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!userId) return;
+    const supabase = createClient()
+    const channel = supabase
+      .channel('public:users:profile')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${userId}` },
+        (payload) => {
+          setProfile((prev) => {
+            if (!prev) return prev
+            return {
+              ...prev,
+              xp: payload.new.xp ?? prev.xp,
+              level: payload.new.level ?? prev.level,
+              current_streak: payload.new.current_streak ?? prev.current_streak,
+              longest_streak: payload.new.longest_streak ?? prev.longest_streak,
+            }
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId])
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) {

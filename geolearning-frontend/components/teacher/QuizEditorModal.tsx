@@ -45,6 +45,8 @@ interface QuizMeta {
   passing_score?: number | null
   is_published: boolean
   order?: number
+  quiz_type?: 'FORMATIF' | 'SUMATIF'
+  max_attempts?: number | null
 }
 
 interface QuizEditorModalProps {
@@ -398,7 +400,12 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
   const [loadingFile, setLoadingFile] = useState(false)
 
   async function processFile(file: File | undefined) {
-    if (!file) return
+    if (!file) return;
+
+    if (file.size > 500 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal adalah 500MB');
+      return;
+    }
 
     try {
       setLoadingFile(true)
@@ -579,8 +586,10 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
     class_id: quiz?.class_id ?? classId ?? (classes && classes.length > 0 ? classes[0].id : ''),
     timeLimit: quiz?.time_limit ? quiz.time_limit.toString() : '30',
     xpReward: quiz?.xp_reward ? quiz.xp_reward.toString() : '100',
-    passingScore: quiz?.passing_score ? quiz.passing_score.toString() : '0',
+    passingScore: quiz?.passing_score ? quiz.passing_score.toString() : '75',
     is_published: quiz?.is_published ?? false,
+    quiz_type: quiz?.quiz_type ?? 'FORMATIF',
+    max_attempts: quiz?.max_attempts ? quiz.max_attempts.toString() : '',
   })
 
   const [selectedModuleId, setSelectedModuleId] = useState<string>(existingModules?.[0]?.id || 'new')
@@ -719,7 +728,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
     try {
       const timeLimitSeconds = parseInt(form.timeLimit) || 30
       const xpReward = parseInt(form.xpReward) || 100
-      const passingScore = parseFloat(form.passingScore) || 0
+      const passingScore = parseFloat(form.passingScore) || 75
+      const maxAttempts = parseInt(form.max_attempts) || null
       
       let quizId = quiz?.id
       let targetModuleId = quiz?.module_id
@@ -746,6 +756,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
           xp_reward: xpReward,
           passing_score: passingScore,
           is_published: form.is_published,
+          quiz_type: form.quiz_type,
+          max_attempts: maxAttempts,
           updated_at: new Date().toISOString(),
         }).eq('id', quizId)
         if (error) throw error
@@ -760,6 +772,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
           xp_reward: xpReward,
           passing_score: passingScore,
           is_published: form.is_published,
+          quiz_type: form.quiz_type,
+          max_attempts: maxAttempts,
           order: order,
           updated_at: new Date().toISOString(),
         }).select('id').single()
@@ -964,6 +978,36 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                 onChange={e => setForm({ ...form, passingScore: e.target.value })}
                 className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
                 placeholder="Contoh: 75"
+              />
+            </div>
+
+            {/* Quiz Type */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Jenis Evaluasi <span className="text-red-600">*</span>
+              </label>
+              <select
+                value={form.quiz_type}
+                onChange={e => setForm({ ...form, quiz_type: e.target.value as 'FORMATIF' | 'SUMATIF' })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+              >
+                <option value="FORMATIF">Kuis Formatif (Latihan/Modul)</option>
+                <option value="SUMATIF">Ujian Sumatif (Ujian Akhir Kelas)</option>
+              </select>
+            </div>
+
+            {/* Max Attempts */}
+            <div>
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+                Batas Percobaan Kuis
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={form.max_attempts}
+                onChange={e => setForm({ ...form, max_attempts: e.target.value })}
+                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+                placeholder="Kosongkan untuk tanpa batas"
               />
             </div>
 

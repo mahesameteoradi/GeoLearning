@@ -23,7 +23,7 @@ export default async function StudentDashboardPage() {
       supabase
         .from('users')
         .select(`
-          id, name, xp, level, avatar_url, current_streak, longest_streak, equipped_badge_id,
+          id, name, xp, level, avatar_url, current_streak, longest_streak, equipped_badge_id, learning_style,
           badges:user_badges!user_badges_user_id_fkey(
             id, badge_id, earned_at,
             badge:badges(id, display_name, description, icon)

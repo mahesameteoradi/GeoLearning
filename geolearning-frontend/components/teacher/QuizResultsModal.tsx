@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { X, BarChart3, Users, Trophy, Clock, RefreshCw, Download } from 'lucide-react'
+import { X, BarChart3, Users, Trophy, Clock, RefreshCw, Download, Unlock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
@@ -14,6 +14,8 @@ interface QuizMeta {
   title: string
   question_count: number
   xp_reward: number
+  passing_score: number | null
+  max_attempts: number | null
 }
 
 interface AttemptRow {
@@ -118,6 +120,35 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
     }
   }
 
+  const handleForceUnlock = async (studentId: string, studentName: string) => {
+    const isConfirmed = await confirm({
+      title: 'Loloskan Siswa',
+      message: `Tandai tuntas kuis ini dan buka akses ke modul/bab selanjutnya untuk ${studentName}? Lakukan ini jika siswa telah menyelesaikan remedial.`,
+      confirmText: 'Ya, Loloskan',
+      variant: 'info'
+    })
+    
+    if (!isConfirmed) return
+    
+    try {
+      const res = await fetch('/api/quizzes/force-unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizId: quiz.id, studentId })
+      })
+      
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Gagal meloloskan siswa')
+      }
+      
+      import('react-hot-toast').then((m) => m.default.success(`Akses bab selanjutnya dibuka untuk ${studentName}`))
+      // Optionally we don't need to loadAttempts because it just inserts to module_unlocks
+    } catch (err: any) {
+      import('react-hot-toast').then((m) => m.default.error(err.message || 'Gagal meloloskan siswa'))
+    }
+  }
+
   useEffect(() => {
     loadAttempts()
 
@@ -139,9 +170,12 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
   
   // Calculate best scores per user for accurate stats
   const bestScores = new Map<string, number>()
+  const userAttemptsCount = new Map<string, number>()
+  
   completed.forEach(a => {
     const currentBest = bestScores.get(a.user_id) || -1
     if (a.score > currentBest) bestScores.set(a.user_id, a.score)
+    userAttemptsCount.set(a.user_id, (userAttemptsCount.get(a.user_id) || 0) + 1)
   })
   
   const uniqueStudentsCount = bestScores.size
@@ -304,7 +338,11 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.04]">
-                    {attempts.map((a, i) => (
+                    {attempts.map((a, i) => {
+                      const isRemedial = quiz.max_attempts && 
+                        (userAttemptsCount.get(a.user_id) || 0) >= quiz.max_attempts &&
+                        (bestScores.get(a.user_id) || 0) < (quiz.passing_score || 0)
+                      return (
                       <tr key={a.id} className={cn('transition-colors hover:bg-slate-50', i === 0 && a.completed_at && 'bg-violet-50')}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
@@ -312,6 +350,11 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                               {a.student_name.charAt(0).toUpperCase()}
                             </div>
                             <span className="text-sm font-medium text-slate-800">{a.student_name}</span>
+                            {isRemedial && (
+                              <span className="rounded bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 ml-2 border border-rose-200">
+                                REMEDIAL
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -329,16 +372,28 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                             : '—'}
                         </td>
                         <td className="px-4 py-3 text-right">
-                          <button
-                            onClick={() => handleResetAttempt(a.id, a.student_name)}
-                            title="Reset kuis siswa ini"
-                            className="inline-flex items-center justify-center rounded-lg bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition-colors"
-                          >
-                            <RefreshCw className="h-3.5 w-3.5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {isRemedial && (
+                              <button
+                                onClick={() => handleForceUnlock(a.user_id, a.student_name)}
+                                title="Loloskan (Buka bab selanjutnya)"
+                                className="inline-flex items-center justify-center rounded-lg bg-emerald-50 p-1.5 text-emerald-600 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                              >
+                                <Unlock className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleResetAttempt(a.id, a.student_name)}
+                              title="Reset kuis siswa ini"
+                              className="inline-flex items-center justify-center rounded-lg bg-rose-50 p-1.5 text-rose-600 hover:bg-rose-100 transition-colors border border-rose-200"
+                            >
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>

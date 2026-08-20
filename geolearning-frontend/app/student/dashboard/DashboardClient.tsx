@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Flame, BookOpen, GraduationCap, Users, Plus, ArrowRight, Compass, Loader2, AlertTriangle, Zap, Trophy, CheckCircle, Target } from 'lucide-react'
+import { Flame, BookOpen, GraduationCap, Users, Plus, ArrowRight, Compass, Loader2, AlertTriangle, Zap, Trophy, CheckCircle, Target, BrainCircuit } from 'lucide-react'
 import { motion, useMotionValue, useSpring, useMotionTemplate } from 'framer-motion'
 import { AvatarDisplay } from '@/components/ui/AvatarDisplay'
 import { LevelBadge } from '@/components/ui/LevelBadge'
@@ -16,6 +16,7 @@ import { LeaderboardWidget } from '@/components/student/LeaderboardWidget'
 import { calculateLevel, xpForLevel } from '@/lib/utils/level'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { dashboardStudentSteps } from '@/lib/utils/tourSteps'
+import { VarkTestModal } from '@/components/student/VarkTestModal'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,7 @@ interface Profile {
   current_streak: number
   longest_streak: number
   equipped_badge_id: string | null
+  learning_style: string | null
   badges: BadgeItem[]
 }
 
@@ -200,6 +202,13 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
   const [xpBreakdown, setXpBreakdown] = useState<Record<string, number>>(initialData?.xpBreakdown ?? {})
   const [loading, setLoading] = useState(!initialData)
   const [error, setError] = useState<string | null>(initialError ?? null)
+  const [showVarkModal, setShowVarkModal] = useState(false)
+
+  useEffect(() => {
+    if (profile?.learning_style === null) {
+      setShowVarkModal(true)
+    }
+  }, [profile?.learning_style])
 
   useEffect(() => {
     // If we have initialData from SSR, skip client-side fetch entirely!
@@ -221,7 +230,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           supabase
             .from('users')
             .select(`
-              id, name, xp, level, avatar_url, current_streak, longest_streak, equipped_badge_id,
+              id, name, xp, level, avatar_url, current_streak, longest_streak, equipped_badge_id, learning_style,
               badges:user_badges!user_badges_user_id_fkey(
                 id, badge_id, earned_at,
                 badge:badges(id, display_name, description, icon)
@@ -477,6 +486,36 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
     fetchAll()
   }, [])
 
+  // ── Realtime Subscription ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!profile?.id) return;
+    const supabase = createClient()
+    const channel = supabase
+      .channel('public:users:dashboard')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${profile.id}` },
+        (payload) => {
+          setProfile((prev) => {
+            if (!prev) return prev
+            // Update only specific stats to avoid clobbering badges/arrays
+            return {
+              ...prev,
+              xp: payload.new.xp ?? prev.xp,
+              level: payload.new.level ?? prev.level,
+              current_streak: payload.new.current_streak ?? prev.current_streak,
+              longest_streak: payload.new.longest_streak ?? prev.longest_streak,
+            }
+          })
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [profile?.id])
+
   // ── Quick enroll from dashboard widget ─────────────────────────────────────
   async function handleQuickEnroll(classId: string, className: string) {
     const supabase = createClient()
@@ -599,6 +638,12 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
                 <span className="flex items-center gap-1.5 rounded-full border border-orange-500/30 bg-orange-500/20 px-3 py-1 text-xs font-bold text-orange-300 shadow-sm backdrop-blur-sm">
                   <Flame className="h-4 w-4 text-orange-400" />
                   {profile.current_streak} Hari Beruntun!
+                </span>
+              )}
+              {profile.learning_style && (
+                <span className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-300 shadow-sm backdrop-blur-sm">
+                  <BrainCircuit className="h-4 w-4 text-indigo-400" />
+                  Gaya Belajar: {profile.learning_style}
                 </span>
               )}
             </div>
@@ -726,6 +771,17 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           </div>
         </div>
       </div>
+
+      {/* Render VARK Modal Outside Flow */}
+      {showVarkModal && profile && (
+        <VarkTestModal
+          userId={profile.id}
+          onComplete={(style) => {
+            setShowVarkModal(false)
+            window.location.reload()
+          }}
+        />
+      )}
     </div>
   )
 }

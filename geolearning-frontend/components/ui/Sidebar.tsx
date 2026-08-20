@@ -45,6 +45,7 @@ const teacherNav: NavItem[] = [
   { label: 'Kelas Saya',  href: '/teacher/classes',    icon: BookMarked,      emoji: '📖' },
   { label: 'Kuis',        href: '/teacher/quizzes',    icon: ClipboardList,   emoji: '📝' },
   { label: 'Tugas Proyek',href: '/teacher/projects',   icon: BookMarked,      emoji: '📁' },
+  { label: 'Bank Materi', href: '/teacher/resources',  icon: BookMarked,      emoji: '🗂️' },
   { label: 'Siswa',       href: '/teacher/students',   icon: Users,           emoji: '👩‍🎓' },
   { label: 'Analitik',    href: '/teacher/analytics',  icon: BarChart3,       emoji: '📊' },
   { label: 'Profil Saya', href: '/teacher/profile',    icon: User,            emoji: '👤' },

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { calculateLevel } from '@/lib/utils/level'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 
 export async function POST(req: Request) {
@@ -62,7 +63,10 @@ export async function POST(req: Request) {
         const newXp = Math.max(0, (userData.xp || 0) - attempt.xp_earned)
         await supabase
           .from('users')
-          .update({ xp: newXp })
+          .update({ 
+            xp: newXp,
+            level: calculateLevel(newXp)
+          })
           .eq('id', attempt.user_id)
       }
     }
