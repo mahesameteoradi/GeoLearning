@@ -704,6 +704,24 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
       if (selectedDetailQuiz?.id === item.id) {
         setSelectedDetailQuiz(prev => prev ? { ...prev, is_published: !currentStatus } : null)
       }
+
+      // Send notification to students when publishing (not when drafting)
+      if (!currentStatus) {
+        const { data: students } = await supabase
+          .from('class_students')
+          .select('student_id')
+          .eq('class_id', cls.id)
+        if (students && students.length > 0) {
+          const itemLabel = item.itemType === 'quiz' ? 'Kuis' : 'Materi'
+          await supabase.from('notifications').insert(
+            students.map(s => ({
+              user_id: s.student_id,
+              message: `${itemLabel} baru dipublish: ${item.title}`,
+              type: 'SYSTEM' as const
+            }))
+          )
+        }
+      }
     }
   }
 

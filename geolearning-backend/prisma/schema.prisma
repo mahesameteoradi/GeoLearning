@@ -151,6 +151,8 @@ model Quiz {
   xp_reward    Int           @default(10)
   order        Int           @default(0)
   is_published Boolean       @default(false)
+  quiz_type    String        @default("FORMATIF")
+  max_attempts Int?
   created_at   DateTime      @default(now())
   updated_at   DateTime      @updatedAt
   class_id     String?

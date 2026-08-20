@@ -759,6 +759,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
           xp_reward: xpReward,
           passing_score: passingScore,
           is_published: form.is_published,
+          quiz_type: form.quiz_type,
+          max_attempts: form.max_attempts ? parseInt(form.max_attempts) : null,
           updated_at: new Date().toISOString(),
         }).eq('id', quizId)
         if (error) throw error
@@ -774,6 +776,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
           xp_reward: xpReward,
           passing_score: passingScore,
           is_published: form.is_published,
+          quiz_type: form.quiz_type,
+          max_attempts: form.max_attempts ? parseInt(form.max_attempts) : null,
           order: order,
           updated_at: new Date().toISOString(),
         }).select('id').single()

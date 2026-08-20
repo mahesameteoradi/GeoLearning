@@ -399,7 +399,7 @@ export default function QuizPlayerPage() {
       const { data: q } = await supabase
         .from('quizzes')
         .select(`
-          id, title, time_limit, xp_reward, passing_score, class_id,
+          id, title, time_limit, xp_reward, passing_score, class_id, quiz_type, max_attempts,
           questions(id, text, type, options, correct_answer, explanation, points, duration, order, image_url)
         `)
         .eq('id', quizId)
