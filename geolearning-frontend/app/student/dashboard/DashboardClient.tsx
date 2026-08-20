@@ -706,7 +706,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
               📊 Distribusi XP
             </h2>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="grid gap-4 grid-cols-3">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <div className="flex flex-col gap-1 rounded-xl bg-amber-50 p-3">
                   <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
                   <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>

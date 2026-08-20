@@ -61,6 +61,12 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [savingPassword, setSavingPassword] = useState(false)
 
+  // Bio state
+  const [bio, setBio] = useState('')
+  
+  // Teacher Active Classes
+  const [activeClasses, setActiveClasses] = useState<any[]>([])
+
   // Gamification stats
   const [stats, setStats] = useState({
     quizCount: 0,
@@ -79,7 +85,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
       const { data, error } = await supabase
         .from('users')
         .select(`
-          id, name, email, avatar_url, nis_nip, school_class, xp, level, current_streak, longest_streak,
+          id, name, email, avatar_url, nis_nip, school_class, bio, xp, level, current_streak, longest_streak,
           badges:user_badges!user_id(
             id, earned_at,
             badge:badges(id, display_name, description, icon)
@@ -96,6 +102,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
         setName(data.name || '')
         setNisNip(data.nis_nip || '')
         setSchoolClass(data.school_class || '')
+        setBio(data.bio || '')
       }
 
       if (role === 'STUDENT') {
@@ -122,8 +129,13 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
           
         const { data: classesData } = await supabase
           .from('classes')
-          .select('id')
+          .select('id, name, description')
           .eq('teacher_id', userId)
+          .order('created_at', { ascending: false })
+          
+        if (classesData) {
+          setActiveClasses(classesData)
+        }
           
         let studentCount = 0
         let tQuizCount = 0
@@ -202,6 +214,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
         name: name.trim(),
         nis_nip: nisNip.trim() || null,
         school_class: schoolClass.trim() || null,
+        bio: role === 'TEACHER' ? (bio.trim() || null) : null,
       })
       .eq('id', userId)
 
@@ -365,21 +378,24 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
-                <Flame className="mx-auto h-6 w-6 text-orange-500 mb-1" />
-                <p className="text-xl font-bold text-slate-800">{profile.current_streak}</p>
-                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Streak Hari</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
-                <Book className="mx-auto h-6 w-6 text-emerald-500 mb-1" />
-                <p className="text-xl font-bold text-slate-800">{stats.materialCount}</p>
-                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Materi Dibaca</p>
-              </div>
-              <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
-                <Target className="mx-auto h-6 w-6 text-blue-500 mb-1" />
-                <p className="text-xl font-bold text-slate-800">{stats.quizCount}</p>
-                <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Kuis Selesai</p>
+            <div className="pt-4 border-t border-slate-100">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Rangkuman Akademik</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
+                  <Flame className="mx-auto h-6 w-6 text-orange-500 mb-1" />
+                  <p className="text-xl font-bold text-slate-800">{profile.current_streak}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Streak Belajar</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
+                  <Book className="mx-auto h-6 w-6 text-emerald-500 mb-1" />
+                  <p className="text-xl font-bold text-slate-800">{stats.materialCount}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Ketuntasan Materi</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
+                  <Target className="mx-auto h-6 w-6 text-blue-500 mb-1" />
+                  <p className="text-xl font-bold text-slate-800">{stats.quizCount}</p>
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Kuis Diselesaikan</p>
+                </div>
               </div>
             </div>
           </div>
@@ -489,20 +505,20 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                     Nama Lengkap
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
                     <input
                       type="text"
-                      readOnly
-                      disabled
-                      value={profile.name}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-500 cursor-not-allowed"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
               ) : (
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Nama Lengkap
+                    Nama Lengkap & Gelar
                   </label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
@@ -517,42 +533,44 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                 </div>
               )}
 
-              {/* Email (Readonly) */}
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  readOnly
-                  disabled
-                  value={profile.email}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
-                />
-                <p className="mt-1.5 text-[10px] text-slate-600">Email tidak dapat diubah.</p>
-              </div>
+              {/* Email (Readonly) - Only show for Teachers */}
+              {role !== 'STUDENT' && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    readOnly
+                    disabled
+                    value={profile.email}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
+                  />
+                  <p className="mt-1.5 text-[10px] text-slate-600">Email tidak dapat diubah.</p>
+                </div>
+              )}
 
               {/* NIS/NIP */}
               {role === 'STUDENT' ? (
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    NIS (Nomor Induk Siswa)
+                    NISN / NIM
                   </label>
                   <div className="relative">
-                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
                     <input
                       type="text"
-                      readOnly
-                      disabled
-                      value={profile.nis_nip || '-'}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-500 cursor-not-allowed"
+                      value={nisNip}
+                      onChange={(e) => setNisNip(e.target.value)}
+                      placeholder="Masukkan NISN / NIM"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
               ) : (
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    NIP (Nomor Induk Pegawai)
+                    NIP / NIDN
                   </label>
                   <div className="relative">
                     <Hash className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
@@ -567,11 +585,11 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                 </div>
               )}
 
-              {/* School Class (Only for Teacher) */}
-              {role === 'TEACHER' && (
+              {/* School Class */}
+              {role === 'STUDENT' ? (
                 <div>
                   <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Wali Kelas / Guru Bidang (Opsional)
+                    Kelas / Jurusan
                   </label>
                   <div className="relative">
                     <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
@@ -579,7 +597,42 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       type="text"
                       value={schoolClass}
                       onChange={(e) => setSchoolClass(e.target.value)}
-                      placeholder="Contoh: Geografi Lintas Minat"
+                      placeholder="Contoh: XII IPA 1"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Mata Pelajaran yang Diampu / Wali Kelas
+                  </label>
+                  <div className="relative">
+                    <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-600" />
+                    <input
+                      type="text"
+                      value={schoolClass}
+                      onChange={(e) => setSchoolClass(e.target.value)}
+                      placeholder="Contoh: Guru Geografi"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Teacher Bio */}
+              {role === 'TEACHER' && (
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Spesialisasi & Riwayat Singkat
+                  </label>
+                  <div className="relative">
+                    <Book className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-600" />
+                    <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Tuliskan spesialisasi, bidang keahlian, dan riwayat singkat..."
+                      rows={3}
                       className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
@@ -587,22 +640,20 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
               )}
             </div>
 
-            {role === 'TEACHER' && (
-              <div className="mt-8 flex items-center justify-end border-t border-slate-100 pt-5">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-60"
-                >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Save className="h-4 w-4" />
-                  )}
-                  Simpan Perubahan
-                </button>
-              </div>
-            )}
+            <div className="mt-8 flex items-center justify-end border-t border-slate-100 pt-5">
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:opacity-60"
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                Simpan Perubahan
+              </button>
+            </div>
           </form>
 
           {/* Change Password Form */}

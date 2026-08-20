@@ -61,7 +61,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12"
       style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
     >
       <div className="relative w-full max-w-lg animate-pop-in rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-black/60">

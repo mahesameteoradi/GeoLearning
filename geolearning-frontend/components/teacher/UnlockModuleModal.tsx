@@ -87,7 +87,7 @@ export function UnlockModuleModal({ classId, studentId, studentName, teacherId, 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/50 backdrop-blur-sm p-4 py-8 md:py-12">
       <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-800">Buka Akses Bab</h2>

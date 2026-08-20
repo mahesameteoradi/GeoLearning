@@ -12,7 +12,7 @@ export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
 
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -26,8 +26,35 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
+      let loginEmail = identifier.trim()
+      // If it doesn't contain '@', it might be a student's NIPD or Name. Resolve it via backend.
+      if (loginEmail && !loginEmail.includes('@')) {
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/resolve-identifier`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ identifier: loginEmail }),
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.email) {
+              loginEmail = data.email;
+            } else {
+              // Fallback to default domain if not found, to allow standard Supabase error message
+              loginEmail = `${loginEmail}@siswa.com`;
+            }
+          } else {
+            loginEmail = `${loginEmail}@siswa.com`;
+          }
+        } catch (resolveErr) {
+          console.error('Resolve Identifier Error:', resolveErr);
+          loginEmail = `${loginEmail}@siswa.com`;
+        }
+      }
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: loginEmail,
         password,
       })
 
@@ -69,14 +96,19 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
     
-    if (!email.trim()) {
-      setError('Masukkan email Anda')
+    let resetEmail = identifier.trim()
+    if (!resetEmail) {
+      setError('Masukkan Email atau Username Anda')
       setLoading(false)
       return
     }
+    
+    if (!resetEmail.includes('@')) {
+      resetEmail = `${resetEmail}@siswa.com`
+    }
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/update-password`,
       })
 
@@ -150,23 +182,19 @@ export default function LoginPage() {
         >
           {/* Email */}
           <div suppressHydrationWarning>
-            <label htmlFor="login-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Alamat Email
-            </label>
-            <input
-              id="login-email"
-              type="email"
-              required
-              autoComplete="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@email.com"
-              suppressHydrationWarning
-              className="w-full rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all bg-slate-50"
-              style={{ border: '1.5px solid #E2E8F0' }}
-              onFocus={(e) => { e.target.style.border = '1.5px solid #2563EB'; e.target.style.background = '#FFFFFF'; e.target.style.boxShadow = '0 0 0 3px rgba(37,99,235,0.1)' }}
-              onBlur={(e) => { e.target.style.border = '1.5px solid #E2E8F0'; e.target.style.background = '#F8FAFC'; e.target.style.boxShadow = 'none' }}
-            />
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Email, NIPD, atau Nama Lengkap
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                  placeholder="Contoh: Budi Santoso atau 2024001"
+                />
+              </div>
           </div>
 
           {/* Password */}

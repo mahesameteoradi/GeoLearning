@@ -53,7 +53,7 @@ export function InteractiveMapEditorModal({ existingModules, defaultModuleId, ne
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
       <div className="relative">
         <InteractiveMapEditorClient 
           existingModules={existingModules}

@@ -47,52 +47,48 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       
       {isOpen && options && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
         >
           <div 
-            className="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl shadow-black/20 border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-sm rounded-[32px] bg-white shadow-2xl shadow-black/20 overflow-hidden animate-in zoom-in-95 duration-300 p-8 text-center"
             role="dialog"
             aria-modal="true"
           >
-            <div className="p-6">
-              <div className="flex items-start gap-4">
-                <div className={cn(
-                  "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full",
-                  options.variant === 'danger' ? 'bg-red-100 text-red-600' :
-                  options.variant === 'info' ? 'bg-blue-100 text-blue-600' :
-                  'bg-amber-100 text-amber-600' // default warning
-                )}>
-                  <AlertTriangle className="h-5 w-5" />
-                </div>
-                <div className="pt-1">
-                  <h3 className="text-base font-bold text-slate-900">
-                    {options.title || 'Konfirmasi'}
-                  </h3>
-                  <p className="mt-2 text-sm text-slate-600 leading-relaxed">
-                    {options.message}
-                  </p>
-                </div>
+            <div className={cn(
+              "mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] mb-6 rotate-3",
+              options.variant === 'danger' ? 'bg-rose-100 text-rose-500' :
+              options.variant === 'info' ? 'bg-blue-100 text-blue-500' :
+              'bg-amber-100 text-amber-500' 
+            )}>
+              <div className="-rotate-3">
+                <AlertTriangle className="h-10 w-10" />
               </div>
             </div>
             
-            <div className="flex items-center justify-end gap-2 bg-slate-50 px-6 py-4 border-t border-slate-100">
+            <h3 className="text-xl font-black text-slate-800 tracking-tight">
+              {options.title || 'Konfirmasi'}
+            </h3>
+            
+            <p className="mt-3 text-[13px] font-medium text-slate-500 leading-relaxed mb-8 px-2">
+              {options.message}
+            </p>
+
+            <div className="flex items-center justify-center gap-3">
               <button
                 onClick={handleCancel}
-                className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-300"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-slate-100 px-4 py-3.5 text-[13px] font-bold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors"
               >
-                <X className="h-4 w-4" />
                 {options.cancelText || 'Batal'}
               </button>
               <button
                 onClick={handleConfirm}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
-                  options.variant === 'danger' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
-                  options.variant === 'info' ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500' :
-                  'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500'
+                  "flex-1 flex items-center justify-center gap-1.5 rounded-2xl px-4 py-3.5 text-[13px] font-bold text-white transition-all shadow-lg hover:-translate-y-0.5",
+                  options.variant === 'danger' ? 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/25' :
+                  options.variant === 'info' ? 'bg-blue-500 hover:bg-blue-600 shadow-blue-500/25' :
+                  'bg-amber-500 hover:bg-amber-600 shadow-amber-500/25'
                 )}
               >
-                <Check className="h-4 w-4" />
                 {options.confirmText || 'Ya, Lanjutkan'}
               </button>
             </div>

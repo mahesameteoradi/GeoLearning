@@ -37,7 +37,7 @@ export default function WelcomeScreen() {
 
   return (
     <div 
-      className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-slate-900 transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[9999] flex flex-col items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900 transition-opacity duration-500 ${isFading ? 'opacity-0' : 'opacity-100'}`}
     >
       <div className="relative">
         <Globe className="w-24 h-24 text-blue-500 animate-[spin_4s_linear_infinite]" strokeWidth={1.5} />

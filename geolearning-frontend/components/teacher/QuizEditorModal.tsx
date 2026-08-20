@@ -699,7 +699,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
 
   async function handleSave() {
     if (!form.title.trim()) { toast.error('Judul kuis wajib diisi'); return }
-    if (!form.class_id) { toast.error('Pilih kelas terlebih dahulu'); return }
+    if (classId && !form.class_id) { toast.error('Pilih kelas terlebih dahulu'); return }
     if (questions.length === 0) { toast.error('Tambahkan minimal 1 soal'); return }
 
     // Validate questions
@@ -735,29 +735,30 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
       let targetModuleId = quiz?.module_id
       let newMod
       
-      if (!quiz && existingModules) {
+      if (!quiz && existingModules && classId) {
         targetModuleId = selectedModuleId === 'new' ? null : selectedModuleId
         if (!targetModuleId) {
           if (!newModuleTitle.trim()) { toast.error("Bab / Modul baru tidak boleh kosong"); setSaving(false); return }
           targetModuleId = crypto.randomUUID()
           const { data: modData, error: modErr } = await supabase.from('modules').insert({
-            id: targetModuleId, class_id: classId || form.class_id, title: newModuleTitle.trim(), order: existingModules.length, updated_at: new Date().toISOString()
+            id: targetModuleId, class_id: classId, title: newModuleTitle.trim(), order: existingModules.length, updated_at: new Date().toISOString()
           }).select().single()
           if (modErr) throw new Error(modErr.message)
           newMod = modData
         }
       }
 
+      const { data: { user } } = await supabase.auth.getUser()
+
       if (quizId) {
         const { error } = await supabase.from('quizzes').update({
           title: form.title.trim(),
-          class_id: form.class_id,
+          class_id: classId ? classId : null,
+          module_id: targetModuleId || null,
           time_limit: timeLimitSeconds,
           xp_reward: xpReward,
           passing_score: passingScore,
           is_published: form.is_published,
-          quiz_type: form.quiz_type,
-          max_attempts: maxAttempts,
           updated_at: new Date().toISOString(),
         }).eq('id', quizId)
         if (error) throw error
@@ -766,14 +767,13 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
         const { data: newQuiz, error } = await supabase.from('quizzes').insert({
           id: crypto.randomUUID(),
           title: form.title.trim(),
-          class_id: classId || form.class_id,
+          class_id: classId ? classId : null,
           module_id: targetModuleId || null,
+          teacher_id: classId ? null : user?.id,
           time_limit: timeLimitSeconds,
           xp_reward: xpReward,
           passing_score: passingScore,
           is_published: form.is_published,
-          quiz_type: form.quiz_type,
-          max_attempts: maxAttempts,
           order: order,
           updated_at: new Date().toISOString(),
         }).select('id').single()
@@ -855,9 +855,9 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
             </div>
 
             {/* Class / Module */}
-            {!quiz && existingModules ? (
+            {!quiz && existingModules && classId ? (
               <>
-                <div className="flex flex-col gap-2 relative">
+                <div className="flex flex-col gap-2 relative col-span-2">
                   <div className="flex items-center justify-between -mb-0.5">
                     <label className="block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
                       Bab / Modul <span className="text-red-600">*</span>
@@ -910,31 +910,20 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
             ) : null}
 
             {/* Order */}
-            <div className="sm:col-span-2">
-              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                Urutan ke- <span className="text-red-600">*</span>
-              </label>
-              <input
-                type="number"
-                min={0}
-                value={order}
-                onChange={e => setOrder(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
-              />
-            </div>
-
-            <div className="sm:col-span-1">
+            {classId && (
+              <div className="sm:col-span-2">
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
-                  Kelas
+                  Urutan ke- <span className="text-red-600">*</span>
                 </label>
-                <select
-                  value={form.class_id}
-                  disabled={true}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none cursor-not-allowed opacity-70"
-                >
-                  <option value={form.class_id}>{quiz?.class_id ? 'Kelas Kuis Ini' : 'Tidak Diketahui'}</option>
-                </select>
+                <input
+                  type="number"
+                  min={0}
+                  value={order}
+                  onChange={e => setOrder(Number(e.target.value))}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+                />
               </div>
+            )}
 
             {/* Default Time Limit */}
             <div>

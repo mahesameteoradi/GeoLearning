@@ -73,7 +73,7 @@ export function CreateClassModal({ onClose, teacherId }: CreateClassModalProps) 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12"
       style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
     >
       <div

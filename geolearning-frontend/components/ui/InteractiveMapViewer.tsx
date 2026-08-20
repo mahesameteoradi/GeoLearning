@@ -28,7 +28,7 @@ export function InteractiveMapViewer({ title, dataString, onClose }: Props) {
 
   if (!data) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+      <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
         <div className="bg-white p-6 rounded-2xl max-w-sm w-full text-center">
           <p className="text-red-600 font-semibold mb-4">Gagal memuat data peta</p>
           <button onClick={onClose} className="bg-slate-100 hover:bg-slate-200 text-slate-800 px-4 py-2 rounded-lg font-semibold w-full">Tutup</button>
@@ -38,7 +38,7 @@ export function InteractiveMapViewer({ title, dataString, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
       <InteractiveMapViewerClient title={title} data={data} onClose={onClose} />
     </div>
   )

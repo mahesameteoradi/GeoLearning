@@ -32,10 +32,55 @@ export class ClassesService {
 
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
-    const data: any[] = xlsx.utils.sheet_to_json(sheet);
+    
+    const rawData: any[][] = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    let headerRowIndex = -1;
+    
+    // Cari baris header (maksimal cek 20 baris pertama)
+    for (let i = 0; i < Math.min(rawData.length, 20); i++) {
+      const row = rawData[i];
+      if (!row || !Array.isArray(row)) continue;
+      
+      const rowString = row.join(' ').toUpperCase();
+      if ((rowString.includes('NIPD') || rowString.includes('NIS')) && (rowString.includes('NAMA') || rowString.includes('PESERTA'))) {
+        headerRowIndex = i;
+        break;
+      }
+    }
+
+    // Jika tidak ketemu, asumsikan baris pertama (index 0) adalah header (fallback template standar)
+    if (headerRowIndex === -1) {
+      headerRowIndex = 0;
+    }
+
+    const headersArray = rawData[headerRowIndex] || [];
+    const headersMap = headersArray.map(h => typeof h === 'string' ? h.toUpperCase().replace(/\s+/g, '') : null);
+
+    const data: any[] = [];
+    for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+      const rowArr = rawData[i];
+      if (!rowArr || rowArr.length === 0) continue;
+      
+      const rowObj: Record<string, any> = {};
+      let hasData = false;
+      
+      for (let j = 0; j < headersMap.length; j++) {
+        const headerKey = headersMap[j];
+        if (headerKey) {
+          rowObj[headerKey] = rowArr[j];
+          if (rowArr[j] !== undefined && rowArr[j] !== null && rowArr[j] !== '') {
+            hasData = true;
+          }
+        }
+      }
+      
+      if (hasData) {
+        data.push(rowObj);
+      }
+    }
 
     if (data.length === 0) {
-      throw new BadRequestException('Tidak ada data untuk diimpor');
+      throw new BadRequestException('Tidak ada data siswa untuk diimpor');
     }
 
     const supabaseAdmin = this.supabaseService.getAdminClient();
@@ -44,14 +89,15 @@ export class ClassesService {
     let failCount = 0;
     const errors: { baris: number; alasan: string }[] = [];
 
-    let rowIndex = 2; // Starting from row 2 (assuming header is row 1)
+    // Starting row index for error reporting (1-indexed + header offset)
+    let rowIndex = headerRowIndex + 2;
 
     // Pre-fetch all emails and NIS to prevent N+1 query problem
     const allEmails: string[] = [];
     const allNis: string[] = [];
     for (const row of data) {
-      const email = row['Email'] || row['email'];
-      const nis = row['NIS'] || row['nis'];
+      const nis = row['NIPD'] || row['NIS'] || row['NISN'];
+      const email = row['EMAIL'] || (nis ? `${nis}@siswa.com` : null);
       if (email) allEmails.push(email.toString());
       if (nis) allNis.push(nis.toString());
     }
@@ -80,17 +126,18 @@ export class ClassesService {
     );
 
     for (const row of data) {
-      const no_absen = row['No Absen'] || row['no_absen'];
-      const nama = row['Nama'] || row['nama'];
-      const nis = row['NIS'] || row['nis'];
-      const email = row['Email'] || row['email'];
-      const sandi =
-        row['Sandi'] || row['sandi'] || row['Password'] || row['password'];
+      const no_absen = row['NO'] || row['NOABSEN'];
+      const nama = row['NAMAPESERTA'] || row['NAMA'];
+      const nis = row['NIPD'] || row['NIS'] || row['NISN'];
+      
+      // Auto-generate email and password if not provided
+      const email = row['EMAIL'] || (nis ? `${nis}@siswa.com` : null);
+      const sandi = row['SANDI'] || row['PASSWORD'] || '12345678';
 
-      if (!nama || !nis || !email || !sandi) {
+      if (!nama || !nis) {
         errors.push({
           baris: rowIndex,
-          alasan: 'Data tidak lengkap (Nama/NIS/Email/Sandi kosong)',
+          alasan: `Data tidak lengkap. Terbaca: ${JSON.stringify(row)}`,
         });
         failCount++;
         rowIndex++;
@@ -132,8 +179,15 @@ export class ClassesService {
             throw new Error('Gagal membuat user auth');
           }
 
-          const newUser = await this.prisma.user.create({
-            data: {
+          const newUser = await this.prisma.user.upsert({
+            where: { id: authData.user.id },
+            update: {
+              name: nama.toString(),
+              email: email.toString(),
+              role: Role.STUDENT,
+              nis_nip: nis.toString(),
+            },
+            create: {
               id: authData.user.id,
               name: nama.toString(),
               email: email.toString(),
@@ -271,8 +325,15 @@ export class ClassesService {
         );
       }
 
-      user = await this.prisma.user.create({
-        data: {
+      user = await this.prisma.user.upsert({
+        where: { id: authData.user.id },
+        update: {
+          name,
+          email,
+          role: Role.STUDENT,
+          nis_nip,
+        },
+        create: {
           id: authData.user.id,
           name,
           email,

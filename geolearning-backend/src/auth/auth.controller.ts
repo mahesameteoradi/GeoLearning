@@ -94,4 +94,30 @@ export class AuthController {
 
     return { success: true };
   }
+
+  @Public()
+  @Post('resolve-identifier')
+  async resolveIdentifier(@Body('identifier') identifier: string) {
+    if (!identifier) {
+      throw new BadRequestException('Identifier is required');
+    }
+
+    // Attempt to match by exact email, exact NIPD, or case-insensitive Name
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: identifier },
+          { nis_nip: identifier },
+          { name: { equals: identifier, mode: 'insensitive' } },
+        ],
+      },
+      select: { email: true },
+    });
+
+    if (!user) {
+      return { success: false, message: 'Akun tidak ditemukan' };
+    }
+
+    return { success: true, email: user.email };
+  }
 }

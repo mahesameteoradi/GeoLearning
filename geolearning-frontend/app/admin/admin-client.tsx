@@ -808,7 +808,7 @@ export function AdminClient({ user }: { user: any }) {
 
       {/* Edit Teacher Modal */}
       {editingTeacher && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/40 p-4 py-8 md:py-12 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-800">Edit Data Guru</h3>
@@ -861,7 +861,7 @@ export function AdminClient({ user }: { user: any }) {
 
       {/* Delete Teacher Modal */}
       {teacherToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/40 p-4 py-8 md:py-12 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
@@ -886,7 +886,7 @@ export function AdminClient({ user }: { user: any }) {
 
       {/* Import Excel Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/40 p-4 py-8 md:py-12 backdrop-blur-sm">
           <div className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">

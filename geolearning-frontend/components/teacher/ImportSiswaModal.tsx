@@ -21,21 +21,21 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
 
   const handleDownloadTemplate = () => {
     // Generate a simple Excel template
-    const headers = [['No Absen', 'Nama', 'NIS', 'Email', 'Sandi']]
+    const headers = [['NO', 'NIPD', 'NAMA PESERTA', 'L/P']]
     const sampleData = [
-      [1, 'Ahmad Fauzi', '2024001', 'ahmad.fauzi@email.com', 'ahmad123'],
-      [2, 'Siti Nurhaliza', '2024002', 'siti.n@email.com', 'siti123']
+      [1, '2024001', 'Ahmad Fauzi', 'L'],
+      [2, '2024002', 'Siti Nurhaliza', 'P']
     ]
     
     const ws = xlsx.utils.aoa_to_sheet([...headers, ...sampleData])
     
     // Set column widths for better UX
     ws['!cols'] = [
-      { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 30 }, { wch: 15 }
+      { wch: 10 }, { wch: 20 }, { wch: 35 }, { wch: 10 }
     ]
     
     const wb = xlsx.utils.book_new()
-    xlsx.utils.book_append_sheet(wb, ws, 'Template Siswa')
+    xlsx.utils.book_append_sheet(wb, ws, 'Daftar Siswa')
     
     xlsx.writeFile(wb, 'template_import_siswa.xlsx')
     toast.success('Template berhasil diunduh')
@@ -96,7 +96,7 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">

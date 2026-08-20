@@ -14,6 +14,9 @@ import {
 import toast from 'react-hot-toast'
 import { InteractiveMapEditorModal } from '@/components/teacher/InteractiveMapEditorModal'
 import { QuizEditorModal } from '@/components/teacher/QuizEditorModal'
+import { QuizBankModal } from '@/components/teacher/QuizBankModal'
+import { ResourceBankModal } from '@/components/teacher/ResourceBankModal'
+import { QuizDetailModal } from '@/components/teacher/QuizDetailModal'
 import { InteractiveMapViewer } from '@/components/ui/InteractiveMapViewer'
 import { cn } from '@/lib/utils/cn'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
@@ -60,6 +63,7 @@ interface QuizItem {
   module_id: string | null
   time_limit: number | null
   xp_reward: number
+  passing_score: number | null
   order: number
   is_published: boolean
   created_at: string
@@ -83,6 +87,7 @@ export interface CourseItem {
   // quiz specific
   time_limit?: number | null
   xp_reward?: number
+  passing_score?: number | null
   is_published?: boolean
 }
 
@@ -122,7 +127,7 @@ function formatTime(seconds: number) {
 // ─── Material Card ────────────────────────────────────────────────────────────
 
 function CourseItemCard({ 
-  item, index, total, onMove, onDelete, onViewMap, onEditQuiz, onEditMaterial, onViewFile
+  item, index, total, onMove, onDelete, onViewMap, onEditQuiz, onEditMaterial, onViewFile, onViewQuiz, onTogglePublishItem
 }: { 
   item: CourseItem; 
   index: number; 
@@ -133,6 +138,8 @@ function CourseItemCard({
   onEditQuiz: (item: CourseItem) => void;
   onEditMaterial: (item: CourseItem) => void;
   onViewFile: (url: string, title: string) => void;
+  onViewQuiz: (item: CourseItem) => void;
+  onTogglePublishItem: (item: CourseItem) => void;
 }) {
   const isMaterial = item.itemType === 'material'
   
@@ -164,11 +171,18 @@ function CourseItemCard({
         <div className="flex items-center gap-2 mb-1.5">
           <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{item.title}</h3>
           <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm', meta.bg, meta.color)}>{meta.label}</span>
-          {!item.is_published && !isMaterial && (
+          {!item.is_published && (
             <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm bg-slate-100 text-slate-500">Draft</span>
           )}
         </div>
         {item.content_text && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{item.content_text}</p>}
+        {!isMaterial && (
+          <div className="flex items-center gap-3 mt-1 text-[11px] font-semibold text-slate-500">
+            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {item.time_limit || '∞'} detik</span>
+            <span className="flex items-center gap-1 text-amber-500"><Star className="h-3 w-3" /> {item.xp_reward || 0} XP</span>
+            <span className="flex items-center gap-1 text-emerald-500"><Trophy className="h-3 w-3" /> {item.passing_score || 0} KKM</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-2 py-1 transition-all">
@@ -182,6 +196,14 @@ function CourseItemCard({
           </button>
         )}
         {!isMaterial && (
+          <button onClick={() => onViewQuiz(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm text-xs font-bold" title="Detail Kuis">
+            <Eye className="h-4 w-4" /> Detail
+          </button>
+        )}
+        <button onClick={() => onTogglePublishItem(item)} className={cn("flex items-center gap-1.5 h-10 px-3 rounded-xl border transition-all shadow-sm text-xs font-bold", item.is_published ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white hover:border-amber-600" : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600")} title={item.is_published ? "Jadikan Draft" : "Publish"}>
+          {item.is_published ? <EyeOff className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />} {item.is_published ? 'Draft' : 'Publish'}
+        </button>
+        {!isMaterial && (
           <button onClick={() => onEditQuiz(item)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600 hover:bg-fuchsia-600 hover:text-white hover:border-fuchsia-600 transition-all shadow-sm">
             <Settings className="h-4 w-4" />
           </button>
@@ -191,11 +213,9 @@ function CourseItemCard({
             <Edit3 className="h-4 w-4" />
           </button>
         )}
-        {isMaterial && (
-          <button onClick={() => onDelete(item.id, item.itemType, item.content_url || null)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm">
-            <Trash2 className="h-4 w-4" />
-          </button>
-        )}
+        <button onClick={() => onDelete(item.id, item.itemType, item.content_url || null)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm">
+          <Trash2 className="h-4 w-4" />
+        </button>
       </div>
     </div>
   )
@@ -203,14 +223,13 @@ function CourseItemCard({
 
 // ─── Upload Modal ─────────────────────────────────────────────────────────────
 
-type UploadTab = 'pdf' | 'video' | 'ppt' | 'doc' | 'link' | 'bank'
+type UploadTab = 'pdf' | 'video' | 'ppt' | 'doc' | 'link'
 const UPLOAD_TABS: { key: UploadTab; label: string; icon: React.ElementType; accept: string; dbType: string }[] = [
   { key: 'pdf',   label: 'PDF',        icon: FileText,     accept: '.pdf',                 dbType: 'PDF'   },
   { key: 'video', label: 'Video',      icon: Video,        accept: '.mp4,.webm,.mov,.avi', dbType: 'VIDEO' },
   { key: 'ppt',   label: 'Presentasi', icon: Presentation, accept: '.ppt,.pptx',           dbType: 'PDF'   },
   { key: 'doc',   label: 'Dokumen',    icon: FileText,     accept: '.doc,.docx',           dbType: 'PDF'   },
   { key: 'link',  label: 'Link',       icon: LinkIcon,     accept: '',                     dbType: 'LINK'  },
-  { key: 'bank',  label: 'Dari Bank',  icon: BookMarked,   accept: '',                     dbType: 'BANK'  },
 ]
 
 import { useConfirm } from '@/components/ui/ConfirmProvider'
@@ -248,24 +267,6 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const currentTab = UPLOAD_TABS.find(t => t.key === tab)!
   const isLink = tab === 'link'
-  const isBank = tab === 'bank'
-
-  const [bankItems, setBankItems] = useState<any[]>([])
-  const [loadingBank, setLoadingBank] = useState(false)
-  const [selectedBankItem, setSelectedBankItem] = useState<any | null>(null)
-
-  useEffect(() => {
-    if (tab === 'bank' && teacherId) {
-      setLoadingBank(true)
-      const fetchBank = async () => {
-        const supabase = createClient()
-        const { data } = await supabase.from('teacher_resources').select('*').eq('teacher_id', teacherId).order('created_at', { ascending: false })
-        setBankItems(data || [])
-        setLoadingBank(false)
-      }
-      fetchBank()
-    }
-  }, [tab, teacherId])
 
   useEffect(() => {
     if (!editMaterial && selectedModuleId !== 'new' && nextOrderMap) {
@@ -333,17 +334,13 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
     e.preventDefault()
     if (!title.trim()) return
     if (isLink && !linkUrl.trim()) return
-    if (isBank && !selectedBankItem) { toast.error("Pilih materi dari Bank terlebih dahulu"); return }
-    if (!isLink && !isBank && !file) return
+    if (!isLink && !file && !editMaterial) return
     setUploading(true); setUploadProgress(0)
     const supabase = createClient()
     let contentUrl: string | null = null
     let finalType = currentTab.dbType
     try {
-      if (isBank) {
-        finalType = selectedBankItem.type
-        contentUrl = selectedBankItem.file_url || ''
-      } else if (!isLink && file) {
+      if (!isLink && file) {
         const ext = file.name.split('.').pop()
         const path = `${classId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`
         setUploadProgress(20)
@@ -391,7 +388,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         }).select().single()
         if (matErr) throw new Error(matErr.message)
 
-        if (teacherId && !isBank) {
+        if (teacherId) {
           // Resolve module title for the bank
           const modTitle = selectedModuleId === 'new' ? newModuleTitle.trim() : existingModules.find(m => m.id === selectedModuleId)?.title;
           
@@ -432,7 +429,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-black/60">
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -518,32 +515,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} maxLength={500} placeholder="Jelaskan isi materi ini…"
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
           </div>
-          {isBank ? (
-            <div>
-              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Pilih dari Bank Materi <span className="text-red-600">*</span></label>
-              <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2 space-y-2">
-                {loadingBank ? (
-                  <div className="py-8 text-center text-slate-500 text-sm"><Loader2 className="h-5 w-5 animate-spin mx-auto mb-2" />Memuat...</div>
-                ) : bankItems.length === 0 ? (
-                  <div className="py-8 text-center text-slate-500 text-sm">Bank Materi kosong.</div>
-                ) : (
-                  bankItems.filter(b => b.type !== 'QUIZ').map(item => (
-                    <button key={item.id} type="button" onClick={() => {
-                      setSelectedBankItem(item)
-                      setTitle(item.title)
-                      setDescription(item.description || '')
-                    }} className={cn("w-full text-left p-3 rounded-lg border transition-all flex items-center gap-3", selectedBankItem?.id === item.id ? "bg-blue-50 border-blue-300 ring-1 ring-blue-300" : "bg-white border-slate-200 hover:border-slate-300")}>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{item.title}</p>
-                        <p className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mt-1">{item.type}</p>
-                      </div>
-                      {selectedBankItem?.id === item.id && <CheckCircle className="h-4 w-4 text-blue-600 flex-shrink-0" />}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-          ) : isLink ? (
+          {isLink ? (
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">URL <span className="text-red-600">*</span></label>
               <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} required type="url" placeholder="https://..."
@@ -581,7 +553,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
           )}
           <div className="flex gap-2.5 pt-1">
             <button type="button" onClick={onClose} disabled={uploading} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-800 disabled:opacity-50">Batal</button>
-            <button type="submit" disabled={uploading || !title.trim() || (isBank ? !selectedBankItem : isLink ? !linkUrl.trim() : (!file && !editMaterial))}
+            <button type="submit" disabled={uploading || !title.trim() || (isLink ? !linkUrl.trim() : (!file && !editMaterial))}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 hover:bg-blue-700 disabled:opacity-50">
               {uploading ? <><Loader2 className="h-4 w-4 animate-spin" />{editMaterial ? 'Menyimpan…' : 'Mengunggah…'}</> : <><UploadCloud className="h-4 w-4" />{editMaterial ? 'Simpan Perubahan' : 'Unggah Materi'}</>}
             </button>
@@ -598,14 +570,23 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   const { confirm } = useConfirm()
   const initialItems: CourseItem[] = cls.modules.flatMap(m => [
     ...m.materials.map(mat => ({ ...mat, itemType: 'material' as CourseItemType })),
-    ...(m.quizzes || []).map(q => ({ ...q, itemType: 'quiz' as CourseItemType }))
+    ...(m.quizzes || []).map(q => ({ 
+      ...q, 
+      itemType: 'quiz' as CourseItemType,
+      time_limit: q.time_limit,
+      xp_reward: q.xp_reward,
+      passing_score: q.passing_score,
+      is_published: q.is_published
+    }))
   ]).sort((a, b) => a.order - b.order)
 
   const [items, setItems] = useState<CourseItem[]>(initialItems)
   const [moduleId, setModuleId] = useState<string | null>(cls.modules.length > 0 ? cls.modules[0].id : null)
   const [showModal, setShowModal] = useState(false)
-  const [showQuizModal, setShowQuizModal] = useState(false)
+  const [showQuizBankModal, setShowQuizBankModal] = useState(false)
+  const [showResourceBankModal, setShowResourceBankModal] = useState(false)
   const [editingQuiz, setEditingQuiz] = useState<CourseItem | null>(null)
+  const [selectedDetailQuiz, setSelectedDetailQuiz] = useState<CourseItem | null>(null)
   const [showMapEditor, setShowMapEditor] = useState(false)
   const [viewingMap, setViewingMap] = useState<CourseItem | null>(null)
   const [viewingFile, setViewingFile] = useState<{ url: string, title: string } | null>(null)
@@ -686,26 +667,44 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   }
 
   async function handleDelete(id: string, type: CourseItemType, storageUrl: string | null) {
-    if (type === 'quiz') {
-      toast.error('Gunakan halaman Manajemen Kuis untuk menghapus kuis.')
-      return
-    }
-    
     const isConfirmed = await confirm({
-      title: 'Hapus Materi',
-      message: 'Hapus materi ini?',
+      title: `Hapus ${type === 'quiz' ? 'Kuis' : 'Materi'}`,
+      message: `Hapus ${type === 'quiz' ? 'kuis' : 'materi'} ini secara permanen dari kelas?`,
       confirmText: 'Ya, Hapus',
       variant: 'danger'
     })
     if (!isConfirmed) return
     const supabase = createClient()
-    if (storageUrl?.includes('supabase')) {
-      const pathMatch = storageUrl.match(/class-materials\/(.+)$/)
-      if (pathMatch) await supabase.storage.from('class-materials').remove([pathMatch[1]])
+    if (type === 'quiz') {
+      const { error } = await supabase.from('quizzes').delete().eq('id', id)
+      if (!error) { setItems(prev => prev.filter(m => m.id !== id)); toast.success('Kuis dihapus') }
+      else toast.error('Gagal menghapus kuis')
+    } else {
+      if (storageUrl?.includes('supabase')) {
+        const pathMatch = storageUrl.match(/class-materials\/(.+)$/)
+        if (pathMatch) await supabase.storage.from('class-materials').remove([pathMatch[1]])
+      }
+      const { error } = await supabase.from('materials').delete().eq('id', id)
+      if (!error) { setItems(prev => prev.filter(m => m.id !== id)); toast.success('Materi dihapus') }
+      else toast.error('Gagal menghapus materi')
     }
-    const { error } = await supabase.from('materials').delete().eq('id', id)
-    if (!error) { setItems(prev => prev.filter(m => m.id !== id)); toast.success('Materi dihapus') }
-    else toast.error('Gagal menghapus materi')
+  }
+
+  async function handleTogglePublishItem(item: CourseItem) {
+    const currentStatus = !!item.is_published
+    const tid = toast.loading(currentStatus ? 'Menyimpan sebagai draft...' : 'Mempublish item...')
+    const supabase = createClient()
+    const table = item.itemType === 'quiz' ? 'quizzes' : 'materials'
+    const { error } = await supabase.from(table).update({ is_published: !currentStatus }).eq('id', item.id)
+    if (error) {
+      toast.error('Gagal memperbarui status', { id: tid })
+    } else {
+      toast.success(currentStatus ? 'Disimpan sebagai draft' : 'Berhasil dipublish!', { id: tid })
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, is_published: !currentStatus } : i))
+      if (selectedDetailQuiz?.id === item.id) {
+        setSelectedDetailQuiz(prev => prev ? { ...prev, is_published: !currentStatus } : null)
+      }
+    }
   }
 
   const TABS = [
@@ -770,23 +769,23 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
       {activeTab === 'materi' && (
         <div className="space-y-6">
           {/* Interactive Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button onClick={async () => { await ensureModuleExists(); setShowQuizModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-fuchsia-300 hover:shadow-xl hover:shadow-fuchsia-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <button onClick={async () => { await ensureModuleExists(); setShowQuizBankModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-fuchsia-300 hover:shadow-xl hover:shadow-fuchsia-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-fuchsia-50 text-fuchsia-600 group-hover:bg-fuchsia-600 group-hover:text-white transition-colors duration-300">
                 {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <ClipboardList className="h-7 w-7" />}
               </div>
               <div>
-                <h3 className="font-black text-slate-800 text-lg group-hover:text-fuchsia-600 transition-colors">Buat Kuis</h3>
-                <p className="text-sm text-slate-500 mt-1">Soal Pilihan Ganda & Peta</p>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-fuchsia-600 transition-colors">Ambil Kuis dari Bank</h3>
+                <p className="text-sm text-slate-500 mt-1">Salin kuis dari Bank Soal</p>
               </div>
             </button>
-            <button onClick={() => { setEditingMaterial(null); setShowModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-blue-300 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
-                {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <UploadCloud className="h-7 w-7" />}
+            <button onClick={async () => { await ensureModuleExists(); setShowResourceBankModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <BookMarked className="h-7 w-7" />}
               </div>
               <div>
-                <h3 className="font-black text-slate-800 text-lg group-hover:text-blue-600 transition-colors">Unggah File / Link</h3>
-                <p className="text-sm text-slate-500 mt-1">PDF, Video, Dokumen, atau Tautan Luar</p>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">Ambil Materi dari Bank</h3>
+                <p className="text-sm text-slate-500 mt-1">Salin materi dari Bank Materi</p>
               </div>
             </button>
             <button onClick={handleOpenMapEditor} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
@@ -852,6 +851,8 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                                 onEditQuiz={setEditingQuiz}
                                 onEditMaterial={setEditingMaterial}
                                 onViewFile={(url, title) => setViewingFile({ url, title })}
+                                onViewQuiz={setSelectedDetailQuiz}
+                                onTogglePublishItem={handleTogglePublishItem}
                               />
                             ))
                           ) : (
@@ -895,8 +896,54 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
         />
       )}
 
-      {/* Quiz Modal */}
-      {(showQuizModal || editingQuiz) && (
+      {/* Quiz Bank Modal (For Creating/Importing) */}
+      {showQuizBankModal && (
+        <QuizBankModal
+          classId={cls.id}
+          targetModuleId={moduleId || 'new'}
+          existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))}
+          nextOrderMap={nextOrderMap}
+          onClose={() => setShowQuizBankModal(false)}
+          onSuccess={() => {
+            setShowQuizBankModal(false)
+            window.location.reload()
+          }}
+        />
+      )}
+
+      {/* Resource Bank Modal */}
+      {showResourceBankModal && (
+        <ResourceBankModal
+          classId={cls.id}
+          targetModuleId={moduleId || 'new'}
+          existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))}
+          nextOrderMap={nextOrderMap}
+          onClose={() => setShowResourceBankModal(false)}
+          onSuccess={() => {
+            setShowResourceBankModal(false)
+            window.location.reload()
+          }}
+        />
+      )}
+
+      {selectedDetailQuiz && (
+        <QuizDetailModal
+          quizId={selectedDetailQuiz.id}
+          onClose={() => setSelectedDetailQuiz(null)}
+          onEdit={() => {
+            setSelectedDetailQuiz(null)
+            setEditingQuiz(selectedDetailQuiz)
+          }}
+          onDelete={() => {
+            setSelectedDetailQuiz(null)
+            handleDelete(selectedDetailQuiz.id, 'quiz', null)
+          }}
+          onTogglePublish={() => handleTogglePublishItem(selectedDetailQuiz)}
+        />
+      )}
+
+      {/* Quiz Editor Modal (For Editing only) */}
+      {editingQuiz && (
         <QuizEditorModal 
           classId={cls.id}
           existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))} 
@@ -908,13 +955,12 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
             module_id: editingQuiz.module_id,
             time_limit: editingQuiz.time_limit ?? null,
             xp_reward: editingQuiz.xp_reward ?? 100,
+            passing_score: editingQuiz.passing_score ?? null,
             is_published: editingQuiz.is_published ?? false
           } : null}
-          onClose={() => { setShowQuizModal(false); setEditingQuiz(null); }}
+          onClose={() => setEditingQuiz(null)}
           onSaved={(newMod: any) => {
-            setShowQuizModal(false)
             setEditingQuiz(null)
-            // Reload the page to refresh items
             window.location.reload()
           }}
         />
@@ -943,7 +989,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
 
       {/* File Viewer Modal */}
       {viewingFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900/80 backdrop-blur-sm">
           <div className="relative w-full max-w-6xl h-[85vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
               <div className="flex items-center gap-3">
