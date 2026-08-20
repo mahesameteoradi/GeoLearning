@@ -225,6 +225,7 @@ export default function MaterialReaderPage() {
 
                     const isRawVideo = embedUrl.match(/\.(mp4|webm|ogg)$/i);
                     const isYouTube = embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be');
+                    const isOfficeDoc = embedUrl.match(/\.(ppt|pptx|doc|docx|xls|xlsx)$/i);
                     
                     if (isYouTube) {
                       const videoId = embedUrl.includes('v=') ? new URL(embedUrl).searchParams.get('v') : embedUrl.split('youtu.be/')[1]?.split('?')[0];
@@ -232,6 +233,8 @@ export default function MaterialReaderPage() {
                     } else if (embedUrl.includes('drive.google.com/file/d/')) {
                       const fileId = embedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
                       if (fileId) embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                    } else if (isOfficeDoc) {
+                      embedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(embedUrl)}`;
                     }
 
                     if (isRawVideo) {
