@@ -229,7 +229,7 @@ export default function StudentClassDetailPage() {
           modules(
             id, title, order,
             materials(id, title, type, content_url, content_text, order, created_at, is_published),
-            quizzes(id, title, xp_reward, passing_score, order, created_at, quiz_type, max_attempts, is_published)
+            quizzes(id, title, xp_reward, passing_score, order, created_at, is_published)
           )
         `)
         .eq('id', classId)
