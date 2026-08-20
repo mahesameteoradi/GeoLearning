@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { X, Clock, Trophy, FileText, CheckCircle2, XCircle, Trash2, Edit } from 'lucide-react'
+import { X, Clock, Trophy, FileText, CheckCircle2, XCircle, Trash2, Edit, Users, Calendar } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils/cn'
 
@@ -14,13 +14,21 @@ interface QuizDetailModalProps {
 export function QuizDetailModal({ quizId, onClose, onEdit, onDelete, onTogglePublish }: QuizDetailModalProps) {
   const [quiz, setQuiz] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'soal' | 'hasil'>('soal')
   const supabase = createClient()
 
   useEffect(() => {
     async function load() {
       const { data } = await supabase
         .from('quizzes')
-        .select('*, questions(*)')
+        .select(`
+          *,
+          questions(*),
+          attempts:quiz_attempts(
+            id, score, completed_at,
+            user:users(id, name, avatar_url)
+          )
+        `)
         .eq('id', quizId)
         .single()
       setQuiz(data)
@@ -91,46 +99,112 @@ export function QuizDetailModal({ quizId, onClose, onEdit, onDelete, onTogglePub
             </div>
           </div>
 
-          <div>
+          {quiz.class_id && (
+            <div className="flex items-center gap-2 border-b border-slate-200">
+              <button
+                onClick={() => setActiveTab('soal')}
+                className={cn(
+                  "px-4 py-3 text-sm font-bold border-b-2 transition-colors",
+                  activeTab === 'soal' ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500 hover:text-slate-700"
+                )}
+              >
+                Daftar Soal
+              </button>
+              <button
+                onClick={() => setActiveTab('hasil')}
+                className={cn(
+                  "px-4 py-3 text-sm font-bold border-b-2 transition-colors",
+                  activeTab === 'hasil' ? "border-indigo-600 text-indigo-600" : "border-transparent text-slate-500 hover:text-slate-700"
+                )}
+              >
+                Hasil Pengerjaan Siswa
+              </button>
+            </div>
+          )}
+
+          {!quiz.class_id && (
             <h3 className="mb-4 text-lg font-bold text-slate-800">Daftar Soal</h3>
-            <div className="space-y-3">
-              {(quiz.questions || []).map((q: any, i: number) => (
-                <div key={q.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex gap-3">
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-                      {i + 1}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-slate-800 mb-2">{q.text}</p>
-                      {q.image_url && <img src={q.image_url} alt="Soal" className="mb-3 max-h-32 rounded-lg border border-slate-200 object-cover" />}
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {q.type === 'MULTIPLE_CHOICE' ? (
-                          (q.options as any[]).map((opt) => (
-                            <div key={opt.label} className={cn(
-                              "rounded-lg border px-3 py-2 text-xs font-medium",
-                              opt.label === q.correct_answer ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold" : "bg-slate-50 border-slate-100 text-slate-600"
-                            )}>
-                              {opt.label}. {opt.value}
+          )}
+
+          <div>
+            {activeTab === 'soal' ? (
+              <div className="space-y-3 mt-4">
+                {(quiz.questions || []).map((q: any, i: number) => (
+                  <div key={q.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex gap-3">
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
+                        {i + 1}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-slate-800 mb-2">{q.text}</p>
+                        {q.image_url && <img src={q.image_url} alt="Soal" className="mb-3 max-h-32 rounded-lg border border-slate-200 object-cover" />}
+                        <div className="grid grid-cols-2 gap-2 mt-2">
+                          {q.type === 'MULTIPLE_CHOICE' ? (
+                            (q.options as any[]).map((opt) => (
+                              <div key={opt.label} className={cn(
+                                "rounded-lg border px-3 py-2 text-xs font-medium",
+                                opt.label === q.correct_answer ? "bg-emerald-50 border-emerald-200 text-emerald-800 font-bold" : "bg-slate-50 border-slate-100 text-slate-600"
+                              )}>
+                                {opt.label}. {opt.value}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="col-span-2 rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
+                              <strong>Soal Peta (GeoGuessr)</strong>
+                              <br />Target Lat: {q.options?.target_lat}, Lng: {q.options?.target_lng}
+                              <br />Toleransi: {q.options?.radius_toleransi_meter} meter
                             </div>
-                          ))
-                        ) : (
-                          <div className="col-span-2 rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-blue-800">
-                            <strong>Soal Peta (GeoGuessr)</strong>
-                            <br />Target Lat: {q.options?.target_lat}, Lng: {q.options?.target_lng}
-                            <br />Toleransi: {q.options?.radius_toleransi_meter} meter
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              {(!quiz.questions || quiz.questions.length === 0) && (
-                <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
-                  Belum ada soal.
-                </div>
-              )}
-            </div>
+                ))}
+                {(!quiz.questions || quiz.questions.length === 0) && (
+                  <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500 mt-4">
+                    Belum ada soal.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3 mt-4">
+                {(() => {
+                  const completedAttempts = (quiz.attempts || []).filter((a: any) => a.completed_at != null);
+                  if (completedAttempts.length === 0) {
+                    return (
+                      <div className="rounded-xl border border-dashed border-slate-300 p-8 text-center text-slate-500">
+                        Belum ada siswa yang menyelesaikan kuis ini.
+                      </div>
+                    );
+                  }
+                  return completedAttempts.map((attempt: any) => (
+                    <div key={attempt.id} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
+                        {attempt.user?.avatar_url ? (
+                          <img src={attempt.user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-700 font-bold">
+                            {(attempt.user?.name || '?').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-bold text-slate-800">{attempt.user?.name || 'Siswa Tidak Diketahui'}</h4>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(attempt.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-xs font-bold text-slate-500 uppercase">Nilai</span>
+                        <span className={cn("text-lg font-black", (quiz.passing_score && attempt.score >= quiz.passing_score) ? "text-emerald-600" : "text-rose-500")}>
+                          {Math.round(attempt.score)}
+                        </span>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
           </div>
         </div>
 
