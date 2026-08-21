@@ -38,7 +38,7 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
     setLoading(true)
     const { data, error } = await supabase
       .from('teacher_resources')
-      .select('id, title, type, file_url, description, xp_reward, content, created_at')
+      .select('id, teacher_id, title, type, file_url, description, xp_reward, content, created_at')
       .eq('teacher_id', teacherId)
       .order('created_at', { ascending: false })
 

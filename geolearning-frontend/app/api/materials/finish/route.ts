@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         user_id: userId,
         amount: xpAmount,
         source: 'MATERIAL_READ',
-        description: `Membaca materi: ${materialTitle}`
+        reference_id: materialId
       })
 
       // Update User XP

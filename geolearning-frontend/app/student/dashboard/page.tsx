@@ -62,7 +62,7 @@ export default async function StudentDashboardPage() {
 
       supabase
         .from('material_completions')
-        .select('id, created_at, material_id, material:materials(title)')
+        .select('id, created_at, material_id, material:materials(title, xp_reward)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5),
@@ -82,7 +82,7 @@ export default async function StudentDashboardPage() {
 
       supabase
         .from('material_completions')
-        .select('id')
+        .select('id, material:materials(xp_reward)')
         .eq('user_id', user.id),
 
       supabase
@@ -123,7 +123,7 @@ export default async function StudentDashboardPage() {
       title: `Materi: ${(Array.isArray(m.material) ? m.material[0] : m.material)?.title ?? 'Tanpa Judul'}`,
       subtitle: 'Membaca Materi',
       timestamp: m.created_at,
-      xp: 15,
+      xp: (Array.isArray(m.material) ? m.material[0] : m.material)?.xp_reward ?? 15,
       materialId: m.material_id,
     }))
 
@@ -159,7 +159,12 @@ export default async function StudentDashboardPage() {
       }
     })
     const quizXp = Array.from(bestQuizXp.values()).reduce((sum, xp) => sum + xp, 0)
-    const materialXp = (allMaterialCompletionsRes.data || []).length * 15
+    
+    const materialXp = (allMaterialCompletionsRes.data || []).reduce((sum: number, mc: any) => {
+      const reward = (Array.isArray(mc.material) ? mc.material[0] : mc.material)?.xp_reward ?? 15
+      return sum + reward
+    }, 0)
+    
     const projectXp = (allProjectSubmissionsRes.data || []).reduce((sum: number, p: any) => sum + (p.xp_earned || 0), 0)
     const totalCalculatedXp = quizXp + materialXp + projectXp
     const userTotalXp = profileRes.data?.xp || 0
