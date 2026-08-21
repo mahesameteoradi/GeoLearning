@@ -177,28 +177,109 @@ export function QuizDetailModal({ quizId, onClose, onEdit, onDelete, onTogglePub
                       </div>
                     );
                   }
-                  return completedAttempts.map((attempt: any) => (
-                    <div key={attempt.id} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                      <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
-                        {attempt.user?.avatar_url ? (
-                          <img src={attempt.user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-700 font-bold">
-                            {(attempt.user?.name || '?').charAt(0).toUpperCase()}
+
+                  // Group by user
+                  const userAttemptsMap = new Map();
+                  completedAttempts.forEach((attempt: any) => {
+                    const uid = attempt.user?.id;
+                    if (!uid) return;
+                    if (!userAttemptsMap.has(uid)) {
+                      userAttemptsMap.set(uid, []);
+                    }
+                    userAttemptsMap.get(uid).push(attempt);
+                  });
+
+                  const userResults = Array.from(userAttemptsMap.values()).map((attempts: any[]) => {
+                    // Sort attempts to find the best (highest score)
+                    attempts.sort((a, b) => b.score - a.score);
+                    const bestAttempt = attempts[0];
+                    const attemptCount = attempts.length;
+
+                    // Calculate correct / incorrect
+                    let correctCount = 0;
+                    let wrongCount = 0;
+                    
+                    let ansObj = bestAttempt.answers || {};
+                    if (typeof ansObj === 'string') {
+                      try { ansObj = JSON.parse(ansObj); } catch(e) { ansObj = {}; }
+                    }
+                    
+                    const questions = quiz.questions || [];
+                    questions.forEach((q: any) => {
+                      const studentAns = ansObj[q.id];
+                      if (!studentAns) {
+                        wrongCount++;
+                        return;
+                      }
+                      if (q.type === 'MAP_PINPOINT') {
+                         try {
+                           const parsed = typeof studentAns === 'string' ? JSON.parse(studentAns) : studentAns;
+                           if (parsed.score > 0) correctCount++;
+                           else wrongCount++;
+                         } catch(e) { wrongCount++ }
+                      } else {
+                         if (studentAns === q.correct_answer) correctCount++;
+                         else wrongCount++;
+                      }
+                    });
+
+                    return {
+                      user: bestAttempt.user,
+                      bestScore: bestAttempt.score,
+                      completedAt: bestAttempt.completed_at,
+                      attemptCount,
+                      correctCount,
+                      wrongCount
+                    };
+                  });
+
+                  // Sort by score desc, then by date
+                  userResults.sort((a, b) => b.bestScore - a.bestScore || new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime());
+
+                  return userResults.map((result: any) => (
+                    <div key={result.user.id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="flex items-center gap-4">
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-slate-100 border border-slate-200">
+                          {result.user?.avatar_url ? (
+                            <img src={result.user.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-indigo-100 text-indigo-700 font-bold">
+                              {(result.user?.name || '?').charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                            {result.user?.name || 'Siswa Tidak Diketahui'}
+                            {result.attemptCount > 1 && (
+                              <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md font-bold border border-amber-200">
+                                {result.attemptCount}x Percobaan
+                              </span>
+                            )}
+                          </h4>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(result.completedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-slate-800">{attempt.user?.name || 'Siswa Tidak Diketahui'}</h4>
-                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(attempt.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="text-xs font-bold text-slate-500 uppercase">Nilai</span>
+                          <span className={cn("text-lg font-black", (quiz.passing_score && result.bestScore >= quiz.passing_score) ? "text-emerald-600" : "text-rose-500")}>
+                            {Math.round(result.bestScore)}
+                          </span>
                         </div>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <span className="text-xs font-bold text-slate-500 uppercase">Nilai</span>
-                        <span className={cn("text-lg font-black", (quiz.passing_score && attempt.score >= quiz.passing_score) ? "text-emerald-600" : "text-rose-500")}>
-                          {Math.round(attempt.score)}
-                        </span>
+                      
+                      <div className="flex items-center gap-4 border-t border-slate-100 pt-3 mt-3 text-xs">
+                        <div className="flex items-center gap-1.5 text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-md">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> {result.correctCount} Benar
+                        </div>
+                        <div className="flex items-center gap-1.5 text-rose-500 font-semibold bg-rose-50 px-2 py-1 rounded-md">
+                          <XCircle className="h-3.5 w-3.5" /> {result.wrongCount} Salah
+                        </div>
+                        <div className="flex-1"></div>
+                        <div className="text-slate-400 font-medium text-[10px] uppercase tracking-wider">
+                          Berdasarkan {result.attemptCount > 1 ? 'nilai tertinggi' : 'percobaan ini'}
+                        </div>
                       </div>
                     </div>
                   ));

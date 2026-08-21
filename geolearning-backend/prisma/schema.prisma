@@ -7,40 +7,41 @@ datasource db {
 }
 
 model User {
-  id                     String              @id @default(dbgenerated("gen_random_uuid()"))
-  name                   String
-  email                  String              @unique
-  role                   Role                @default(STUDENT)
-  xp                     Int                 @default(0)
-  level                  Int                 @default(1)
-  avatar_url             String?
-  equipped_badge_id      String?
-  current_streak         Int                 @default(0)
-  longest_streak         Int                 @default(0)
-  created_at             DateTime            @default(now())
-  updated_at             DateTime            @updatedAt
-  nis_nip                String?
-  school_class           String?
-  enrollments            ClassStudent[]      @relation("StudentEnrollments")
-  taught_classes         Class[]             @relation("TeacherClasses")
-  interventions_received Intervention[]      @relation("StudentInterventions")
-  interventions_given    Intervention[]      @relation("TeacherInterventions")
-  notifications          Notification[]
-  quiz_attempts          QuizAttempt[]
-  created_quizzes        Quiz[]              @relation("TeacherQuizzes")
-  xp_logs                XpLog[]
-  badges                 UserBadge[]         @relation("OwnedBadges")
-  equipped_badge         UserBadge?          @relation("EquippedBadge", fields: [equipped_badge_id], references: [id])
-  projectSubmissions     ProjectSubmission[]
-  unlocked_modules       ModuleUnlock[]      @relation("UnlockedModules")
-  teacher_unlocked_modules ModuleUnlock[]    @relation("TeacherUnlockedModules")
-  resources              TeacherResource[]   @relation("TeacherResources")
-  
-  verification_status    VerificationStatus  @default(UNVERIFIED)
-  created_codes          InvitationCode[]    @relation("AdminCreatedCodes")
-  used_codes             InvitationCodeLog[] @relation("TeacherUsedCodes")
-  learning_style         String?
-  bio                    String?
+  id                       String              @id @default(dbgenerated("gen_random_uuid()"))
+  name                     String
+  email                    String              @unique
+  role                     Role                @default(STUDENT)
+  xp                       Int                 @default(0)
+  level                    Int                 @default(1)
+  avatar_url               String?
+  equipped_badge_id        String?
+  current_streak           Int                 @default(0)
+  longest_streak           Int                 @default(0)
+  created_at               DateTime            @default(now())
+  updated_at               DateTime            @updatedAt
+  nis_nip                  String?
+  school_class             String?
+  enrollments              ClassStudent[]      @relation("StudentEnrollments")
+  taught_classes           Class[]             @relation("TeacherClasses")
+  interventions_received   Intervention[]      @relation("StudentInterventions")
+  interventions_given      Intervention[]      @relation("TeacherInterventions")
+  notifications            Notification[]
+  quiz_attempts            QuizAttempt[]
+  created_quizzes          Quiz[]              @relation("TeacherQuizzes")
+  xp_logs                  XpLog[]
+  badges                   UserBadge[]         @relation("OwnedBadges")
+  equipped_badge           UserBadge?          @relation("EquippedBadge", fields: [equipped_badge_id], references: [id])
+  projectSubmissions       ProjectSubmission[]
+  unlocked_modules         ModuleUnlock[]      @relation("UnlockedModules")
+  teacher_unlocked_modules ModuleUnlock[]      @relation("TeacherUnlockedModules")
+  resources                TeacherResource[]   @relation("TeacherResources")
+
+  verification_status VerificationStatus   @default(UNVERIFIED)
+  created_codes       InvitationCode[]     @relation("AdminCreatedCodes")
+  used_codes          InvitationCodeLog[]  @relation("TeacherUsedCodes")
+  learning_style      String?
+  bio                 String?
+  materialCompletions MaterialCompletion[]
 
   @@map("users")
 }
@@ -102,15 +103,15 @@ model UserBadge {
 }
 
 model Module {
-  id          String     @id @default(dbgenerated("gen_random_uuid()"))
+  id          String         @id @default(dbgenerated("gen_random_uuid()"))
   class_id    String
   title       String
   description String?
-  order       Int        @default(0)
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
+  order       Int            @default(0)
+  created_at  DateTime       @default(now())
+  updated_at  DateTime       @updatedAt
   materials   Material[]
-  class       Class      @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  class       Class          @relation(fields: [class_id], references: [id], onDelete: Cascade)
   quizzes     Quiz[]
   unlocks     ModuleUnlock[]
 
@@ -118,18 +119,19 @@ model Module {
 }
 
 model Material {
-  id           String       @id @default(dbgenerated("gen_random_uuid()"))
-  module_id    String
-  title        String
-  type         MaterialType @default(TEXT)
-  content_url  String?
-  content_text String?
-  order        Int          @default(0)
-  is_published Boolean      @default(true)
-  xp_reward    Int          @default(15)
-  created_at   DateTime     @default(now())
-  updated_at   DateTime     @updatedAt
-  module       Module       @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  id                  String               @id @default(dbgenerated("gen_random_uuid()"))
+  module_id           String
+  title               String
+  type                MaterialType         @default(TEXT)
+  content_url         String?
+  content_text        String?
+  order               Int                  @default(0)
+  is_published        Boolean              @default(true)
+  xp_reward           Int                  @default(15)
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @updatedAt
+  module              Module               @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  materialCompletions MaterialCompletion[]
 
   @@map("materials")
 }
@@ -140,48 +142,51 @@ model MaterialCompletion {
   material_id String
   created_at  DateTime @default(now())
 
+  material Material @relation(fields: [material_id], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
   @@unique([user_id, material_id])
   @@map("material_completions")
 }
 
 model Quiz {
-  id           String        @id @default(dbgenerated("gen_random_uuid()"))
-  module_id    String?
-  title        String
-  time_limit   Int?
-  xp_reward    Int           @default(10)
-  order        Int           @default(0)
-  is_published Boolean       @default(false)
-  quiz_type    String        @default("FORMATIF")
-  max_attempts Int?
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @updatedAt
-  class_id     String?
-  teacher_id   String?
-  questions    Question[]
-  attempts     QuizAttempt[]
-  class        Class?        @relation(fields: [class_id], references: [id], onDelete: Cascade)
-  module       Module?       @relation(fields: [module_id], references: [id], onDelete: Cascade)
-  teacher      User?         @relation("TeacherQuizzes", fields: [teacher_id], references: [id], onDelete: Cascade)
-  passing_score Float?       @default(0)
+  id            String        @id @default(dbgenerated("gen_random_uuid()"))
+  module_id     String?
+  title         String
+  time_limit    Int?
+  xp_reward     Int           @default(10)
+  order         Int           @default(0)
+  is_published  Boolean       @default(false)
+  quiz_type     String        @default("FORMATIF")
+  max_attempts  Int?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  class_id      String?
+  teacher_id    String?
+  questions     Question[]
+  attempts      QuizAttempt[]
+  class         Class?        @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  module        Module?       @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  teacher       User?         @relation("TeacherQuizzes", fields: [teacher_id], references: [id], onDelete: Cascade)
+  passing_score Float?        @default(0)
 
   @@map("quizzes")
 }
 
 model Question {
-  id             String       @id @default(dbgenerated("gen_random_uuid()"))
-  quiz_id        String
-  text           String
-  type           QuestionType @default(MULTIPLE_CHOICE)
-  options        Json
-  correct_answer String
-  explanation    String?
-  points         Int?
-  duration       Int?
-  order          Int          @default(0)
-  image_url      String?
-  created_at     DateTime     @default(now())
-  quiz           Quiz         @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
+  id              String              @id @default(dbgenerated("gen_random_uuid()"))
+  quiz_id         String
+  text            String
+  type            QuestionType        @default(MULTIPLE_CHOICE)
+  options         Json
+  correct_answer  String
+  explanation     String?
+  points          Int?
+  duration        Int?
+  order           Int                 @default(0)
+  image_url       String?
+  created_at      DateTime            @default(now())
+  quiz            Quiz                @relation(fields: [quiz_id], references: [id], onDelete: Cascade)
   attempt_answers QuizAttemptAnswer[]
 
   @@map("questions")
@@ -205,14 +210,14 @@ model QuizAttempt {
 }
 
 model QuizAttemptAnswer {
-  id               String       @id @default(dbgenerated("gen_random_uuid()"))
+  id               String  @id @default(dbgenerated("gen_random_uuid()"))
   attempt_id       String
   question_id      String
   is_correct       Boolean
   selected_options Json?
-  
-  attempt          QuizAttempt  @relation(fields: [attempt_id], references: [id], onDelete: Cascade)
-  question         Question     @relation(fields: [question_id], references: [id], onDelete: Cascade)
+
+  attempt  QuizAttempt @relation(fields: [attempt_id], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [question_id], references: [id], onDelete: Cascade)
 
   @@map("quiz_attempt_answers")
 }
@@ -221,29 +226,29 @@ model XpLog {
   id           String   @id @default(dbgenerated("gen_random_uuid()"))
   user_id      String
   amount       Int
-  source       String   // e.g. 'quiz', 'badge', 'manual_adjustment', 'project'
-  reference_id String?  // ID of the quiz attempt, badge, etc.
+  source       String // e.g. 'quiz', 'badge', 'manual_adjustment', 'project'
+  reference_id String? // ID of the quiz attempt, badge, etc.
   created_at   DateTime @default(now())
 
-  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("xp_logs")
 }
 
 model ProjectAssignment {
-  id           String              @id @default(dbgenerated("gen_random_uuid()"))
-  class_id     String
-  title        String
-  description  String
-  deadline     DateTime?
-  xp_reward    Int                 @default(100)
-  is_published Boolean             @default(false)
-  is_group_project Boolean         @default(false)
+  id                String              @id @default(dbgenerated("gen_random_uuid()"))
+  class_id          String
+  title             String
+  description       String
+  deadline          DateTime?
+  xp_reward         Int                 @default(100)
+  is_published      Boolean             @default(false)
+  is_group_project  Boolean             @default(false)
   steam_integration Json?
-  created_at   DateTime            @default(now())
-  updated_at   DateTime            @updatedAt
-  class        Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
-  submissions  ProjectSubmission[]
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+  class             Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
+  submissions       ProjectSubmission[]
 
   @@map("project_assignments")
 }
@@ -274,14 +279,13 @@ model ModuleUnlock {
   note       String?
   created_at DateTime @default(now())
 
-  user       User     @relation("UnlockedModules", fields: [user_id], references: [id], onDelete: Cascade)
-  module     Module   @relation(fields: [module_id], references: [id], onDelete: Cascade)
-  teacher    User     @relation("TeacherUnlockedModules", fields: [teacher_id], references: [id], onDelete: Cascade)
+  user    User   @relation("UnlockedModules", fields: [user_id], references: [id], onDelete: Cascade)
+  module  Module @relation(fields: [module_id], references: [id], onDelete: Cascade)
+  teacher User   @relation("TeacherUnlockedModules", fields: [teacher_id], references: [id], onDelete: Cascade)
 
   @@unique([user_id, module_id])
   @@map("module_unlocks")
 }
-
 
 model Intervention {
   id         String           @id @default(dbgenerated("gen_random_uuid()"))
@@ -311,8 +315,6 @@ model Notification {
   @@map("notifications")
 }
 
-
-
 enum Role {
   STUDENT
   TEACHER
@@ -326,30 +328,30 @@ enum VerificationStatus {
 }
 
 model InvitationCode {
-  id              String                @id @default(dbgenerated("gen_random_uuid()"))
-  code            String                @unique
-  created_by_id   String
-  expires_at      DateTime?
-  max_uses        Int?
-  times_used      Int                   @default(0)
-  is_active       Boolean               @default(true)
-  created_at      DateTime              @default(now())
-  
-  created_by      User                  @relation("AdminCreatedCodes", fields: [created_by_id], references: [id])
-  logs            InvitationCodeLog[]
-  
+  id            String    @id @default(dbgenerated("gen_random_uuid()"))
+  code          String    @unique
+  created_by_id String
+  expires_at    DateTime?
+  max_uses      Int?
+  times_used    Int       @default(0)
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+
+  created_by User                @relation("AdminCreatedCodes", fields: [created_by_id], references: [id])
+  logs       InvitationCodeLog[]
+
   @@map("invitation_codes")
 }
 
 model InvitationCodeLog {
-  id                  String          @id @default(dbgenerated("gen_random_uuid()"))
-  invitation_code_id  String
-  used_by_id          String
-  used_at             DateTime        @default(now())
-  
-  invitation_code     InvitationCode  @relation(fields: [invitation_code_id], references: [id])
-  used_by             User            @relation("TeacherUsedCodes", fields: [used_by_id], references: [id])
-  
+  id                 String   @id @default(dbgenerated("gen_random_uuid()"))
+  invitation_code_id String
+  used_by_id         String
+  used_at            DateTime @default(now())
+
+  invitation_code InvitationCode @relation(fields: [invitation_code_id], references: [id])
+  used_by         User           @relation("TeacherUsedCodes", fields: [used_by_id], references: [id])
+
   @@map("invitation_code_logs")
 }
 
@@ -391,17 +393,18 @@ enum QuestionType {
 }
 
 model TeacherResource {
-  id           String       @id @default(dbgenerated("gen_random_uuid()"))
-  teacher_id   String
-  title        String
-  description  String?
-  type         MaterialType @default(TEXT)
-  file_url     String?
-  content      Json?
-  created_at   DateTime     @default(now())
-  updated_at   DateTime     @updatedAt
+  id          String       @id @default(dbgenerated("gen_random_uuid()"))
+  teacher_id  String
+  title       String
+  description String?
+  type        MaterialType @default(TEXT)
+  file_url    String?
+  content     Json?
+  xp_reward   Int          @default(15)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
 
-  teacher      User         @relation("TeacherResources", fields: [teacher_id], references: [id], onDelete: Cascade)
+  teacher User @relation("TeacherResources", fields: [teacher_id], references: [id], onDelete: Cascade)
 
   @@map("teacher_resources")
 }

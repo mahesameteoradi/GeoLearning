@@ -35,6 +35,7 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
   const availableThemes = data.themes && data.themes.length > 0 ? data.themes : (data.theme ? [data.theme] : ['topography'])
   const [activeThemeId, setActiveThemeId] = useState<string>(availableThemes[0])
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [isLayerSelectorOpen, setIsLayerSelectorOpen] = useState(false)
   
   const [isFullscreen, setIsFullscreen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -114,12 +115,23 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
 
         {/* Layer Selector for Multiple Themes */}
         {availableThemes.length > 1 && (
-          <div className="absolute top-4 right-4 z-[400] bg-white/95 backdrop-blur-sm p-2 rounded-2xl shadow-xl border border-slate-200 flex flex-col gap-2 max-w-[250px]">
-            <div className="flex items-center gap-2 px-2 pt-1 pb-2 border-b border-slate-100">
-              <Layers className="w-4 h-4 text-indigo-600" />
-              <span className="text-xs font-bold text-slate-700">Pilih Layer Peta</span>
-            </div>
-            <div className="flex flex-col gap-1 max-h-[300px] overflow-y-auto">
+          <div className="absolute top-4 right-4 z-[400] bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200 flex flex-col max-w-[250px] overflow-hidden transition-all duration-300">
+            <button 
+              onClick={() => setIsLayerSelectorOpen(!isLayerSelectorOpen)}
+              className="flex items-center justify-between gap-3 px-4 py-3 bg-white hover:bg-slate-50 transition-colors w-full"
+            >
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-indigo-600" />
+                <span className="text-xs font-bold text-slate-700">Pilih Layer Peta</span>
+              </div>
+              <div className={`transform transition-transform ${isLayerSelectorOpen ? 'rotate-180' : ''}`}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </button>
+            
+            <div className={`flex flex-col gap-1 overflow-y-auto transition-all duration-300 ${isLayerSelectorOpen ? 'max-h-[300px] p-2 border-t border-slate-100 opacity-100' : 'max-h-0 p-0 opacity-0'}`}>
               {availableThemes.map(themeId => {
                 const mapTypeInfo = MAP_TYPES.find(m => m.id === themeId)
                 if (!mapTypeInfo) return null
@@ -128,7 +140,10 @@ export default function InteractiveMapViewerClient({ title, data, onClose, inlin
                 return (
                   <button 
                     key={themeId}
-                    onClick={() => handleThemeChange(themeId)}
+                    onClick={() => {
+                      handleThemeChange(themeId)
+                      setIsLayerSelectorOpen(false)
+                    }}
                     className={`text-left px-3 py-2 rounded-xl text-sm font-semibold transition-all ${
                       isActive ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-indigo-50 text-slate-600'
                     }`}

@@ -60,18 +60,30 @@ export default function WelcomeScreen() {
         <div className="absolute bottom-1/3 right-1/3 w-[350px] h-[350px] rounded-full bg-amber-500/8 blur-[100px]" style={{ animation: 'float 5s ease-in-out infinite reverse' }} />
 
         {/* Floating particles */}
-        {[...Array(12)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 rounded-full bg-blue-400/40"
-            style={{
-              top: `${10 + Math.random() * 80}%`,
-              left: `${10 + Math.random() * 80}%`,
-              animation: `floatParticle ${3 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 2}s`,
-            }}
-          />
-        ))}
+        {[...Array(12)].map((_, i) => {
+          // Deterministic pseudo-random values to prevent hydration mismatch
+          const rand1 = (Math.sin(i * 1.1) + 1) / 2;
+          const rand2 = (Math.cos(i * 1.5) + 1) / 2;
+          const rand3 = (Math.sin(i * 2.3) + 1) / 2;
+          const rand4 = (Math.cos(i * 3.7) + 1) / 2;
+
+          return (
+            <div
+              key={i}
+              className="absolute w-1 h-1 rounded-full bg-blue-400/40"
+              style={{
+                top: `${(10 + rand1 * 80).toFixed(4)}%`,
+                left: `${(10 + rand2 * 80).toFixed(4)}%`,
+                animationName: 'floatParticle',
+                animationDuration: `${(3 + rand3 * 4).toFixed(4)}s`,
+                animationTimingFunction: 'ease-in-out',
+                animationIterationCount: 'infinite',
+                animationDelay: `${(rand4 * 2).toFixed(4)}s`,
+              }}
+              suppressHydrationWarning
+            />
+          );
+        })}
       </div>
 
       {/* Main content — centered */}

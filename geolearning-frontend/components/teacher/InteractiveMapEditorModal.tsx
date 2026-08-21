@@ -23,7 +23,7 @@ interface Props {
 export function InteractiveMapEditorModal({ existingModules, defaultModuleId, nextOrderMap, defaultTitle, onClose, onSuccess }: Props) {
   const [saving, setSaving] = useState(false)
 
-  async function handleSave(data: InteractiveMapData, meta: { title: string, moduleId: string, order: number }) {
+  async function handleSave(data: InteractiveMapData, meta: { title: string, moduleId: string, order: number, xpReward: number }) {
     setSaving(true)
     const supabase = createClient()
     
@@ -36,6 +36,7 @@ export function InteractiveMapEditorModal({ existingModules, defaultModuleId, ne
       content_url: null,
       content_text: JSON.stringify(data),
       order: meta.order,
+      xp_reward: meta.xpReward,
       updated_at: new Date().toISOString(),
     }).select().single()
 

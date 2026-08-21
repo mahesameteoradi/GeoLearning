@@ -201,6 +201,7 @@ interface MapThemeLegendProps extends MapThemeLayerProps {
 }
 
 export function MapThemeLegend({ theme, activeFilter, onFilterChange }: MapThemeLegendProps) {
+  const [isLegendOpen, setIsLegendOpen] = useState(false)
   if (!theme || theme === 'custom') return null
 
   const legends: Record<string, {color: string, label: string, hexColor: string}[]> = {
@@ -255,19 +256,27 @@ export function MapThemeLegend({ theme, activeFilter, onFilterChange }: MapTheme
   if (!items) return null
 
   return (
-    <div className="absolute bottom-4 right-4 z-[400] bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-slate-200 pointer-events-auto">
-      <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+    <div className="absolute bottom-4 right-4 z-[400] bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200 pointer-events-auto flex flex-col overflow-hidden transition-all duration-300">
+      <div className="flex justify-between items-center bg-white hover:bg-slate-50 transition-colors px-4 py-3 cursor-pointer" onClick={() => setIsLegendOpen(!isLegendOpen)}>
         <h3 className="text-xs font-black uppercase tracking-widest text-slate-800">Keterangan Peta</h3>
-        {activeFilter && (
-          <button 
-            onClick={() => onFilterChange?.(null)}
-            className="text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-0.5 rounded"
-          >
-            Tampilkan Semua
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {activeFilter && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); onFilterChange?.(null); }}
+              className="text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-2 py-0.5 rounded"
+            >
+              Reset
+            </button>
+          )}
+          <div className={`transform transition-transform ${isLegendOpen ? 'rotate-180' : ''}`}>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col gap-1.5">
+      
+      <div className={`flex flex-col gap-1.5 transition-all duration-300 ${isLegendOpen ? 'max-h-[400px] p-3 pt-1 border-t border-slate-100 opacity-100' : 'max-h-0 p-0 opacity-0'}`}>
         {items.map((item, i) => {
           const isActive = activeFilter === item.hexColor
           const isFaded = activeFilter && !isActive

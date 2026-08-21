@@ -13,6 +13,7 @@ interface TeacherResource {
   type: string
   file_url: string | null
   description: string | null
+  xp_reward?: number
   created_at: string
 }
 
@@ -60,7 +61,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
 
     const { data, error } = await supabase
       .from('teacher_resources')
-      .select('id, title, type, file_url, description, created_at')
+      .select('id, title, type, file_url, description, xp_reward, created_at')
       .eq('teacher_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -126,6 +127,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
         content_url: resource.file_url,
         content_text: resource.description,
         order: resourceOrder + idx,
+        xp_reward: resource.xp_reward || 15,
         is_published: false,
         updated_at: new Date().toISOString()
       }))

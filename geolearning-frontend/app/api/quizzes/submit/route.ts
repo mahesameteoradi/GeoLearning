@@ -100,8 +100,8 @@ export async function POST(req: Request) {
           .eq('user_id', userId)
           .not('completed_at', 'is', null)
 
-        // Asynchronous fire-and-forget: do not await the fetch so we don't block the quiz submission response
-        fetch(process.env.NEXT_PUBLIC_API_URL + '/gamification/award-xp', {
+        // Await the fetch so that gamification (XP, level up, badges) finishes and real-time events are broadcasted before returning.
+        const gamificationRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/gamification/award-xp', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -114,7 +114,11 @@ export async function POST(req: Request) {
             quizScore: serverScore,
             isFirstQuiz: count === 1
           })
-        }).catch(err => console.error('Failed to trigger gamification (async):', err))
+        });
+        
+        if (!gamificationRes.ok) {
+          console.error('Gamification backend failed:', await gamificationRes.text());
+        }
       } catch (err) {
         console.error('Failed to query quiz count for gamification:', err)
       }

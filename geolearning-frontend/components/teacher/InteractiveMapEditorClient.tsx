@@ -32,7 +32,7 @@ interface ClientProps {
   defaultModuleId: string
   nextOrderMap?: Record<string, number>
   defaultTitle: string
-  onSave: (data: InteractiveMapData, meta: { title: string, moduleId: string, order: number }) => void
+  onSave: (data: InteractiveMapData, meta: { title: string, moduleId: string, order: number, xpReward: number }) => void
   onCancel: () => void
 }
 
@@ -42,6 +42,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
   const [mapTitle, setMapTitle] = useState(defaultTitle)
   const [moduleId, setModuleId] = useState(defaultModuleId)
   const [order, setOrder] = useState(nextOrderMap?.[defaultModuleId] ?? 1)
+  const [xpReward, setXpReward] = useState<number>(15)
   
   // Use existing themes array if available, or fallback to the single theme, or default to topography
   const [selectedThemes, setSelectedThemes] = useState<MapTheme[]>(
@@ -63,16 +64,14 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
 
   function handleSaveAll() {
     const currentMap = mapRef.current
-    onSave({
+    const payload = {
       center: currentMap ? { lat: currentMap.getCenter().lat, lng: currentMap.getCenter().lng } : center,
       zoom: currentMap ? currentMap.getZoom() : zoom,
       themes: selectedThemes,
       theme: selectedThemes[0] // for backwards compatibility
-    }, {
-      title: mapTitle,
-      moduleId,
-      order
-    })
+    }
+    const meta = { title: mapTitle, moduleId, order, xpReward }
+    onSave(payload, meta)
   }
 
   return (
@@ -134,6 +133,11 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Urutan ke- <span className="text-red-500">*</span></label>
             <input type="number" min={0} value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" />
+          </div>
+
+          <div>
+            <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Poin XP <span className="text-red-500">*</span></label>
+            <input type="number" min={0} value={xpReward} onChange={e => setXpReward(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" />
           </div>
 
           <div className="pt-4 border-t border-slate-100">

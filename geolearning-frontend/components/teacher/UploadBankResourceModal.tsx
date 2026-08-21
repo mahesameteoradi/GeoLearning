@@ -23,6 +23,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
+  const [xpReward, setXpReward] = useState<number>(15)
   const [file, setFile] = useState<File | null>(null)
   
   const [uploading, setUploading] = useState(false)
@@ -74,6 +75,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
         type: finalType,
         file_url: finalUrl,
         content: null,
+        xp_reward: xpReward,
         updated_at: new Date().toISOString()
       })
 
@@ -155,6 +157,12 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
               <label className="mb-1.5 block text-xs font-bold text-slate-700">Catatan / Deskripsi (Opsional)</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} placeholder="Penjelasan singkat tentang materi ini..."
                 className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10" />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-slate-700">Poin XP <span className="text-rose-500">*</span></label>
+              <input type="number" min={0} required value={xpReward} onChange={e => setXpReward(Number(e.target.value))} placeholder="15"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10" />
             </div>
           </div>
 

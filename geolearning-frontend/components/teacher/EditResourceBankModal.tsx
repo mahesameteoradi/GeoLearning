@@ -16,6 +16,7 @@ export function EditResourceBankModal({
 }) {
   const [title, setTitle] = useState(item.title)
   const [description, setDescription] = useState(item.description || '')
+  const [xpReward, setXpReward] = useState<number>(item.xp_reward ?? 15)
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,6 +31,7 @@ export function EditResourceBankModal({
       const { error } = await supabase.from('teacher_resources').update({
         title: title.trim(),
         description: description.trim() || null,
+        xp_reward: xpReward,
         updated_at: new Date().toISOString()
       }).eq('id', item.id)
 
@@ -64,6 +66,12 @@ export function EditResourceBankModal({
               <label className="mb-1.5 block text-xs font-bold text-slate-700">Catatan / Deskripsi (Opsional)</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Penjelasan singkat tentang materi ini..."
                 className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10" />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-bold text-slate-700">Poin XP <span className="text-rose-500">*</span></label>
+              <input type="number" min={0} required value={xpReward} onChange={e => setXpReward(Number(e.target.value))}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10" />
             </div>
           </div>
 
