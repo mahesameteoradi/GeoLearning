@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, BookOpen, Clock, Loader2, Sparkles, CheckCircle, MapPin } from 'lucide-react'
+import { ArrowLeft, BookOpen, Clock, Loader2, Sparkles, CheckCircle, MapPin, Maximize } from 'lucide-react'
 import { triggerConfetti } from '@/lib/utils/confetti'
 import { cn } from '@/lib/utils/cn'
 import dynamic from 'next/dynamic'
@@ -36,6 +36,9 @@ export default function MaterialReaderPage() {
   const [isFinished, setIsFinished] = useState(false)
   const [isAlreadyFinished, setIsAlreadyFinished] = useState(false)
   const [hasOpenedLink, setHasOpenedLink] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchMaterial = async () => {
@@ -145,6 +148,24 @@ export default function MaterialReaderPage() {
     }, 1500)
   }
 
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+    document.addEventListener('fullscreenchange', onFullscreenChange)
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange)
+  }, [])
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen?.().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`)
+      })
+    } else {
+      document.exitFullscreen?.()
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 p-6 lg:p-8">
@@ -214,7 +235,16 @@ export default function MaterialReaderPage() {
           {material.content_url && (
             <div className="mt-12 not-prose">
               <div className="p-2 sm:p-3 rounded-3xl bg-white/40 backdrop-blur-xl border border-white/50 shadow-[0_20px_50px_rgba(37,99,235,0.1)] overflow-hidden mb-4">
-                <div className="bg-slate-900/5 rounded-2xl overflow-hidden relative w-full flex items-center justify-center min-h-[250px]">
+                <div ref={containerRef} className="bg-slate-900/5 rounded-2xl overflow-hidden relative w-full flex flex-col items-center justify-center min-h-[250px] group bg-white">
+                  
+                  <button 
+                    onClick={toggleFullScreen}
+                    className="absolute top-4 right-4 z-10 p-2.5 bg-slate-900/40 hover:bg-slate-900/70 backdrop-blur-md rounded-xl text-white opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-lg"
+                    title="Layar Penuh"
+                  >
+                    <Maximize className="w-5 h-5" />
+                  </button>
+
                   {(() => {
                     const url = material.content_url;
                     
@@ -259,7 +289,8 @@ export default function MaterialReaderPage() {
                       return (
                         <iframe 
                           src={embedUrl}
-                          className="w-full h-[600px]"
+                          className="w-full h-[600px] min-h-full transition-all duration-300"
+                          style={{ minHeight: isFullscreen ? '100vh' : '600px' }}
                           onLoad={() => setHasOpenedLink(true)}
                         />
                       )
