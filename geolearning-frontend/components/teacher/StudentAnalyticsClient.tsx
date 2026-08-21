@@ -24,7 +24,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
   
   const [interventionMsg, setInterventionMsg] = useState('')
   const [interventionType, setInterventionType] = useState('ACADEMIC')
-  const [xpBonus, setXpBonus] = useState(50)
+  const [xpBonus, setXpBonus] = useState(50) // kept for type compatibility, unused
   const [isSubmittingIntervention, setIsSubmittingIntervention] = useState(false)
   
   const typeColors: Record<string, string> = {
@@ -95,22 +95,8 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
       const token = session?.access_token
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/v1'
       
-      if (interventionType === 'POSITIVE') {
-        const res = await fetch(`${apiUrl}/gamification/boost`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({ studentId, xpBonus, note: interventionMsg })
-        })
-        if (res.ok) {
-          const result = await res.json()
-          setInterventions([result.intervention, ...interventions])
-          setInterventionMsg('')
-          setInterventionType('ACADEMIC')
-          setXpBonus(50)
-        }
+      if (false) {
+        // POSITIVE/XP boost removed
       } else {
         const res = await fetch(`${apiUrl}/teacher/analytics/student/${studentId}/interventions`, {
           method: 'POST',
@@ -508,8 +494,8 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                   className="w-full rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
                   disabled={isSubmittingIntervention}
                 >
-                  {(['ACADEMIC', 'BEHAVIORAL', 'ATTENDANCE', 'EMOTIONAL', 'POSITIVE', 'CORRECTIVE']).map((t) => (
-                    <option key={t} value={t}>{t === 'POSITIVE' ? 'POSITIVE (Kirim Motivasi & XP)' : t}</option>
+                  {(['ACADEMIC', 'BEHAVIORAL', 'ATTENDANCE', 'EMOTIONAL', 'CORRECTIVE']).map((t) => (
+                    <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>
@@ -529,22 +515,6 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                 />
               </div>
 
-              {interventionType === 'POSITIVE' && (
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-green-600">
-                    XP Bonus (Reward)
-                  </label>
-                  <input
-                    type="number"
-                    min="10"
-                    step="10"
-                    value={xpBonus}
-                    onChange={(e) => setXpBonus(parseInt(e.target.value) || 0)}
-                    className="w-full rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-slate-800 focus:border-green-400 focus:outline-none focus:ring-4 focus:ring-green-500/10 transition-all font-bold"
-                    disabled={isSubmittingIntervention}
-                  />
-                </div>
-              )}
 
               <button
                 type="submit"

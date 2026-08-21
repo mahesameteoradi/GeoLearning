@@ -708,7 +708,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
               📊 Distribusi XP
             </h2>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
                 <div className="flex flex-col gap-1 rounded-xl bg-amber-50 p-3">
                   <span className="text-[10px] sm:text-xs font-semibold text-amber-700">Dari Kuis</span>
                   <span className="text-lg sm:text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
@@ -720,10 +720,6 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
                 <div className="flex flex-col gap-1 rounded-xl bg-green-50 p-3">
                   <span className="text-[10px] sm:text-xs font-semibold text-green-700">Dari Proyek</span>
                   <span className="text-lg sm:text-xl font-black text-green-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
-                </div>
-                <div className="flex flex-col gap-1 rounded-xl bg-purple-50 p-3">
-                  <span className="text-[10px] sm:text-xs font-semibold text-purple-700">Bonus Guru</span>
-                  <span className="text-lg sm:text-xl font-black text-purple-600">{xpBreakdown.lainnya?.toLocaleString() || 0} XP</span>
                 </div>
               </div>
             </div>

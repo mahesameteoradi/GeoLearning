@@ -42,7 +42,7 @@ const typeColors: Record<InterventionType, string> = {
 export function InterventionPanel({ interventions: initial, students, teacherId, className }: InterventionPanelProps) {
   const [interventions, setInterventions] = useState(initial)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ studentId: '', note: '', type: 'ACADEMIC' as InterventionType, xpBonus: 50 })
+  const [form, setForm] = useState({ studentId: '', note: '', type: 'ACADEMIC' as InterventionType })
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,76 +52,48 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
     setSubmitting(true)
     try {
       const supabase = createClient()
-      
-      let newIv: Intervention;
 
-      if (form.type === 'POSITIVE') {
-        const { data: { session } } = await supabase.auth.getSession()
-        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
-        const res = await fetch(`${backendUrl}/v1/gamification/boost`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session?.access_token}`
-          },
-          body: JSON.stringify({
-            studentId: form.studentId,
-            xpBonus: form.xpBonus,
-            note: form.note
-          })
-        })
-        if (!res.ok) throw new Error('Failed to send boost')
-        
-        const result = await res.json()
-        const stu = students.find(s => s.id === form.studentId)
-        newIv = {
-          ...result.intervention,
-          studentName: stu?.name ?? 'Unknown',
-        }
-      } else {
-        // 1. Insert normal intervention
-        const interventionId = crypto.randomUUID()
-        const { data: interData, error: interError } = await supabase
-          .from('interventions')
-          .insert({
-            id: interventionId,
-            teacher_id: teacherId,
-            student_id: form.studentId,
-            note: form.note,
-            type: form.type,
-            resolved: false,
-            updated_at: new Date().toISOString()
-          })
-          .select(`
-            id, note, type, resolved, created_at,
-            student:users!interventions_student_id_fkey(id, name)
-          `)
-          .single()
-          
-        if (interError) throw interError
-
-        // 2. Insert notification
-        await supabase.from('notifications').insert({
-          id: crypto.randomUUID(),
-          user_id: form.studentId,
-          message: `Pesan Guru: ${form.note}`,
-          type: 'INTERVENTION'
-        })
-
-        const stu = Array.isArray(interData.student) ? interData.student[0] : interData.student
-        newIv = {
-          ...interData,
+      const interventionId = crypto.randomUUID()
+      const { data: interData, error: interError } = await supabase
+        .from('interventions')
+        .insert({
+          id: interventionId,
+          teacher_id: teacherId,
           student_id: form.studentId,
-          studentName: (stu as any)?.name ?? 'Unknown',
-        } as Intervention
-      }
+          note: form.note,
+          type: form.type,
+          resolved: false,
+          updated_at: new Date().toISOString()
+        })
+        .select(`
+          id, note, type, resolved, created_at,
+          student:users!interventions_student_id_fkey(id, name)
+        `)
+        .single()
+        
+      if (interError) throw interError
+
+      // Insert notification
+      await supabase.from('notifications').insert({
+        id: crypto.randomUUID(),
+        user_id: form.studentId,
+        message: `Pesan Guru: ${form.note}`,
+        type: 'INTERVENTION'
+      })
+
+      const stu = Array.isArray(interData.student) ? interData.student[0] : interData.student
+      const newIv = {
+        ...interData,
+        student_id: form.studentId,
+        studentName: (stu as any)?.name ?? 'Unknown',
+      } as Intervention
 
       setInterventions([newIv, ...interventions])
-      toast.success('Intervention recorded')
-      setForm({ studentId: '', note: '', type: 'ACADEMIC', xpBonus: 50 })
+      toast.success('Intervensi berhasil disimpan')
+      setForm({ studentId: '', note: '', type: 'ACADEMIC' })
       setShowForm(false)
     } catch {
-      toast.error('Failed to save intervention')
+      toast.error('Gagal menyimpan intervensi')
     } finally {
       setSubmitting(false)
     }
@@ -176,8 +148,8 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
               onChange={(e) => setForm({ ...form, type: e.target.value as InterventionType })}
               className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-200 focus:outline-none"
             >
-              {(['ACADEMIC', 'BEHAVIORAL', 'ATTENDANCE', 'EMOTIONAL', 'POSITIVE', 'CORRECTIVE'] as const).map((t) => (
-                <option key={t} value={t}>{t === 'POSITIVE' ? 'POSITIVE (Kirim Motivasi)' : t}</option>
+              {(['ACADEMIC', 'BEHAVIORAL', 'ATTENDANCE', 'EMOTIONAL', 'CORRECTIVE'] as const).map((t) => (
+                <option key={t} value={t}>{t}</option>
               ))}
             </select>
           </div>
@@ -194,21 +166,7 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
               className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-200 focus:outline-none"
             />
           </div>
-          {form.type === 'POSITIVE' && (
-            <div>
-              <label className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-green-600">
-                XP Bonus (Reward)
-              </label>
-              <input
-                type="number"
-                min="10"
-                step="10"
-                value={form.xpBonus}
-                onChange={(e) => setForm({ ...form, xpBonus: parseInt(e.target.value) || 0 })}
-                className="w-full rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-slate-800 focus:border-green-400 focus:outline-none"
-              />
-            </div>
-          )}
+
           <div className="flex gap-2">
             <button
               type="submit"
