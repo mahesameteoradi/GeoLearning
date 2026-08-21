@@ -597,6 +597,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
   const [editingModuleId, setEditingModuleId] = useState<string | null>(null)
   const [editedModuleTitle, setEditedModuleTitle] = useState('')
   const [isUpdatingModule, setIsUpdatingModule] = useState(false)
+  const [submitResult, setSubmitResult] = useState<{type: 'success'|'error', message: string, data?: any} | null>(null)
+
   const [order, setOrder] = useState<number>(quiz?.order ?? (nextOrderMap?.[existingModules?.[0]?.id || 'new'] ?? 1))
 
   const [questions, setQuestions] = useState<QuestionDraft[]>([])
@@ -805,9 +807,11 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
         throw qError
       }
 
-      toast.success(quiz ? 'Kuis berhasil diperbarui! ✅' : 'Kuis berhasil dibuat! 🎉')
-      onSaved(newMod)
-      onClose()
+      setSubmitResult({ 
+        type: 'success', 
+        message: quiz ? 'Kuis berhasil diperbarui! ✅' : 'Kuis berhasil dibuat! 🎉', 
+        data: newMod 
+      })
     } catch (err) {
       console.error('[QuizEditor] save error:', err)
       let msg = 'Unknown error'
@@ -815,10 +819,46 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
       else if (typeof err === 'object' && err !== null) {
         msg = (err as any).message || JSON.stringify(err)
       }
-      toast.error(`Gagal menyimpan: ${msg}`)
+      setSubmitResult({ type: 'error', message: `Gagal menyimpan: ${msg}` })
     } finally {
       setSaving(false)
     }
+  }
+
+  if (submitResult) {
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/75 p-4 backdrop-blur-sm">
+        <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl p-8 text-center flex flex-col items-center">
+          {submitResult.type === 'success' ? (
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8" />
+            </div>
+          ) : (
+            <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4">
+              <X className="w-8 h-8" />
+            </div>
+          )}
+          <h2 className="text-xl font-bold text-slate-800 mb-2">
+            {submitResult.type === 'success' ? 'Berhasil!' : 'Gagal'}
+          </h2>
+          <p className="text-sm text-slate-600 mb-6">{submitResult.message}</p>
+          <button 
+            type="button"
+            onClick={() => {
+              if (submitResult.type === 'success') {
+                onSaved(submitResult.data)
+                onClose()
+              } else {
+                setSubmitResult(null)
+              }
+            }}
+            className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition"
+          >
+            {submitResult.type === 'success' ? 'Selesai & Kembali' : 'Coba Lagi'}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

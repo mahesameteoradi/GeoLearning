@@ -23,6 +23,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [linkUrl, setLinkUrl] = useState('')
+  const [submitResult, setSubmitResult] = useState<{type: 'success'|'error', message: string} | null>(null)
   const [xpReward, setXpReward] = useState<number>(15)
   const [file, setFile] = useState<File | null>(null)
   
@@ -81,13 +82,44 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
 
       if (saveErr) throw new Error(saveErr.message)
 
-      toast.success('Materi berhasil diunggah!', { id: tid })
-      onSuccess()
+      setSubmitResult({ type: 'success', message: 'Materi berhasil diunggah dan disimpan ke Bank Materi!' })
     } catch (err: any) {
-      toast.error(err.message || 'Gagal mengunggah', { id: tid })
+      setSubmitResult({ type: 'error', message: err.message || 'Gagal mengunggah materi.' })
     } finally {
       setUploading(false)
     }
+  }
+
+  if (submitResult) {
+    return (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/75 p-4 backdrop-blur-sm">
+        <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl p-8 text-center flex flex-col items-center">
+          {submitResult.type === 'success' ? (
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8" />
+            </div>
+          ) : (
+            <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mb-4">
+              <X className="w-8 h-8" />
+            </div>
+          )}
+          <h2 className="text-xl font-bold text-slate-800 mb-2">
+            {submitResult.type === 'success' ? 'Berhasil!' : 'Gagal'}
+          </h2>
+          <p className="text-sm text-slate-600 mb-6">{submitResult.message}</p>
+          <button 
+            type="button"
+            onClick={() => {
+              if (submitResult.type === 'success') onSuccess()
+              else setSubmitResult(null)
+            }}
+            className="w-full bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition"
+          >
+            {submitResult.type === 'success' ? 'Selesai & Kembali' : 'Coba Lagi'}
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (

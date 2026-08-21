@@ -32,14 +32,12 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // Refresh session — use getSession for faster middleware routing,
-  // let the actual pages do getUser() for strict validation.
-  let session = null
+  // Refresh session — use getUser for strict validation to avoid infinite redirects
+  // between middleware (stale session) and page.tsx (invalid token).
   let user = null
   try {
-    const { data } = await supabase.auth.getSession()
-    session = data.session
-    user = session?.user || null
+    const { data } = await supabase.auth.getUser()
+    user = data?.user || null
   } catch (err) {
     console.error('[proxy] supabase.auth.getSession() threw:', err)
     // On error, allow the request through rather than causing a redirect loop
