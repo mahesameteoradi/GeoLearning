@@ -34,7 +34,7 @@ export default function StatistikSection() {
         >
           {stats.map((stat, i) => (
             <motion.div key={i} variants={itemVariants} className="text-center px-4">
-              <div className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-600 mb-3 drop-shadow-sm">{stat.value}</div>
+              <div className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-slate-800 to-slate-600 mb-3 drop-shadow-sm">{stat.value}</div>
               <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{stat.label}</div>
             </motion.div>
           ))}

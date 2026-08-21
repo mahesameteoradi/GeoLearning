@@ -86,12 +86,12 @@ export default function UpdatePasswordPage() {
             transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
             className="mx-auto mb-4 relative inline-flex"
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg bg-emerald-50 border border-emerald-100">
-              <KeyRound className="h-8 w-8 text-emerald-600" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-lg bg-green-50 border border-green-100">
+              <KeyRound className="h-8 w-8 text-green-600" />
             </div>
           </motion.div>
 
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-800">
             Perbarui Kata Sandi
           </h1>
           <p className="mt-1.5 text-sm text-slate-500">
@@ -104,10 +104,10 @@ export default function UpdatePasswordPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-xl px-4 py-6 bg-emerald-50 border border-emerald-200 text-center"
+            className="rounded-xl px-4 py-6 bg-green-50 border border-green-200 text-center"
           >
-            <p className="text-sm font-semibold text-emerald-700">✅ Kata sandi berhasil diperbarui!</p>
-            <p className="text-xs text-emerald-600 mt-2">Mengarahkan ke halaman masuk...</p>
+            <p className="text-sm font-semibold text-green-700">✅ Kata sandi berhasil diperbarui!</p>
+            <p className="text-xs text-green-600 mt-2">Mengarahkan ke halaman masuk...</p>
           </motion.div>
         ) : (
           <motion.form 
@@ -129,7 +129,7 @@ export default function UpdatePasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Minimal 6 karakter"
-                  className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all bg-slate-50"
+                  className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all bg-slate-50"
                   style={{ border: '1.5px solid #E2E8F0' }}
                   onFocus={(e) => { e.target.style.border = '1.5px solid #10B981'; e.target.style.background = '#FFFFFF'; e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)' }}
                   onBlur={(e) => { e.target.style.border = '1.5px solid #E2E8F0'; e.target.style.background = '#F8FAFC'; e.target.style.boxShadow = 'none' }}
@@ -158,7 +158,7 @@ export default function UpdatePasswordPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Ulangi kata sandi"
-                  className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all bg-slate-50"
+                  className="w-full rounded-xl px-4 py-3 pr-11 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all bg-slate-50"
                   style={{ border: '1.5px solid #E2E8F0' }}
                   onFocus={(e) => { e.target.style.border = '1.5px solid #10B981'; e.target.style.background = '#FFFFFF'; e.target.style.boxShadow = '0 0 0 3px rgba(16,185,129,0.1)' }}
                   onBlur={(e) => { e.target.style.border = '1.5px solid #E2E8F0'; e.target.style.background = '#F8FAFC'; e.target.style.boxShadow = 'none' }}
@@ -186,7 +186,7 @@ export default function UpdatePasswordPage() {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-all disabled:opacity-60 hover:shadow-lg hover:shadow-emerald-500/30"
+              className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition-all disabled:opacity-60 hover:shadow-lg hover:shadow-green-500/30"
               style={{
                 background: loading ? '#6EE7B7' : 'linear-gradient(135deg, #10B981, #059669)',
                 boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
@@ -215,7 +215,7 @@ export default function UpdatePasswordPage() {
           transition={{ delay: 0.7 }}
           className="mt-8 flex items-center justify-center gap-1.5"
         >
-          <BookOpen className="h-3 w-3 text-emerald-400" />
+          <BookOpen className="h-3 w-3 text-green-400" />
           <span className="text-[10px] font-medium text-slate-500">
             Platform Belajar Geografi Interaktif
           </span>

@@ -49,9 +49,9 @@ export function AvatarDisplay({
           level >= 50
             ? 'bg-gradient-to-br from-amber-400 to-orange-600'
             : level >= 20
-            ? 'bg-gradient-to-br from-violet-500 to-sky-500'
+            ? 'bg-gradient-to-br from-amber-500 to-blue-500'
             : level >= 10
-            ? 'bg-gradient-to-br from-cyan-400 to-blue-600'
+            ? 'bg-gradient-to-br from-blue-400 to-blue-600'
             : 'bg-gradient-to-br from-slate-500 to-slate-700'
         )}
       >

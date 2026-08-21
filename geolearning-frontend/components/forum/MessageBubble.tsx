@@ -40,7 +40,7 @@ export function MessageBubble({ message, isOwn, onReply, onDelete }: MessageBubb
           'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold mb-0.5',
           isTeacher
             ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white'
-            : 'bg-gradient-to-br from-blue-600 to-sky-500 text-white'
+            : 'bg-gradient-to-br from-blue-600 to-blue-500 text-white'
         )}>
           {displayName.charAt(0).toUpperCase()}
         </div>
@@ -62,7 +62,7 @@ export function MessageBubble({ message, isOwn, onReply, onDelete }: MessageBubb
             'rounded-t-xl px-3 py-1.5 border-l-2 text-[11px] max-w-full truncate',
             isOwn
               ? 'bg-blue-100 border-blue-400 text-blue-700'
-              : 'bg-slate-100 border-slate-400 text-slate-600'
+              : 'bg-slate-50 border-slate-400 text-slate-600'
           )}>
             <span className="font-semibold text-slate-700">
               {message.reply_to.user?.name ?? 'Pengguna'}:
@@ -98,7 +98,7 @@ export function MessageBubble({ message, isOwn, onReply, onDelete }: MessageBubb
         <button
           onClick={() => onReply(message)}
           title="Balas pesan ini"
-          className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+          className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-blue-50 hover:text-blue-700 transition-colors"
         >
           <Reply className="h-3 w-3" />
         </button>
@@ -107,7 +107,7 @@ export function MessageBubble({ message, isOwn, onReply, onDelete }: MessageBubb
           <button
             onClick={() => onDelete(message.id)}
             title="Hapus pesan"
-            className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-slate-50 text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
             <Trash2 className="h-3 w-3" />
           </button>

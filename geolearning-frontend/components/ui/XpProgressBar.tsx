@@ -26,7 +26,7 @@ export function XpProgressBar({ xp, className, showLabel = true }: XpProgressBar
         </div>
       )}
       {/* Lightweight progress bar — no shimmer, no infinite animation */}
-      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-white/[0.08]">
+      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-50 ring-1 ring-white/[0.08]">
         <div
           className="xp-bar-fill h-full rounded-full"
           style={{ width: `${percentCumulative}%` }}

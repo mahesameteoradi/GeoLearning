@@ -37,7 +37,7 @@ export default function MapPicker({ position, onChange }: MapPickerProps) {
   const [initialZoom] = useState(position ? 12 : 5)
   
   useEffect(() => setMounted(true), [])
-  if (!mounted) return <div className="h-[300px] w-full bg-slate-100 rounded-xl animate-pulse" />
+  if (!mounted) return <div className="h-[300px] w-full bg-slate-50 rounded-xl animate-pulse" />
 
   return (
     <MapContainer

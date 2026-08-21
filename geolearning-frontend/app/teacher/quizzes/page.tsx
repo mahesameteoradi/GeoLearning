@@ -9,6 +9,7 @@ import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
 
 interface QuizItem {
   id: string
@@ -149,7 +150,7 @@ export default function TeacherQuizzesPage() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Bank Kuis</h1>
+            <h1 className="text-3xl font-black text-slate-800 tracking-tight">Bank Kuis</h1>
             <p className="mt-2 text-slate-500">
               Buat dan kelola template kuis Anda di sini. Kuis dari bank ini bisa diambil dan dipublikasikan ke kelas mana pun.
             </p>
@@ -157,7 +158,7 @@ export default function TeacherQuizzesPage() {
           
           <button
             onClick={() => { setEditingQuiz(null); setShowEditor(true) }}
-            className="flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition-all hover:bg-indigo-700 hover:-translate-y-0.5"
+            className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 hover:-translate-y-0.5"
           >
             <Plus className="h-5 w-5" />
             Buat Kuis Baru
@@ -173,37 +174,30 @@ export default function TeacherQuizzesPage() {
               placeholder="Cari nama kuis..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
             />
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-1">
-            {['ALL', 'PUBLISHED', 'DRAFT'].map((status) => (
-              <button
-                key={status}
-                onClick={() => setFilterStatus(status as any)}
-                className={cn(
-                  "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all",
-                  filterStatus === status
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50"
-                )}
-              >
-                {status === 'ALL' ? 'Semua' : status === 'PUBLISHED' ? 'Published' : 'Draft'}
-              </button>
-            ))}
-          </div>
+          <AnimatedFilterTabs
+            activeTab={filterStatus}
+            onChange={(tab) => setFilterStatus(tab as 'ALL' | 'PUBLISHED' | 'DRAFT')}
+            options={[
+              { id: 'ALL', label: 'Semua' },
+              { id: 'PUBLISHED', label: 'Published' },
+              { id: 'DRAFT', label: 'Draft' }
+            ]}
+          />
         </div>
 
         {/* Quizzes List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />
             <p className="mt-4 text-sm text-slate-500 font-medium">Memuat bank kuis...</p>
           </div>
         ) : filteredQuizzes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-20 px-4 text-center shadow-sm">
-            <div className="rounded-full bg-indigo-50 p-4 mb-4">
-              <FileText className="h-8 w-8 text-indigo-600" />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-20 px-4 text-center shadow-sm">
+            <div className="rounded-full bg-blue-50 p-4 mb-4">
+              <FileText className="h-8 w-8 text-blue-600" />
             </div>
             <h3 className="text-lg font-bold text-slate-800">Tidak Ada Kuis</h3>
             <p className="mt-1 text-sm text-slate-500 max-w-sm mb-6">
@@ -211,7 +205,7 @@ export default function TeacherQuizzesPage() {
             </p>
             <button
               onClick={() => { setEditingQuiz(null); setShowEditor(true) }}
-              className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-indigo-600"
+              className="flex items-center gap-2 rounded-xl bg-white border border-slate-200 px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-blue-600"
             >
               <Plus className="h-4 w-4" />
               Buat Kuis Sekarang
@@ -227,17 +221,17 @@ export default function TeacherQuizzesPage() {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className="group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-xl hover:shadow-indigo-600/10 hover:border-indigo-100"
+                  className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:shadow-md hover:shadow-blue-600/10 hover:border-blue-100"
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div className="rounded-xl bg-indigo-50 p-3 text-indigo-600">
+                    <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
                       <LayoutGrid className="h-6 w-6" />
                     </div>
                     <div className={cn(
                       "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold",
                       quiz.is_published 
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200" 
-                        : "bg-slate-100 text-slate-600 border border-slate-200"
+                        ? "bg-green-50 text-green-700 border border-green-200" 
+                        : "bg-slate-50 text-slate-600 border border-slate-200"
                     )}>
                       {quiz.is_published ? (
                         <><CheckCircle2 className="h-3.5 w-3.5" /> Published</>
@@ -247,7 +241,7 @@ export default function TeacherQuizzesPage() {
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="text-lg font-bold text-slate-800 line-clamp-2 mb-2 group-hover:text-blue-600 transition-colors">
                     {quiz.title}
                   </h3>
                   
@@ -260,7 +254,7 @@ export default function TeacherQuizzesPage() {
                       <Clock className="h-3.5 w-3.5" />
                       {quiz.time_limit ? `${quiz.time_limit} detik` : 'Tanpa waktu'}
                     </span>
-                    <span className="flex items-center gap-1 text-emerald-500">
+                    <span className="flex items-center gap-1 text-green-500">
                       <Trophy className="h-3.5 w-3.5" />
                       {quiz.passing_score} KKM
                     </span>
@@ -276,13 +270,13 @@ export default function TeacherQuizzesPage() {
                   <div className="mt-auto grid grid-cols-2 gap-2 pt-4 border-t border-slate-100">
                     <button
                       onClick={() => setSelectedDetailQuiz(quiz)}
-                      className="flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-100 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                      className="flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-50 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
                     >
                       Detail
                     </button>
                     <button
                       onClick={() => { setEditingQuiz(quiz); setShowEditor(true) }}
-                      className="flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-50 text-sm font-semibold text-indigo-600 transition-colors hover:bg-indigo-100"
+                      className="flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-50 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-100"
                     >
                       <Edit className="h-4 w-4" />
                       Edit

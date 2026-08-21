@@ -94,10 +94,10 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
 
   if (submitResult) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/75 p-4 backdrop-blur-sm">
-        <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl p-8 text-center flex flex-col items-center">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-800/75 p-4 backdrop-blur-sm">
+        <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-md p-8 text-center flex flex-col items-center">
           {submitResult.type === 'success' ? (
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8" />
             </div>
           ) : (
@@ -125,12 +125,12 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-800/50 p-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-md">
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-800">Unggah ke Bank Materi</h2>
-            <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+            <button type="button" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-50"><X className="h-5 w-5" /></button>
           </div>
 
           <div className="mb-5 grid grid-cols-5 gap-1.5">
@@ -150,7 +150,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
           <div className="space-y-4 mb-6">
             {!isLink ? (
               <div 
-                className={cn("group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all", dragOver ? "border-blue-500 bg-blue-50" : file ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/50")}
+                className={cn("group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all", dragOver ? "border-blue-500 bg-blue-50" : file ? "border-green-200 bg-green-50" : "border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/50")}
                 onDragOver={e => { e.preventDefault(); setDragOver(true) }}
                 onDragLeave={() => setDragOver(false)}
                 onDrop={e => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files?.[0]) handleFile(e.dataTransfer.files[0]) }}
@@ -159,7 +159,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
                 
                 {file ? (
                   <div className="flex flex-col items-center">
-                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><CheckCircle className="h-5 w-5" /></div>
+                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-600"><CheckCircle className="h-5 w-5" /></div>
                     <p className="text-sm font-bold text-slate-700 truncate max-w-[250px]">{file.name}</p>
                     <p className="text-xs text-slate-500 mt-1">{(file.size / (1024*1024)).toFixed(1)} MB</p>
                     <button type="button" onClick={() => setFile(null)} className="mt-3 text-[11px] font-bold text-rose-500 hover:underline">Ganti File</button>

@@ -44,7 +44,7 @@ export function ChatLayout({ rooms, userId }: ChatLayoutProps) {
                   'flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-xs font-medium transition-all',
                   isActive
                     ? 'bg-blue-100 text-blue-800'
-                    : 'text-slate-500 hover:bg-slate-100 hover:text-slate-700'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
                 )}
               >
                 {room.type === 'global' ? (
@@ -54,7 +54,7 @@ export function ChatLayout({ rooms, userId }: ChatLayoutProps) {
                 )}
                 <span className="truncate">{room.name}</span>
                 {room.type === 'global' && (
-                  <span className="ml-auto rounded-full border border-emerald-200 bg-emerald-50 px-1.5 text-[8px] font-bold uppercase text-emerald-600">
+                  <span className="ml-auto rounded-full border border-green-200 bg-green-50 px-1.5 text-[8px] font-bold uppercase text-green-600">
                     Umum
                   </span>
                 )}

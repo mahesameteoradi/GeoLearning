@@ -207,13 +207,13 @@ export function MapThemeLegend({ theme, activeFilter, onFilterChange }: MapTheme
   const legends: Record<string, {color: string, label: string, hexColor: string}[]> = {
     population: [
       { color: 'bg-red-500', hexColor: '#ef4444', label: 'Sangat Padat (>1000 jiwa/km²)' },
-      { color: 'bg-yellow-500', hexColor: '#eab308', label: 'Sedang (100-1000 jiwa/km²)' },
+      { color: 'bg-amber-500', hexColor: '#eab308', label: 'Sedang (100-1000 jiwa/km²)' },
       { color: 'bg-green-500', hexColor: '#22c55e', label: 'Renggang (<100 jiwa/km²)' }
     ],
     geology: [
       { color: 'bg-red-600', hexColor: '#dc2626', label: 'Batuan Vulkanik (Gunung Api)' },
-      { color: 'bg-yellow-600', hexColor: '#ca8a04', label: 'Batuan Sedimen' },
-      { color: 'bg-indigo-600', hexColor: '#4f46e5', label: 'Batuan Metamorf & Kompleks' }
+      { color: 'bg-amber-600', hexColor: '#ca8a04', label: 'Batuan Sedimen' },
+      { color: 'bg-blue-600', hexColor: '#4f46e5', label: 'Batuan Metamorf & Kompleks' }
     ],
     climate: [
       { color: 'bg-blue-700', hexColor: '#1d4ed8', label: 'Curah Hujan Sangat Tinggi' },
@@ -228,27 +228,27 @@ export function MapThemeLegend({ theme, activeFilter, onFilterChange }: MapTheme
     ],
     topography: [
       { color: 'bg-orange-700', hexColor: '#c2410c', label: 'Pegunungan Tinggi (>1000 mdpl)' },
-      { color: 'bg-yellow-400', hexColor: '#facc15', label: 'Dataran Tinggi / Perbukitan' },
+      { color: 'bg-amber-400', hexColor: '#facc15', label: 'Dataran Tinggi / Perbukitan' },
       { color: 'bg-green-600', hexColor: '#16a34a', label: 'Dataran Rendah & Pesisir' }
     ],
     chorography: [
       { color: 'bg-slate-400', hexColor: '#94a3b8', label: 'Wilayah Administratif Daratan' }
     ],
     flora_fauna: [
-      { color: 'bg-teal-500', hexColor: '#10b981', label: 'Zona Asiatis (Garis Wallace)' },
+      { color: 'bg-green-500', hexColor: '#10b981', label: 'Zona Asiatis (Garis Wallace)' },
       { color: 'bg-pink-500', hexColor: '#ec4899', label: 'Zona Peralihan (Endemik)' },
       { color: 'bg-purple-500', hexColor: '#8b5cf6', label: 'Zona Australis (Garis Weber)' }
     ],
     mining: [
-      { color: 'bg-yellow-500', hexColor: '#eab308', label: 'Potensi Emas & Tembaga' },
+      { color: 'bg-amber-500', hexColor: '#eab308', label: 'Potensi Emas & Tembaga' },
       { color: 'bg-slate-700', hexColor: '#334155', label: 'Potensi Batu Bara & Migas' },
       { color: 'bg-orange-500', hexColor: '#f97316', label: 'Potensi Nikel (Bahan Baterai)' },
       { color: 'bg-blue-500', hexColor: '#3b82f6', label: 'Potensi Timah & Minyak Bumi' }
     ],
     maritime: [
-      { color: 'bg-sky-800', hexColor: '#0369a1', label: 'ALKI I (Selat Sunda - Karimata)' },
-      { color: 'bg-sky-600', hexColor: '#0284c7', label: 'ALKI II (Selat Lombok - Makassar)' },
-      { color: 'bg-sky-400', hexColor: '#38bdf8', label: 'ALKI III (Maluku - Samudra Pasifik)' }
+      { color: 'bg-blue-800', hexColor: '#0369a1', label: 'ALKI I (Selat Sunda - Karimata)' },
+      { color: 'bg-blue-600', hexColor: '#0284c7', label: 'ALKI II (Selat Lombok - Makassar)' },
+      { color: 'bg-blue-400', hexColor: '#38bdf8', label: 'ALKI III (Maluku - Samudra Pasifik)' }
     ]
   }
 
@@ -256,7 +256,7 @@ export function MapThemeLegend({ theme, activeFilter, onFilterChange }: MapTheme
   if (!items) return null
 
   return (
-    <div className="absolute bottom-4 right-4 z-[400] bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200 pointer-events-auto flex flex-col overflow-hidden transition-all duration-300">
+    <div className="absolute bottom-4 right-4 z-[400] bg-white/95 backdrop-blur-sm rounded-2xl shadow-md border border-slate-200 pointer-events-auto flex flex-col overflow-hidden transition-all duration-300">
       <div className="flex justify-between items-center bg-white hover:bg-slate-50 transition-colors px-4 py-3 cursor-pointer" onClick={() => setIsLegendOpen(!isLegendOpen)}>
         <h3 className="text-xs font-black uppercase tracking-widest text-slate-800">Keterangan Peta</h3>
         <div className="flex items-center gap-2">
@@ -285,10 +285,10 @@ export function MapThemeLegend({ theme, activeFilter, onFilterChange }: MapTheme
             <button 
               key={i} 
               onClick={() => onFilterChange?.(isActive ? null : item.hexColor)}
-              className={`flex items-center gap-2 p-1.5 rounded-lg transition-all text-left ${isActive ? 'bg-slate-100 shadow-sm ring-1 ring-slate-200' : 'hover:bg-slate-50'} ${isFaded ? 'opacity-40' : 'opacity-100'}`}
+              className={`flex items-center gap-2 p-1.5 rounded-lg transition-all text-left ${isActive ? 'bg-slate-50 shadow-sm ring-1 ring-slate-200' : 'hover:bg-slate-50'} ${isFaded ? 'opacity-40' : 'opacity-100'}`}
             >
               <div className={`w-3.5 h-3.5 rounded-full ${item.color} shadow-sm shrink-0`} />
-              <span className={`text-xs font-semibold ${isActive ? 'text-slate-900' : 'text-slate-600'}`}>{item.label}</span>
+              <span className={`text-xs font-semibold ${isActive ? 'text-slate-800' : 'text-slate-600'}`}>{item.label}</span>
             </button>
           )
         })}

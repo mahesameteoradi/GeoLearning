@@ -210,22 +210,22 @@ export default function StudentProjectDetailPage() {
         <div className="h-4 w-32 bg-slate-200 rounded-full mb-6 animate-pulse" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 lg:p-8 shadow-sm">
               <div className="flex gap-4 mb-4">
                 <div className="h-6 w-24 bg-slate-200 rounded-lg animate-pulse" />
                 <div className="h-6 w-32 bg-slate-200 rounded-lg animate-pulse" />
               </div>
               <div className="h-10 w-3/4 bg-slate-200 rounded-xl mb-6 animate-pulse" />
-              <div className="h-14 w-full bg-slate-100 rounded-xl mb-8 animate-pulse" />
+              <div className="h-14 w-full bg-slate-50 rounded-xl mb-8 animate-pulse" />
               <div className="space-y-4">
-                <div className="h-4 w-full bg-slate-100 rounded animate-pulse" />
-                <div className="h-4 w-5/6 bg-slate-100 rounded animate-pulse" />
-                <div className="h-4 w-4/6 bg-slate-100 rounded animate-pulse" />
+                <div className="h-4 w-full bg-slate-50 rounded animate-pulse" />
+                <div className="h-4 w-5/6 bg-slate-50 rounded animate-pulse" />
+                <div className="h-4 w-4/6 bg-slate-50 rounded animate-pulse" />
               </div>
             </div>
           </div>
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm h-64 animate-pulse" />
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm h-64 animate-pulse" />
           </div>
         </div>
       </div>
@@ -261,14 +261,14 @@ export default function StudentProjectDetailPage() {
         
         {/* Left Column: Project Info */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 lg:p-8 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 lg:p-8 shadow-sm">
             <div className="flex items-start justify-between mb-4 flex-wrap gap-4">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider bg-slate-100 px-3 py-1.5 rounded-lg">
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider bg-slate-50 px-3 py-1.5 rounded-lg">
                 {project.class?.name || 'Unknown Class'}
               </span>
               <div className="flex items-center gap-3">
                 {project.is_group_project && (
-                  <span className="text-xs font-bold text-violet-600 bg-violet-50 px-3 py-1.5 rounded-lg border border-violet-100">
+                  <span className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
                     Tugas Kelompok
                   </span>
                 )}
@@ -278,7 +278,7 @@ export default function StudentProjectDetailPage() {
               </div>
             </div>
 
-            <h1 className="text-2xl lg:text-3xl font-black text-slate-900 mb-6 leading-tight">{project.title}</h1>
+            <h1 className="text-2xl lg:text-3xl font-black text-slate-800 mb-6 leading-tight">{project.title}</h1>
             
             <div className="flex items-center gap-3 text-sm font-medium text-slate-600 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
               <Clock className={cn("h-5 w-5", isLate ? "text-red-500" : "text-blue-500")} />
@@ -299,9 +299,9 @@ export default function StudentProjectDetailPage() {
         {/* Right Column: Submission Status & Action */}
         <div className="space-y-6">
           <div className={cn(
-            "rounded-3xl border p-6 shadow-xl transition-all duration-300",
+            "rounded-2xl border p-6 shadow-md transition-all duration-300",
             submission && !isEditing
-              ? (isGraded ? "bg-emerald-50 border-emerald-200 shadow-emerald-900/10" : "bg-blue-50 border-blue-200 shadow-blue-900/10")
+              ? (isGraded ? "bg-green-50 border-green-200 shadow-green-900/10" : "bg-blue-50 border-blue-200 shadow-blue-900/10")
               : "bg-white border-slate-200 shadow-slate-200/50"
           )}>
             
@@ -314,12 +314,12 @@ export default function StudentProjectDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         "h-10 w-10 rounded-full flex items-center justify-center",
-                        isGraded ? "bg-emerald-500 text-white" : "bg-blue-500 text-white"
+                        isGraded ? "bg-green-500 text-white" : "bg-blue-500 text-white"
                       )}>
                         <CheckCircle className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className={cn("font-bold text-lg leading-none mb-1", isGraded ? "text-emerald-700" : "text-blue-700")}>
+                        <p className={cn("font-bold text-lg leading-none mb-1", isGraded ? "text-green-700" : "text-blue-700")}>
                           Terkumpul
                         </p>
                         <p className="text-xs font-medium text-slate-500">
@@ -329,21 +329,21 @@ export default function StudentProjectDetailPage() {
                     </div>
 
                     {isGraded ? (
-                      <div className="mt-4 rounded-xl bg-white p-4 shadow-sm border border-emerald-100">
+                      <div className="mt-4 rounded-xl bg-white p-4 shadow-sm border border-green-100">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-xs font-bold text-slate-500 uppercase">Nilai</span>
-                          <span className="text-lg font-black text-emerald-600">{submission.score} / 100</span>
+                          <span className="text-lg font-black text-green-600">{submission.score} / 100</span>
                         </div>
                         {submission.xp_earned > 0 && (
                            <p className="text-xs font-bold text-amber-500 text-right mb-3">+{submission.xp_earned} XP</p>
                         )}
                         {submission.feedback && (
-                          <div className="mt-3 pt-3 border-t border-emerald-50">
-                            <h4 className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                          <div className="mt-3 pt-3 border-t border-green-50">
+                            <h4 className="text-[10px] font-bold text-green-600 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                               <CheckCircle className="h-3.5 w-3.5" />
                               Catatan dari Guru
                             </h4>
-                            <p className="text-sm text-slate-700 italic bg-emerald-50/50 p-3 rounded-lg border border-emerald-100/50">
+                            <p className="text-sm text-slate-700 italic bg-green-50/50 p-3 rounded-lg border border-green-100/50">
                               "{submission.feedback}"
                             </p>
                           </div>
@@ -390,7 +390,7 @@ export default function StudentProjectDetailPage() {
                 ) : (
                   <div>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                      <div className="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div>
@@ -440,20 +440,20 @@ export default function StudentProjectDetailPage() {
                   </div>
 
                   {project.is_group_project && (
-                    <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-4 space-y-4">
+                    <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-4 space-y-4">
                       <div>
-                        <label className="mb-1.5 block text-[11px] font-bold text-violet-700 uppercase tracking-wider">Nama Kelompok <span className="text-red-500">*</span></label>
+                        <label className="mb-1.5 block text-[11px] font-bold text-amber-700 uppercase tracking-wider">Nama Kelompok <span className="text-red-500">*</span></label>
                         <input
                           type="text"
                           value={groupName}
                           onChange={e => setGroupName(e.target.value)}
-                          className="w-full rounded-xl border border-violet-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-violet-500 focus:outline-none"
+                          className="w-full rounded-xl border border-amber-200 bg-white px-4 py-2.5 text-sm text-slate-800 focus:border-amber-500 focus:outline-none"
                           placeholder="Kelompok Harimau"
                         />
                       </div>
                       <div>
-                        <label className="mb-1.5 block text-[11px] font-bold text-violet-700 uppercase tracking-wider">Anggota Kelompok</label>
-                        <div className="rounded-xl border border-violet-200 bg-white p-3 max-h-40 overflow-y-auto">
+                        <label className="mb-1.5 block text-[11px] font-bold text-amber-700 uppercase tracking-wider">Anggota Kelompok</label>
+                        <div className="rounded-xl border border-amber-200 bg-white p-3 max-h-40 overflow-y-auto">
                           {loadingClassmates ? (
                             <p className="text-xs text-slate-500">Memuat teman...</p>
                           ) : classmates.length === 0 ? (
@@ -461,14 +461,14 @@ export default function StudentProjectDetailPage() {
                           ) : (
                             <div className="space-y-2">
                               <label className="flex items-center gap-2 text-sm text-slate-700">
-                                <input type="checkbox" checked disabled className="rounded text-violet-600" />
+                                <input type="checkbox" checked disabled className="rounded text-amber-600" />
                                 <span className="font-medium">{currentUser?.name} (Kamu)</span>
                               </label>
                               {classmates.map(c => (
                                 <label key={c.id} className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                                   <input 
                                     type="checkbox" 
-                                    className="rounded text-violet-600 focus:ring-violet-500 cursor-pointer"
+                                    className="rounded text-amber-600 focus:ring-amber-500 cursor-pointer"
                                     checked={selectedMembers.includes(c.id)}
                                     onChange={e => {
                                       if (e.target.checked) setSelectedMembers([...selectedMembers, c.id])
@@ -489,7 +489,7 @@ export default function StudentProjectDetailPage() {
                     {submission && (
                       <button
                         onClick={() => setIsEditing(false)}
-                        className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="flex-1 rounded-xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                       >
                         Batal
                       </button>

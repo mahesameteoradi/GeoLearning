@@ -22,7 +22,9 @@ import { cn } from '@/lib/utils/cn'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { ClassStudentsPanel } from '@/components/teacher/ClassStudentsPanel'
 import { Trophy, Map as MapIcon, MapPin } from 'lucide-react'
-import PdfViewer from '@/components/ui/PdfViewer'
+import dynamic from 'next/dynamic'
+
+const PdfViewer = dynamic(() => import('@/components/ui/PdfViewer'), { ssr: false })
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -117,10 +119,10 @@ const CATEGORY_META: Record<FileCategoryExpanded, { icon: React.ElementType; col
   pdf:   { icon: FileText,     color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    label: 'PDF' },
   video: { icon: Video,        color: 'text-blue-400',   bg: 'bg-blue-50',   border: 'border-blue-200',   label: 'Video' },
   ppt:   { icon: Presentation, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', label: 'Presentasi' },
-  doc:   { icon: FileText,     color: 'text-sky-600',    bg: 'bg-sky-50',    border: 'border-sky-200',    label: 'Dokumen' },
-  link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-violet-50', border: 'border-blue-300', label: 'Link' },
-  image: { icon: FileImage,    color: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-200',label: 'Gambar' },
-  interactive_map: { icon: MapIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Peta Pembelajaran' },
+  doc:   { icon: FileText,     color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',    label: 'Dokumen' },
+  link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-amber-50', border: 'border-blue-300', label: 'Link' },
+  image: { icon: FileImage,    color: 'text-green-600',bg: 'bg-green-50',border: 'border-green-200',label: 'Gambar' },
+  interactive_map: { icon: MapIcon, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Peta Pembelajaran' },
   bank: { icon: BookMarked, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Bank Materi' },
 }
 
@@ -158,15 +160,15 @@ function CourseItemCard({
     Icon = meta.icon
   } else {
     Icon = ClipboardList
-    meta = { icon: ClipboardList, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50', border: 'border-fuchsia-200', label: 'Kuis' }
+    meta = { icon: ClipboardList, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Kuis' }
   }
 
   return (
-    <div className={cn('group flex flex-col lg:flex-row lg:items-center items-start gap-3 lg:gap-4 rounded-3xl border border-slate-200/80 p-4 transition-all duration-300 bg-white hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 hover:border-indigo-300/50')}>
+    <div className={cn('group flex flex-col lg:flex-row lg:items-center items-start gap-3 lg:gap-4 rounded-2xl border border-slate-200/80 p-4 transition-all duration-300 bg-white hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-300/50')}>
       <div className="flex items-start lg:items-center gap-3 lg:gap-4 w-full">
         <div className="flex flex-col items-center justify-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1 lg:mt-0">
-          <button disabled={index === 0} onClick={() => onMove(item.id, item.itemType, 'up')} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
-          <button disabled={index === total - 1} onClick={() => onMove(item.id, item.itemType, 'down')} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
+          <button disabled={index === 0} onClick={() => onMove(item.id, item.itemType, 'up')} className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
+          <button disabled={index === total - 1} onClick={() => onMove(item.id, item.itemType, 'down')} className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
         </div>
 
         <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border', meta.bg, meta.border)}>
@@ -175,10 +177,10 @@ function CourseItemCard({
         
         <div className="flex-1 min-w-0 py-1">
           <div className="flex flex-wrap items-center gap-2 mb-1.5">
-            <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors max-w-full">{item.title}</h3>
+            <h3 className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors max-w-full">{item.title}</h3>
             <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap', meta.bg, meta.color)}>{meta.label}</span>
             {!item.is_published && (
-              <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm bg-slate-100 text-slate-500 whitespace-nowrap">Draft</span>
+              <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm bg-slate-50 text-slate-500 whitespace-nowrap">Draft</span>
             )}
           </div>
           {item.content_text && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{item.content_text}</p>}
@@ -186,7 +188,7 @@ function CourseItemCard({
             <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] font-semibold text-slate-500">
               <span className="flex items-center gap-1 whitespace-nowrap"><Clock className="h-3 w-3" /> {item.time_limit || '∞'} detik</span>
               <span className="flex items-center gap-1 text-amber-500 whitespace-nowrap"><Star className="h-3 w-3" /> {item.xp_reward || 0} XP</span>
-              <span className="flex items-center gap-1 text-emerald-500 whitespace-nowrap"><Trophy className="h-3 w-3" /> {item.passing_score || 0} KKM</span>
+              <span className="flex items-center gap-1 text-green-500 whitespace-nowrap"><Trophy className="h-3 w-3" /> {item.passing_score || 0} KKM</span>
             </div>
           )}
         </div>
@@ -194,7 +196,7 @@ function CourseItemCard({
 
       <div className="flex flex-wrap flex-shrink-0 items-center gap-2 py-1 transition-all pl-9 lg:pl-0 w-full lg:w-auto">
         {isMaterial && item.type === 'INTERACTIVE_MAP' ? (
-          <button onClick={() => onViewMap(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm text-xs font-bold" title="Lihat Peta">
+          <button onClick={() => onViewMap(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm text-xs font-bold" title="Lihat Peta">
             <Eye className="h-4 w-4" /> Lihat
           </button>
         ) : isMaterial && item.content_url && (
@@ -203,15 +205,15 @@ function CourseItemCard({
           </button>
         )}
         {!isMaterial && (
-          <button onClick={() => onViewQuiz(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm text-xs font-bold" title="Detail Kuis">
+          <button onClick={() => onViewQuiz(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all shadow-sm text-xs font-bold" title="Detail Kuis">
             <Eye className="h-4 w-4" /> Detail
           </button>
         )}
-        <button onClick={() => onTogglePublishItem(item)} className={cn("flex items-center gap-1.5 h-10 px-3 rounded-xl border transition-all shadow-sm text-xs font-bold", item.is_published ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white hover:border-amber-600" : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white hover:border-emerald-600")} title={item.is_published ? "Jadikan Draft" : "Publish"}>
+        <button onClick={() => onTogglePublishItem(item)} className={cn("flex items-center gap-1.5 h-10 px-3 rounded-xl border transition-all shadow-sm text-xs font-bold", item.is_published ? "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-600 hover:text-white hover:border-amber-600" : "border-green-200 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white hover:border-green-600")} title={item.is_published ? "Jadikan Draft" : "Publish"}>
           {item.is_published ? <EyeOff className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />} {item.is_published ? 'Draft' : 'Publish'}
         </button>
         {!isMaterial && (
-          <button onClick={() => onEditQuiz(item)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-fuchsia-200 bg-fuchsia-50 text-fuchsia-600 hover:bg-fuchsia-600 hover:text-white hover:border-fuchsia-600 transition-all shadow-sm">
+          <button onClick={() => onEditQuiz(item)} className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white hover:border-amber-600 transition-all shadow-sm">
             <Settings className="h-4 w-4" />
           </button>
         )}
@@ -440,13 +442,13 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
 
   return (
     <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12" style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}>
-      <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-black/60">
+      <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-md shadow-black/60">
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100"><Plus className="h-4 w-4 text-blue-600" /></div>
             <h2 className="text-base font-bold text-slate-800">{editMaterial ? 'Edit Materi' : 'Tambah Materi'}</h2>
           </div>
-          <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800"><X className="h-4 w-4" /></button>
         </div>
         <div className="mb-5 grid grid-cols-5 gap-1.5">
           {UPLOAD_TABS.map((t) => {
@@ -467,8 +469,8 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
                   <label className="block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Bab / Modul <span className="text-red-600">*</span></label>
                   {selectedModuleId !== 'new' && existingModules.length > 0 && !editingModuleId && (
                     <div className="flex shrink-0 gap-1">
-                      <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-100 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
-                      <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-100 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                      <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
+                      <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>
                   )}
                 </div>
@@ -489,7 +491,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
                     value={selectedModuleId} 
                     onChange={e => setSelectedModuleId(e.target.value)}
                     disabled={isUpdatingModule}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30"
                   >
                     {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
                     <option value="new">+ Tambah Bab / Modul Baru...</option>
@@ -512,29 +514,29 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
               <div>
                 <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Materi ke- (Urutan) <span className="text-red-600">*</span></label>
                 <input type="number" value={order} onChange={e => setOrder(Number(e.target.value))} required min={0}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
               </div>
             </div>
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Judul Materi <span className="text-red-600">*</span></label>
               <input value={title} onChange={e => setTitle(e.target.value)} required maxLength={120} placeholder="Contoh: Pengertian Geografi"
-              className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
           </div>
           <div>
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Deskripsi <span className="text-slate-600">(opsional)</span></label>
             <textarea value={description} onChange={e => setDescription(e.target.value)} rows={2} maxLength={500} placeholder="Jelaskan isi materi ini…"
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
           </div>
           <div>
             <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">XP Reward <span className="text-slate-400">(reward untuk siswa)</span></label>
             <input type="number" min="0" max="1000" value={xpReward} onChange={e => setXpReward(e.target.value)} placeholder="15"
-              className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
           </div>
           {isLink ? (
             <div>
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">URL <span className="text-red-600">*</span></label>
               <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} required type="url" placeholder="https://..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30" />
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
             </div>
           ) : (
             <div>
@@ -543,8 +545,8 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
                 onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
                 onClick={() => fileInputRef.current?.click()}
                 className={cn('flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed py-8 text-center transition-all',
-                  dragOver ? 'border-blue-500 bg-blue-50' : file ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300')}>
-                {file ? (<><CheckCircle className="h-6 w-6 text-emerald-600" /><p className="text-xs font-semibold text-emerald-600">{file.name}</p><p className="text-[11px] text-slate-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p></>)
+                  dragOver ? 'border-blue-500 bg-blue-50' : file ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300')}>
+                {file ? (<><CheckCircle className="h-6 w-6 text-green-600" /><p className="text-xs font-semibold text-green-600">{file.name}</p><p className="text-[11px] text-slate-600">{(file.size / 1024 / 1024).toFixed(2)} MB</p></>)
                   : editMaterial && editMaterial.type !== 'LINK' && editMaterial.content_url ? (
                     <div className="flex flex-col items-center">
                       <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-600"><CheckCircle className="h-5 w-5" /></div>
@@ -561,8 +563,8 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
           {uploading && (
             <div className="space-y-1.5">
               <div className="flex justify-between text-[11px] text-slate-500"><span>Mengunggah…</span><span>{uploadProgress}%</span></div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-sky-500 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-50">
+                <div className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-500 transition-all duration-300" style={{ width: `${uploadProgress}%` }} />
               </div>
             </div>
           )}
@@ -761,9 +763,9 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
       </Link>
 
       {/* Class Header */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-800 via-blue-950 to-slate-800 p-8 shadow-md shadow-blue-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -773,7 +775,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
             </div>
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{cls.name}</h1>
-              {cls.description && <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">{cls.description}</p>}
+              {cls.description && <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">{cls.description}</p>}
               <div className="mt-3 flex items-center gap-3">
                 <span className="flex items-center gap-1.5 rounded-xl border border-white/20 bg-white/10 px-3 py-1 font-mono text-xs font-bold tracking-wider text-white shadow-inner backdrop-blur-sm">
                   <Hash className="h-3.5 w-3.5" />{cls.join_code}
@@ -793,7 +795,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
             <Icon className="h-4 w-4" />
             {label}
             {count !== undefined && (
-              <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-bold', activeTab === key ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600')}>
+              <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-bold', activeTab === key ? 'bg-blue-100 text-blue-700' : 'bg-slate-50 text-slate-600')}>
                 {count}
               </span>
             )}
@@ -805,30 +807,30 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
         <div className="space-y-6">
           {/* Interactive Action Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <button onClick={async () => { await ensureModuleExists(); setShowQuizBankModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-fuchsia-300 hover:shadow-xl hover:shadow-fuchsia-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-fuchsia-50 text-fuchsia-600 group-hover:bg-fuchsia-600 group-hover:text-white transition-colors duration-300">
+            <button onClick={async () => { await ensureModuleExists(); setShowQuizBankModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-2xl border border-slate-200/80 bg-white hover:border-amber-300 hover:shadow-md hover:shadow-amber-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors duration-300">
                 {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <ClipboardList className="h-7 w-7" />}
               </div>
               <div>
-                <h3 className="font-black text-slate-800 text-lg group-hover:text-fuchsia-600 transition-colors">Ambil Kuis dari Bank</h3>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-amber-600 transition-colors">Ambil Kuis dari Bank</h3>
                 <p className="text-sm text-slate-500 mt-1">Salin kuis dari Bank Soal</p>
               </div>
             </button>
-            <button onClick={async () => { await ensureModuleExists(); setShowResourceBankModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+            <button onClick={async () => { await ensureModuleExists(); setShowResourceBankModal(true) }} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-2xl border border-slate-200/80 bg-white hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
                 {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <BookMarked className="h-7 w-7" />}
               </div>
               <div>
-                <h3 className="font-black text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">Ambil Materi dari Bank</h3>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-blue-600 transition-colors">Ambil Materi dari Bank</h3>
                 <p className="text-sm text-slate-500 mt-1">Salin materi dari Bank Materi</p>
               </div>
             </button>
-            <button onClick={handleOpenMapEditor} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-3xl border border-slate-200/80 bg-white hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+            <button onClick={handleOpenMapEditor} disabled={initializingModule} className="group flex items-center gap-5 p-6 rounded-2xl border border-slate-200/80 bg-white hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1 transition-all text-left disabled:opacity-60 disabled:cursor-not-allowed">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
                 {initializingModule ? <Loader2 className="h-6 w-6 animate-spin" /> : <MapPin className="h-7 w-7" />}
               </div>
               <div>
-                <h3 className="font-black text-slate-800 text-lg group-hover:text-indigo-600 transition-colors">Buat Peta Pembelajaran</h3>
+                <h3 className="font-black text-slate-800 text-lg group-hover:text-blue-600 transition-colors">Buat Peta Pembelajaran</h3>
                 <p className="text-sm text-slate-500 mt-1">Editor peta visual dengan penanda kustom</p>
               </div>
             </button>
@@ -853,9 +855,9 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                   const isExpanded = expandedModules[mod.id] ?? true
                   return (
                     <div key={mod.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all">
-                      <button onClick={() => toggleModule(mod.id)} className="flex w-full items-center justify-between bg-slate-50 p-4 transition-colors hover:bg-slate-100 focus:outline-none">
+                      <button onClick={() => toggleModule(mod.id)} className="flex w-full items-center justify-between bg-slate-50 p-4 transition-colors hover:bg-slate-50 focus:outline-none">
                         <div className="flex items-center gap-4">
-                          <div className="rounded-xl bg-indigo-100 p-2.5 text-indigo-600 shadow-inner">
+                          <div className="rounded-xl bg-blue-100 p-2.5 text-blue-600 shadow-inner">
                             <BookOpen className="h-5 w-5" />
                           </div>
                           <div className="text-left">
@@ -864,7 +866,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className={cn("text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full", isExpanded ? "bg-indigo-100 text-indigo-600" : "bg-slate-200 text-slate-500")}>
+                          <span className={cn("text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full", isExpanded ? "bg-blue-100 text-blue-600" : "bg-slate-200 text-slate-500")}>
                             {isExpanded ? 'Tutup' : 'Buka'}
                           </span>
                           {isExpanded ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
@@ -1026,8 +1028,8 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
 
       {/* File Viewer Modal */}
       {viewingFile && (
-        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900/80 backdrop-blur-sm">
-          <div className="relative w-full max-w-6xl h-[75vh] md:h-[85vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-6xl h-[75vh] md:h-[85vh] bg-white rounded-2xl overflow-hidden shadow-md flex flex-col">
             <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
@@ -1052,7 +1054,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                 </button>
               </div>
             </div>
-            <div className="flex-1 bg-slate-100 p-4 flex items-center justify-center">
+            <div className="flex-1 bg-slate-50 p-4 flex items-center justify-center">
               {(() => {
                 const url = viewingFile.url;
                 const ext = url.split('.').pop()?.toLowerCase() || '';

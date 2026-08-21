@@ -69,27 +69,29 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
   const navItems = isTeacher ? teacherNav : studentNav
 
   // Theme variables
-  const sidebarBg = 'bg-[#0f172a]'
-  const sidebarBorder = '1px solid #1e293b'
-  const dividerBorder = '1px solid #1e293b'
+  const sidebarBg = 'bg-[#0B1120]' // Deeper, richer navy for solid contrast
+  const sidebarBorder = '1px solid rgba(255,255,255,0.04)'
+  const dividerBorder = '1px solid rgba(255,255,255,0.04)'
   const logoText = 'text-white'
   const logoSubText = isTeacher ? 'text-amber-400' : 'text-blue-400'
   
-  const activeBg = isTeacher ? 'bg-amber-500 text-slate-900 shadow-md' : 'bg-blue-600 text-white shadow-md'
-  const inactiveBg = 'text-slate-400 hover:bg-slate-800 hover:text-white'
-  const iconActiveText = isTeacher ? 'text-slate-900' : 'text-white'
-  const iconHoverText = 'group-hover:text-white'
-  const activeDotBg = isTeacher ? 'bg-slate-900' : 'bg-blue-200'
+  const activeBg = isTeacher 
+    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-[0_4px_16px_-4px_rgba(245,158,11,0.4)] border border-amber-400/20' 
+    : 'bg-gradient-to-r from-blue-600 to-blue-600 text-white shadow-[0_4px_16px_-4px_rgba(37,99,235,0.4)] border border-blue-400/20'
+  const inactiveBg = 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 border border-transparent'
+  const iconActiveText = 'text-white drop-shadow-sm'
+  const iconHoverText = isTeacher ? 'group-hover:text-amber-300' : 'group-hover:text-blue-300'
+  const activeDotBg = 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.9)]'
   
   const helpBtnText = 'text-slate-400'
-  const helpBtnHoverBg = 'hover:bg-slate-800 hover:text-white'
+  const helpBtnHoverBg = 'hover:bg-slate-800/50 hover:text-slate-100'
   const helpBtnBorder = 'border-slate-500'
   
-  const avatarGradient = isTeacher ? 'linear-gradient(135deg, #D97706, #F59E0B)' : 'linear-gradient(135deg, #2563EB, #0EA5E9)'
-  const userBg = 'bg-[#1e293b] border-[#334155]'
-  const userNameColor = 'text-slate-200'
+  const avatarGradient = isTeacher ? 'linear-gradient(135deg, #F59E0B, #EA580C)' : 'linear-gradient(135deg, #3B82F6, #6366F1)'
+  const userBg = 'bg-slate-800/30 border border-slate-700/50 shadow-inner backdrop-blur-md'
+  const userNameColor = 'text-slate-100'
   
-  const logoutText = 'text-slate-400 hover:bg-red-500/10 hover:text-red-400'
+  const logoutText = 'text-slate-400 hover:bg-rose-500/15 hover:text-rose-400'
   
   const collapseBg = 'bg-[#1e293b]'
   const collapseText = 'text-slate-400 hover:text-white'
@@ -198,7 +200,7 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
               onClick={onNavClick}
               title={collapsed ? label : undefined}
               className={cn(
-                'group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:scale-[1.02] hover:shadow-sm',
+                'group flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150 active:scale-95',
                 active ? activeBg : inactiveBg
               )}
             >
@@ -226,8 +228,8 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
       {/* ── User + Logout ── */}
       <div className="px-2 py-3 space-y-1" style={{ borderTop: dividerBorder }}>
         {!collapsed && (
-          <div className={cn("flex items-center gap-2.5 rounded-xl px-3 py-2 border", userBg)}>
-            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-white shadow-sm"
+          <div className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200 hover:bg-slate-800/40 cursor-pointer active:scale-[0.98]", userBg)}>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-white shadow-md ring-2 ring-slate-700/50"
               style={{ background: avatarGradient }}>
               {avatarUrl ? (
                 <img src={avatarUrl} alt={userName} className="h-full w-full object-cover" />

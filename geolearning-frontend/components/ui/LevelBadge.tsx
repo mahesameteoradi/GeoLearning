@@ -15,11 +15,11 @@ export function LevelBadge({ xp, level: levelProp, size = 'sm', className }: Lev
     level >= 50
       ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
       : level >= 20
-      ? 'bg-gradient-to-r from-blue-600 to-sky-500 text-white'
+      ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white'
       : level >= 10
-      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
       : level >= 5
-      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
+      ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
       : 'bg-gradient-to-r from-slate-600 to-slate-700 text-slate-800'
 
   const sizeClass = {

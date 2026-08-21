@@ -23,7 +23,7 @@ export function CustomTooltip({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 10, scale: 0.95 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="relative z-50 flex w-[350px] max-w-full flex-col overflow-hidden rounded-2xl bg-white/95 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl"
+      className="relative z-50 flex w-[350px] max-w-full flex-col overflow-hidden rounded-2xl bg-white/95 shadow-md ring-1 ring-black/5 backdrop-blur-xl"
       {...tooltipProps}
     >
       {/* Header */}
@@ -45,7 +45,7 @@ export function CustomTooltip({
       {/* Body */}
       <div className="px-5 py-4">
         {step.title && (
-          <h3 className="mb-2 text-lg font-bold text-slate-900">{step.title}</h3>
+          <h3 className="mb-2 text-lg font-bold text-slate-800">{step.title}</h3>
         )}
         <div className="text-sm leading-relaxed text-slate-600">
           {step.content}

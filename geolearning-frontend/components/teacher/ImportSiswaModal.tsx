@@ -96,8 +96,8 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -111,7 +111,7 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
           </div>
           <button 
             onClick={onClose} 
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -151,15 +151,15 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
                     onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFileChange(f) }}
                     onClick={() => fileInputRef.current?.click()}
                     className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed py-10 px-6 text-center transition-all ${
-                      dragOver ? 'border-blue-500 bg-blue-50' : file ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
+                      dragOver ? 'border-blue-500 bg-blue-50' : file ? 'border-green-300 bg-green-50' : 'border-slate-200 bg-slate-50 hover:border-slate-300'
                     }`}
                   >
                     {file ? (
                       <>
-                        <FileSpreadsheet className="h-8 w-8 text-emerald-600 mb-1" />
+                        <FileSpreadsheet className="h-8 w-8 text-green-600 mb-1" />
                         <div>
-                          <p className="text-sm font-bold text-emerald-700">{file.name}</p>
-                          <p className="text-xs text-emerald-600/70">{(file.size / 1024).toFixed(1)} KB</p>
+                          <p className="text-sm font-bold text-green-700">{file.name}</p>
+                          <p className="text-xs text-green-600/70">{(file.size / 1024).toFixed(1)} KB</p>
                         </div>
                       </>
                     ) : (
@@ -202,8 +202,8 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
           <div className="space-y-5">
             <div className="flex flex-col items-center justify-center py-6 text-center">
               {result.gagal === 0 ? (
-                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-                  <CheckCircle className="h-8 w-8 text-emerald-600" />
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
               ) : (
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100">
@@ -215,9 +215,9 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-                <p className="text-xs font-semibold text-emerald-600 uppercase tracking-widest">Berhasil</p>
-                <p className="mt-1 text-2xl font-bold text-emerald-700">{result.berhasil}</p>
+              <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-center">
+                <p className="text-xs font-semibold text-green-600 uppercase tracking-widest">Berhasil</p>
+                <p className="mt-1 text-2xl font-bold text-green-700">{result.berhasil}</p>
               </div>
               <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-center">
                 <p className="text-xs font-semibold text-rose-600 uppercase tracking-widest">Gagal</p>

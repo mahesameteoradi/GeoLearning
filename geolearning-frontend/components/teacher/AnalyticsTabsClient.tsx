@@ -132,10 +132,10 @@ function OverallTab({ classes, students, quizAttempts }: any) {
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-cyan-600', border: 'border-cyan-200', bg: 'bg-cyan-50' },
+          { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-blue-600', border: 'border-blue-200', bg: 'bg-blue-50' },
           { label: 'Rata-rata XP', value: avgXp.toLocaleString(), icon: Trophy, color: 'text-amber-600', border: 'border-amber-200', bg: 'bg-amber-50' },
           { label: 'Quiz Selesai', value: completedAttempts, icon: BookOpen, color: 'text-blue-600', border: 'border-blue-300', bg: 'bg-blue-50' },
-          { label: 'Rata-rata Score', value: `${avgScore}%`, icon: BarChart3, color: 'text-emerald-600', border: 'border-emerald-200', bg: 'bg-emerald-50' },
+          { label: 'Rata-rata Score', value: `${avgScore}%`, icon: BarChart3, color: 'text-green-600', border: 'border-green-200', bg: 'bg-green-50' },
         ].map(({ label, value, icon: Icon, color, border, bg }) => (
           <div key={label} className={`rounded-2xl border ${border} ${bg} p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-${color.replace('text-', '')}/10`}>
             <div className="flex items-start justify-between">
@@ -304,7 +304,7 @@ function StudentTab({ students, quizAttempts, projectSubmissions }: any) {
               
               <div className="space-y-4">
                 <div>
-                  <p className="flex items-center gap-1.5 text-sm font-bold text-emerald-700">
+                  <p className="flex items-center gap-1.5 text-sm font-bold text-green-700">
                     <TrendingUp className="h-4 w-4" /> Perkembangan (Kelebihan)
                   </p>
                   <ul className="mt-1.5 list-disc pl-5 text-sm text-slate-700 space-y-1">
@@ -343,7 +343,7 @@ function StudentTab({ students, quizAttempts, projectSubmissions }: any) {
                     <div className="text-right">
                       {p.graded_at ? (
                         <>
-                          <p className="font-bold text-emerald-600">{p.score}%</p>
+                          <p className="font-bold text-green-600">{p.score}%</p>
                           <p className="text-xs text-amber-500 font-bold">+{p.xp_earned} XP</p>
                         </>
                       ) : (
@@ -373,7 +373,7 @@ function StudentTab({ students, quizAttempts, projectSubmissions }: any) {
                       <p className="text-xs text-slate-500">{new Date(q.completed_at).toLocaleDateString('id-ID')}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-bold ${q.score >= 70 ? 'text-emerald-600' : 'text-red-500'}`}>{q.score.toFixed(0)}%</p>
+                      <p className={`font-bold ${q.score >= 70 ? 'text-green-600' : 'text-red-500'}`}>{q.score.toFixed(0)}%</p>
                       <p className="text-xs text-amber-500 font-bold">+{q.xp_earned} XP</p>
                     </div>
                   </li>

@@ -12,6 +12,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { id as idLocale } from 'date-fns/locale'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { quizzesStudentSteps } from '@/lib/utils/tourSteps'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -32,7 +34,7 @@ interface QuizCard {
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-slate-100 ${className ?? ''}`} />
+  return <div className={`animate-pulse rounded-lg bg-slate-50 ${className ?? ''}`} />
 }
 
 function formatTime(seconds: number) {
@@ -48,26 +50,32 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
   const isNew = !done && (Date.now() - new Date(quiz.created_at).getTime()) < 7 * 24 * 60 * 60 * 1000
 
   const scoreColor =
-    score >= 85 ? 'text-emerald-600' :
-    score >= 70 ? 'text-cyan-600' :
+    score >= 85 ? 'text-green-600' :
+    score >= 70 ? 'text-blue-600' :
     score >= 55 ? 'text-amber-600' : 'text-red-600'
 
   return (
-    <div className={cn(
-      'group relative rounded-2xl border bg-white p-5 transition-all duration-300 cursor-pointer hover:-translate-y-1.5 hover:shadow-xl hover:scale-[1.02]',
+    <motion.div className={cn(
+      'group relative rounded-2xl border bg-white p-5 transition-all duration-300 cursor-pointer hover:-translate-y-1.5 hover:shadow-md hover:scale-[1.02]',
       done
-        ? 'border-emerald-200 hover:border-emerald-300 hover:shadow-emerald-900/10'
+        ? 'border-green-200 hover:border-green-300 hover:shadow-green-900/10'
         : 'border-slate-200 hover:border-blue-300 hover:shadow-blue-900/10'
-    )}>
+    )}
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      transition={{ duration: 0.2 }}
+    >
       {/* Badge */}
       <div className="mb-3 flex items-center gap-2">
         {isNew && (
-          <span className="rounded-full bg-violet-500 px-2 py-0.5 text-[10px] font-bold text-slate-800 uppercase tracking-widest animate-pulse">
+          <span className="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-slate-800 uppercase tracking-widest animate-pulse">
             NEW
           </span>
         )}
         {done && (
-          <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+          <span className="flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-600">
             <CheckCircle className="h-3 w-3" />
             Selesai
           </span>
@@ -78,16 +86,16 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
         </span>
       </div>
 
-      <h3 className="mb-3 text-sm font-bold text-slate-900 line-clamp-2">{quiz.title}</h3>
+      <h3 className="mb-3 text-sm font-bold text-slate-800 line-clamp-2">{quiz.title}</h3>
 
       {/* Info pills */}
       <div className="mb-4 flex flex-wrap gap-2">
-        <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500">
+        <span className="flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] text-slate-500">
           <ClipboardList className="h-3 w-3" />
           {quiz.question_count} soal
         </span>
         {quiz.time_limit && (
-          <span className="flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500">
+          <span className="flex items-center gap-1 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] text-slate-500">
             <Clock className="h-3 w-3" />
             {formatTime(quiz.time_limit)}
           </span>
@@ -116,7 +124,7 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
         )}
 
         {quiz.isLocked && !done ? (
-          <div className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold bg-slate-100 text-slate-500 cursor-not-allowed">
+          <div className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold bg-slate-50 text-slate-500 cursor-not-allowed">
             <Lock className="h-3.5 w-3.5" />
             Materi Belum Selesai
           </div>
@@ -126,7 +134,7 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
             className={cn(
               'flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300',
               done
-                ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 group-hover:scale-105'
+                ? 'bg-green-50 text-green-600 hover:bg-green-100 group-hover:scale-105'
                 : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20 group-hover:scale-105 group-hover:shadow-blue-500/30'
             )}
           >
@@ -142,7 +150,7 @@ function QuizItem({ quiz }: { quiz: QuizCard }) {
           <span className="sr-only">Go to quiz</span>
         </Link>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -152,6 +160,7 @@ export default function StudentQuizzesPage() {
   const supabase = createClient()
   const [quizzes, setQuizzes] = useState<QuizCard[]>([])
   const [loading, setLoading] = useState(true)
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'DONE'>('ALL')
 
   const loadQuizzes = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -237,29 +246,41 @@ export default function StudentQuizzesPage() {
 
   useEffect(() => { loadQuizzes() }, [loadQuizzes])
 
-  const pending = quizzes.filter(q => !q.attempt?.completed_at)
-  const done = quizzes.filter(q => !!q.attempt?.completed_at)
+  const filteredQuizzes = quizzes.filter(q => 
+    filterStatus === 'ALL' || 
+    (filterStatus === 'DONE' ? !!q.attempt?.completed_at : !q.attempt?.completed_at)
+  )
 
   return (
     <div className="min-h-full p-5 lg:p-7">
       <OnboardingTour tourKey="quizzes_student" steps={quizzesStudentSteps} />
       {/* ── Page Header ──────────────────────────────────────────────────── */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
             <Zap className="h-8 w-8 text-amber-300" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Kuis & Ujian</h1>
-            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+            <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">
               Kerjakan kuis dari gurumu, uji kemampuanmu, dan kumpulkan banyak XP!
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="mb-6 flex">
+        <AnimatedFilterTabs
+          activeTab={filterStatus}
+          onChange={(tab) => setFilterStatus(tab as 'ALL' | 'PENDING' | 'DONE')}
+          options={[
+            { id: 'ALL', label: 'Semua Kuis' },
+            { id: 'PENDING', label: 'Belum Dikerjakan' },
+            { id: 'DONE', label: 'Sudah Selesai' }
+          ]}
+          layoutId="student-quizzes-filter"
+        />
       </div>
 
       {loading && (
@@ -278,24 +299,18 @@ export default function StudentQuizzesPage() {
         </div>
       )}
 
-      {!loading && pending.length > 0 && (
-        <section id="tour-student-pending-quizzes" className="mb-7">
-          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
-            ⏳ Belum Dikerjakan ({pending.length})
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {pending.map(q => <QuizItem key={q.id} quiz={q} />)}
-          </div>
-        </section>
+      {!loading && filteredQuizzes.length === 0 && quizzes.length > 0 && (
+        <div className="flex flex-col items-center justify-center py-10 text-center">
+          <p className="text-sm text-slate-500">Tidak ada kuis di kategori ini.</p>
+        </div>
       )}
 
-      {!loading && done.length > 0 && (
-        <section id="tour-student-done-quizzes">
-          <h2 className="mb-3 text-xs font-bold uppercase tracking-widest text-slate-500">
-            ✅ Sudah Selesai ({done.length})
-          </h2>
+      {!loading && filteredQuizzes.length > 0 && (
+        <section id="tour-student-quizzes" className="mb-7">
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {done.map(q => <QuizItem key={q.id} quiz={q} />)}
+            <AnimatePresence mode="popLayout">
+              {filteredQuizzes.map(q => <QuizItem key={q.id} quiz={q} />)}
+            </AnimatePresence>
           </div>
         </section>
       )}

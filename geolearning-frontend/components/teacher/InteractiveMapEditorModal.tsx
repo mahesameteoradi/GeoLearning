@@ -67,7 +67,7 @@ export function InteractiveMapEditorModal({ existingModules, defaultModuleId, ne
         
         {saving && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-sm z-[500] flex items-center justify-center rounded-2xl">
-            <div className="bg-white p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3">
+            <div className="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center gap-3">
               <div className="h-8 w-8 rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin"></div>
               <p className="text-sm font-bold text-slate-700">Menyimpan Peta...</p>
             </div>

@@ -10,6 +10,8 @@ import toast from 'react-hot-toast'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { projectsTeacherSteps } from '@/lib/utils/tourSteps'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function TeacherProjectsPage() {
   const { confirm } = useConfirm()
@@ -20,6 +22,7 @@ export default function TeacherProjectsPage() {
   const [editingProject, setEditingProject] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL')
 
   const loadData = async () => {
     setLoading(true)
@@ -75,10 +78,7 @@ export default function TeacherProjectsPage() {
   return (
     <div className="min-h-screen p-5 lg:p-7">
       <OnboardingTour tourKey="projects_teacher" steps={projectsTeacherSteps} />
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -89,20 +89,33 @@ export default function TeacherProjectsPage() {
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
                 Penugasan Proyek
               </h1>
-              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
-                Kelola tugas proyek, bentuk kelompok, dan berikan evaluasi terstruktur kepada siswa.
+              <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">
+                Berikan tugas proyek, bentuk kelompok, dan evaluasi hasil kerja siswa secara efisien.
               </p>
             </div>
           </div>
           <button
             id="tour-teacher-create-project"
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50 hover:from-blue-400 hover:to-indigo-500"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition-all hover:scale-105 hover:shadow-blue-600/50 hover:from-blue-400 hover:to-blue-500"
           >
             <Plus className="h-5 w-5" />
             Buat Tugas
           </button>
         </div>
+      </div>
+
+      <div className="mb-6 flex">
+        <AnimatedFilterTabs
+          activeTab={filterStatus}
+          onChange={(tab) => setFilterStatus(tab as 'ALL' | 'PUBLISHED' | 'DRAFT')}
+          options={[
+            { id: 'ALL', label: 'Semua Tugas' },
+            { id: 'PUBLISHED', label: 'Published' },
+            { id: 'DRAFT', label: 'Draft' }
+          ]}
+          layoutId="projects-filter-tab"
+        />
       </div>
 
       {loading ? (
@@ -118,29 +131,38 @@ export default function TeacherProjectsPage() {
         </div>
       ) : (
         <div id="tour-teacher-project-list" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map(proj => {
-            const submissions = proj.submissions || []
-            const gradedCount = submissions.filter((s: any) => s.score !== null).length
-            
-            return (
-              <div key={proj.id} className="group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white p-6 transition-all duration-300 hover:border-indigo-300/50 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1">
-                <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-50 to-blue-50 blur-3xl transition-all duration-500 group-hover:bg-indigo-100 group-hover:scale-150" />
+          <AnimatePresence mode="popLayout">
+            {projects.filter(p => filterStatus === 'ALL' || (filterStatus === 'PUBLISHED' ? p.is_published : !p.is_published)).map(proj => {
+              const submissions = proj.submissions || []
+              const gradedCount = submissions.filter((s: any) => s.score !== null).length
+              
+              return (
+                <motion.div 
+                  key={proj.id} 
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-6 transition-all duration-300 hover:border-blue-300/50 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1"
+                >
+                <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-blue-50 to-blue-50 blur-3xl transition-all duration-500 group-hover:bg-blue-100 group-hover:scale-150" />
                 <div className="relative z-10">
                 <div className="flex items-start justify-between mb-3 gap-2 flex-wrap">
                   <div className="flex items-center gap-2">
                     <span className={cn(
                       "text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md",
-                      proj.is_published ? "bg-emerald-50 text-emerald-600 border border-emerald-200" : "bg-amber-50 text-amber-600 border border-amber-200"
+                      proj.is_published ? "bg-green-50 text-green-600 border border-green-200" : "bg-amber-50 text-amber-600 border border-amber-200"
                     )}>
                       {proj.is_published ? 'Published' : 'Draft'}
                     </span>
                     {proj.is_group_project && (
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-violet-50 text-violet-600 border border-violet-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-amber-50 text-amber-600 border border-amber-200">
                         Kelompok
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] text-slate-600 font-medium bg-slate-100 px-2 py-1 rounded-md">
+                  <span className="text-[10px] text-slate-600 font-medium bg-slate-50 px-2 py-1 rounded-md">
                     {proj.class?.name || 'Unknown Class'}
                   </span>
                 </div>
@@ -153,11 +175,11 @@ export default function TeacherProjectsPage() {
                     <span>Tenggat: {proj.deadline ? new Date(proj.deadline).toLocaleDateString('id-ID', { dateStyle: 'medium'}) : 'Tidak ada'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <FileText className="h-3.5 w-3.5 text-violet-500" />
+                    <FileText className="h-3.5 w-3.5 text-amber-500" />
                     <span>{submissions.length} Pengumpulan</span>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <CheckCircle className="h-3.5 w-3.5 text-emerald-500" />
+                    <CheckCircle className="h-3.5 w-3.5 text-green-500" />
                     <span>{gradedCount} Telah dinilai</span>
                   </div>
                 </div>
@@ -165,7 +187,7 @@ export default function TeacherProjectsPage() {
                 <div className="flex gap-2">
                   <a 
                     href={`/teacher/projects/${proj.id}`}
-                    className="flex-1 text-center rounded-xl bg-slate-50 border border-slate-200 py-2.5 text-xs font-bold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-colors"
+                    className="flex-1 text-center rounded-xl bg-slate-50 border border-slate-200 py-2.5 text-xs font-bold text-slate-700 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors"
                   >
                     Lihat Pengumpulan
                   </a>
@@ -186,9 +208,10 @@ export default function TeacherProjectsPage() {
                   </button>
                 </div>
                 </div>
-              </div>
-            )
-          })}
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
         </div>
       )}
 

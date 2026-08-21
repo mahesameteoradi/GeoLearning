@@ -31,11 +31,11 @@ interface InterventionPanelProps {
 }
 
 const typeColors: Record<InterventionType, string> = {
-  ACADEMIC:    'border-blue-300 bg-violet-50 text-blue-700',
+  ACADEMIC:    'border-blue-300 bg-amber-50 text-blue-700',
   BEHAVIORAL:  'border-orange-200 bg-orange-50 text-orange-600',
-  ATTENDANCE:  'border-cyan-200 bg-cyan-50 text-cyan-600',
+  ATTENDANCE:  'border-blue-200 bg-blue-50 text-blue-600',
   EMOTIONAL:   'border-pink-200 bg-pink-50 text-pink-600',
-  POSITIVE:    'border-emerald-300 bg-emerald-50 text-emerald-700',
+  POSITIVE:    'border-green-300 bg-green-50 text-green-700',
   CORRECTIVE:  'border-red-300 bg-red-50 text-red-700',
 }
 
@@ -159,7 +159,7 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
               value={form.studentId}
               onChange={(e) => setForm({ ...form, studentId: e.target.value })}
               required
-              className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-800 focus:border-blue-200 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-200 focus:outline-none"
             >
               <option value="">Select student…</option>
               {students.map((s) => (
@@ -174,7 +174,7 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
             <select
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value as InterventionType })}
-              className="w-full rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-800 focus:border-blue-200 focus:outline-none"
+              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 focus:border-blue-200 focus:outline-none"
             >
               {(['ACADEMIC', 'BEHAVIORAL', 'ATTENDANCE', 'EMOTIONAL', 'POSITIVE', 'CORRECTIVE'] as const).map((t) => (
                 <option key={t} value={t}>{t === 'POSITIVE' ? 'POSITIVE (Kirim Motivasi)' : t}</option>
@@ -191,12 +191,12 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
               required
               rows={3}
               placeholder="Describe the issue or action taken…"
-              className="w-full resize-none rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-200 focus:outline-none"
+              className="w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-200 focus:outline-none"
             />
           </div>
           {form.type === 'POSITIVE' && (
             <div>
-              <label className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-emerald-600">
+              <label className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-green-600">
                 XP Bonus (Reward)
               </label>
               <input
@@ -205,7 +205,7 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
                 step="10"
                 value={form.xpBonus}
                 onChange={(e) => setForm({ ...form, xpBonus: parseInt(e.target.value) || 0 })}
-                className="w-full rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none"
+                className="w-full rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-slate-800 focus:border-green-400 focus:outline-none"
               />
             </div>
           )}
@@ -246,7 +246,7 @@ export function InterventionPanel({ interventions: initial, students, teacherId,
               <p className="text-xs font-semibold text-slate-700">{iv.studentName}</p>
               <p className="mt-0.5 line-clamp-2 text-[11px] text-slate-500">{iv.note}</p>
             </div>
-            {iv.resolved && <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-600" />}
+            {iv.resolved && <CheckCircle className="h-4 w-4 flex-shrink-0 text-green-600" />}
           </div>
         ))}
         {interventions.length === 0 && (

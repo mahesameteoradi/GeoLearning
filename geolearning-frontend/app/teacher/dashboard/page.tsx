@@ -28,7 +28,7 @@ function StatsSkeleton() {
         <div className="h-44 rounded-2xl bg-slate-200" />
         <div className="h-44 rounded-2xl bg-slate-200" />
       </div>
-      <div className="h-64 rounded-3xl bg-slate-200" />
+      <div className="h-64 rounded-2xl bg-slate-200" />
     </div>
   )
 }
@@ -84,24 +84,23 @@ export default async function TeacherDashboardPage() {
         </div>
       )}
 
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-slate-800 px-8 py-10 shadow-lg shadow-slate-800/10 border border-slate-800">
+        {/* Subtle, non-intrusive background accent */}
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-blue-500/10 to-transparent pointer-events-none" />
         
-        <div className="relative z-10 flex items-center gap-6">
-          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+          <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-inner">
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt={profile.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-400 to-indigo-500 font-bold text-white text-3xl">
+              <div className="flex h-full w-full items-center justify-center bg-blue-600 font-bold text-white text-3xl">
                 {profile.name.charAt(0).toUpperCase()}
               </div>
             )}
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Dashboard Guru</h1>
-            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-sm">Dashboard Guru</h1>
+            <p className="mt-2 text-slate-300 max-w-2xl text-sm leading-relaxed font-medium">
               Selamat datang kembali, <span className="font-semibold text-white">{profile.name}</span>. Pantau aktivitas kelas, evaluasi hasil belajar, dan lihat perkembangan siswa Anda.
             </p>
           </div>

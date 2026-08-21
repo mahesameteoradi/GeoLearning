@@ -232,7 +232,7 @@ function QuestionCard({
       {/* Header */}
       <div className="flex items-center gap-2 p-3">
         <GripVertical className="h-4 w-4 flex-shrink-0 text-slate-700" />
-        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-violet-50 text-[10px] font-bold text-blue-600">
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-50 text-[10px] font-bold text-blue-600">
           {index + 1}
         </span>
         <div className="flex flex-1 min-w-0 flex-col gap-1">
@@ -299,7 +299,7 @@ function QuestionCard({
                   className={cn(
                     'flex items-center gap-2 rounded-lg border px-3 py-2 cursor-pointer transition-colors',
                     question.correct_answer === opt.label
-                      ? 'border-emerald-200 bg-emerald-50'
+                      ? 'border-green-200 bg-green-50'
                       : 'border-slate-200 bg-slate-50 hover:border-slate-200'
                   )}
                 >
@@ -309,11 +309,11 @@ function QuestionCard({
                     value={opt.label}
                     checked={question.correct_answer === opt.label}
                     onChange={() => onChange({ ...question, correct_answer: opt.label })}
-                    className="accent-emerald-500"
+                    className="accent-green-500"
                   />
                   <span className={cn(
                     'text-[11px] font-bold',
-                    question.correct_answer === opt.label ? 'text-emerald-600' : 'text-slate-500'
+                    question.correct_answer === opt.label ? 'text-green-600' : 'text-slate-500'
                   )}>
                     {opt.label}.
                   </span>
@@ -491,9 +491,9 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
 
   if (showPreview) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+      <div className="rounded-xl border border-green-200 bg-green-50 p-4">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-emerald-600">
+          <p className="text-sm font-semibold text-green-600">
             ✅ {parsed.length} soal berhasil diparsing
           </p>
           <button onClick={() => setShowPreview(false)} className="text-xs text-slate-500 hover:text-slate-700">
@@ -502,16 +502,16 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
         </div>
         <div className="space-y-1.5 max-h-48 overflow-y-auto mb-3">
           {parsed.map((q, i) => (
-            <div key={i} className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-700">
+            <div key={i} className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-700">
               <span className="mr-2 font-bold text-blue-600">{i + 1}.</span>
               {q.text.slice(0, 80)}{q.text.length > 80 ? '…' : ''}
-              <span className="ml-2 text-emerald-600 font-semibold">✓ {q.correct_answer}</span>
+              <span className="ml-2 text-green-600 font-semibold">✓ {q.correct_answer}</span>
             </div>
           ))}
         </div>
         <button
           onClick={() => { onImported(parsed); setShowPreview(false); setText(''); setParsed([]) }}
-          className="w-full rounded-lg bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+          className="w-full rounded-lg bg-green-600 py-2 text-sm font-semibold text-white hover:bg-green-500"
         >
           Tambahkan {parsed.length} soal ke kuis
         </button>
@@ -526,7 +526,7 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
       onDragLeave={handleDragLeave}
       className={cn(
         "rounded-xl border p-4 transition-all",
-        isDragging ? "border-blue-500 bg-blue-100/50 border-dashed border-2" : "border-blue-300 bg-violet-50"
+        isDragging ? "border-blue-500 bg-blue-100/50 border-dashed border-2" : "border-blue-300 bg-amber-50"
       )}
     >
       <div className="mb-2 flex items-center gap-2">
@@ -549,7 +549,7 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
         </button>
         <button
           onClick={downloadTemplate}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-emerald-500 bg-emerald-50 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-green-500 bg-green-50 py-2.5 text-xs font-bold text-green-700 hover:bg-green-100"
         >
           <Download className="h-4 w-4" />
           Template Word
@@ -827,10 +827,10 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
 
   if (submitResult) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/75 p-4 backdrop-blur-sm">
-        <div className="relative w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl p-8 text-center flex flex-col items-center">
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-800/75 p-4 backdrop-blur-sm">
+        <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-md p-8 text-center flex flex-col items-center">
           {submitResult.type === 'success' ? (
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8" />
             </div>
           ) : (
@@ -866,7 +866,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-8"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
     >
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-black/60">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-md shadow-black/60">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div className="flex items-center gap-2.5">
@@ -877,7 +877,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
               {quiz ? 'Edit Kuis' : 'Buat Kuis Baru'}
             </h2>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -894,7 +894,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                 value={form.title}
                 onChange={e => setForm({ ...form, title: e.target.value })}
                 placeholder="Contoh: Kuis Bab 1 — Geografi Indonesia"
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30"
               />
             </div>
 
@@ -908,8 +908,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                     </label>
                     {selectedModuleId !== 'new' && existingModules.length > 0 && !editingModuleId && (
                       <div className="flex shrink-0 gap-1">
-                        <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-100 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
-                        <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-100 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
+                        <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
+                        <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                       </div>
                     )}
                   </div>
@@ -930,7 +930,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                       value={selectedModuleId}
                       onChange={e => setSelectedModuleId(e.target.value)}
                       disabled={isUpdatingModule}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30"
                     >
                       {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
                       <option value="new">+ Tambah Bab / Modul Baru...</option>
@@ -964,7 +964,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                   min={0}
                   value={order}
                   onChange={e => setOrder(Number(e.target.value))}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-1 focus:ring-violet-500/30"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30"
                 />
               </div>
             )}
@@ -979,7 +979,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                 min="5"
                 value={form.timeLimit}
                 onChange={e => setForm({ ...form, timeLimit: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
               />
             </div>
 
@@ -994,7 +994,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                 max="1000"
                 value={form.xpReward}
                 onChange={e => setForm({ ...form, xpReward: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
               />
             </div>
             
@@ -1009,7 +1009,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                 max="100"
                 value={form.passingScore}
                 onChange={e => setForm({ ...form, passingScore: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
                 placeholder="Contoh: 75"
               />
             </div>
@@ -1022,7 +1022,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
               <select
                 value={form.quiz_type}
                 onChange={e => setForm({ ...form, quiz_type: e.target.value as 'FORMATIF' | 'SUMATIF' })}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
               >
                 <option value="FORMATIF">Kuis Formatif (Latihan/Modul)</option>
                 <option value="SUMATIF">Ujian Sumatif (Ujian Akhir Kelas)</option>
@@ -1039,7 +1039,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
                 min="1"
                 value={form.max_attempts}
                 onChange={e => setForm({ ...form, max_attempts: e.target.value })}
-                className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:bg-white"
                 placeholder="Kosongkan untuk tanpa batas"
               />
             </div>
@@ -1049,8 +1049,8 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
               <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
                 Status
               </label>
-              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 hover:border-emerald-200">
-                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_published ? 'bg-emerald-500' : 'bg-slate-100')}>
+              <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 hover:border-green-200">
+                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_published ? 'bg-green-500' : 'bg-slate-50')}>
                   <div className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform', form.is_published ? 'translate-x-4' : 'translate-x-0.5')} />
                 </div>
                 <input type="checkbox" className="sr-only" checked={form.is_published} onChange={e => setForm({ ...form, is_published: e.target.checked })} />

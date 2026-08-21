@@ -29,7 +29,7 @@ export default async function TeacherClassesPage() {
       class_students(student_id)
     `)
     .eq('teacher_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('name', { ascending: true })
 
   // Deduplicate students across all teacher's classes
   const uniqueStudentIds = new Set<string>()
@@ -56,10 +56,7 @@ export default async function TeacherClassesPage() {
   return (
     <div className="min-h-full p-5 lg:p-7">
       {/* Page Header */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -70,8 +67,8 @@ export default async function TeacherClassesPage() {
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">
                 Manajemen Kelas
               </h1>
-              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
-                Kelola ruang belajar Anda, atur modul, dan distribusikan kode akses (*join code*) kepada siswa dengan mudah.
+              <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">
+                Pantau dan kelola seluruh kelas serta peserta didik Anda dari satu tempat.
               </p>
             </div>
           </div>

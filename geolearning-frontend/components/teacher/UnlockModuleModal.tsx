@@ -87,11 +87,11 @@ export function UnlockModuleModal({ classId, studentId, studentName, teacherId, 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/50 backdrop-blur-sm p-4 py-8 md:py-12">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-800/50 backdrop-blur-sm p-4 py-8 md:py-12">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-md">
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
           <h2 className="text-lg font-bold text-slate-800">Buka Akses Bab</h2>
-          <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors">
             <X className="h-5 w-5" />
           </button>
         </div>

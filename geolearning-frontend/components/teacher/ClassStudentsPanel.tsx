@@ -409,7 +409,7 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((s, idx) => (
-                  <tr key={s.id} className={`transition-colors duration-200 hover:bg-slate-100 ${selectedStudents.includes(s.id) ? 'bg-blue-50/30' : ''}`}>
+                  <tr key={s.id} className={`transition-colors duration-200 hover:bg-slate-50 ${selectedStudents.includes(s.id) ? 'bg-blue-50/30' : ''}`}>
                     <td className="px-5 py-3">
                       <input 
                         type="checkbox" 

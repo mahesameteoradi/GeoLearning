@@ -32,12 +32,12 @@ interface EnrolledClass {
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-slate-100 ${className ?? ''}`} />
+  return <div className={`animate-pulse rounded-lg bg-slate-50 ${className ?? ''}`} />
 }
 
 function CardSkeleton() {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-sm">
       <div className="flex justify-between">
         <Skeleton className="h-14 w-14 rounded-2xl" />
         <Skeleton className="h-7 w-24 rounded-full" />
@@ -56,15 +56,15 @@ function EnrolledCard({ cls }: { cls: EnrolledClass }) {
 
   return (
     <Link href={`/student/classes/${cls.id}`} className="block group h-full">
-      <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 transition-all duration-500 ease-out hover:-translate-y-2 hover:border-indigo-300 hover:shadow-2xl hover:shadow-indigo-900/10">
-        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-50 blur-3xl transition-all duration-500 group-hover:bg-indigo-100 group-hover:scale-150" />
+      <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 transition-all duration-500 ease-out hover:-translate-y-2 hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/10">
+        <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-blue-50 blur-3xl transition-all duration-500 group-hover:bg-blue-100 group-hover:scale-150" />
         
         {/* Header */}
         <div className="relative z-10 flex items-start justify-between gap-3">
-          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-blue-500 text-xl font-black text-white shadow-lg shadow-indigo-500/30 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
+          <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-500 text-xl font-black text-white shadow-lg shadow-blue-500/30 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3">
             {cls.name.charAt(0).toUpperCase()}
           </div>
-          <span className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-mono text-slate-500 transition-colors group-hover:border-indigo-200 group-hover:bg-indigo-50/50">
+          <span className="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-mono text-slate-500 transition-colors group-hover:border-blue-200 group-hover:bg-blue-50/50">
             <Hash className="h-3 w-3" />
             {cls.join_code}
           </span>
@@ -72,7 +72,7 @@ function EnrolledCard({ cls }: { cls: EnrolledClass }) {
 
         {/* Name + desc */}
         <div className="relative z-10 mt-5 flex-1">
-          <h3 className="text-xl font-bold text-slate-900 transition-colors duration-300 group-hover:text-indigo-700 line-clamp-2">
+          <h3 className="text-xl font-bold text-slate-800 transition-colors duration-300 group-hover:text-blue-700 line-clamp-2">
             {cls.name}
           </h3>
           {cls.description && (
@@ -86,16 +86,16 @@ function EnrolledCard({ cls }: { cls: EnrolledClass }) {
         <div className="relative z-10 mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-5 text-sm text-slate-500">
           <div className="flex flex-wrap items-center gap-4">
             <span className="flex items-center gap-1.5 transition-colors group-hover:text-slate-700">
-              <GraduationCap className="h-4 w-4 text-violet-500" />
+              <GraduationCap className="h-4 w-4 text-amber-500" />
               <span className="font-medium">{teacher?.name ?? 'Unknown'}</span>
             </span>
             <span className="flex items-center gap-1.5 transition-colors group-hover:text-slate-700">
-              <Users className="h-4 w-4 text-cyan-500" />
+              <Users className="h-4 w-4 text-blue-500" />
               <span className="font-medium">{cls.enrollmentCount} Siswa</span>
             </span>
           </div>
           
-          <div className="flex items-center gap-1.5 font-semibold text-indigo-600 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
+          <div className="flex items-center gap-1.5 font-semibold text-blue-600 opacity-0 -translate-x-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0">
             Masuk <ChevronRight className="h-4 w-4" />
           </div>
         </div>
@@ -182,7 +182,7 @@ export default function StudentClassesPage() {
   if (enrolledLoading) {
     return (
       <div className="min-h-full p-5 lg:p-7">
-        <div className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 shadow-2xl">
+        <div className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-800 via-blue-950 to-slate-800 p-8 md:p-10 shadow-md">
           <Skeleton className="h-20 w-80 bg-white/10" />
         </div>
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -196,20 +196,20 @@ export default function StudentClassesPage() {
     <div className="min-h-full p-5 lg:p-7">
       <OnboardingTour tourKey="classes_student" steps={classesStudentSteps} />
       {/* ── Page Header ──────────────────────────────────────────────────── */}
-      <div className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-10 shadow-2xl shadow-indigo-900/20">
+      <div className="mb-10 relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-800 via-blue-950 to-slate-800 p-8 md:p-10 shadow-md shadow-blue-900/20">
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
         
         <div className="relative z-10 flex items-center gap-6">
-          <div className="h-20 w-20 flex-shrink-0 flex items-center justify-center rounded-3xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-md transition-transform duration-500 hover:scale-105 hover:rotate-3">
+          <div className="h-20 w-20 flex-shrink-0 flex items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-md transition-transform duration-500 hover:scale-105 hover:rotate-3">
             <BookMarked className="h-10 w-10 text-blue-400" />
           </div>
           <div>
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-sm">
               Ruang Kelasku
             </h1>
-            <p className="mt-2 text-indigo-100/80 max-w-xl text-sm md:text-base leading-relaxed">
+            <p className="mt-2 text-blue-100/80 max-w-xl text-sm md:text-base leading-relaxed">
               Kamu tergabung dalam {enrolledClasses.length} kelas. Pilih kelasmu di bawah ini untuk mulai belajar dan raih prestasimu!
             </p>
           </div>
@@ -219,8 +219,8 @@ export default function StudentClassesPage() {
       {/* ── Class List ─────────────────────────────────────────────────── */}
       {enrolledClasses.length === 0 ? (
         <div id="tour-student-class-cards" className="flex flex-col items-center justify-center rounded-[2rem] border border-dashed border-slate-200 bg-white/50 py-32 text-center backdrop-blur-sm">
-          <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full border-4 border-indigo-50 bg-indigo-100/50 shadow-inner">
-            <BookOpen className="h-10 w-10 text-indigo-500" />
+          <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full border-4 border-blue-50 bg-blue-100/50 shadow-inner">
+            <BookOpen className="h-10 w-10 text-blue-500" />
           </div>
           <h2 className="text-2xl font-bold text-slate-800">Belum ada kelas</h2>
           <p className="mt-2 max-w-sm text-slate-500 leading-relaxed">

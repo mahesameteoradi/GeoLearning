@@ -153,7 +153,7 @@ export function ExpeditionMap({
   return (
     <div ref={containerRef} className="w-full overflow-x-hidden">
       <div
-        className="relative w-full overflow-hidden rounded-2xl border border-indigo-100 shadow-xl"
+        className="relative w-full overflow-hidden rounded-2xl border border-blue-100 shadow-md"
         style={{
           background: 'linear-gradient(180deg, #eff6ff 0%, #eef2ff 40%, #f0fdf4 100%)',
           height: `${mapHeight}px`,
@@ -255,7 +255,7 @@ export function ExpeditionMap({
                   style={{ top: `${LABEL_OFFSET}px`, zIndex: 30 }}
                 >
                   <span className={cn(
-                    'bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-full shadow-sm',
+                    'bg-blue-600 text-white font-bold px-2 py-0.5 rounded-full shadow-sm',
                     isMobile ? 'text-[8px]' : 'text-[9px] sm:text-[10px]'
                   )}>
                     {node.modTitle}
@@ -266,12 +266,13 @@ export function ExpeditionMap({
               {/* Pulse for active node */}
               {isCurrent && (
                 <motion.div
-                  className="absolute rounded-full bg-indigo-400/30"
+                  className="absolute rounded-full bg-blue-400/30 pointer-events-none"
                   style={{
                     width: NODE_SIZE + 14,
                     height: NODE_SIZE + 14,
                     top: -(NODE_SIZE + 14) / 2 + NODE_SIZE / 2,
                     left: -(NODE_SIZE + 14) / 2 + NODE_SIZE / 2,
+                    zIndex: 0,
                   }}
                   animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
@@ -285,7 +286,7 @@ export function ExpeditionMap({
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 4 }}
-                    className="absolute z-50 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none"
+                    className="absolute z-50 bg-slate-800 text-white text-[10px] font-medium px-2.5 py-1.5 rounded-lg shadow-md pointer-events-none"
                     style={{
                       bottom: `${NODE_SIZE + 6}px`,
                       left: '50%',
@@ -296,7 +297,7 @@ export function ExpeditionMap({
                     }}
                   >
                     {node.isQuiz ? '📝 ' : '📖 '}{node.title}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -304,23 +305,23 @@ export function ExpeditionMap({
               {/* Node circle */}
               {isLocked ? (
                 <div
-                  className="rounded-full flex items-center justify-center border-2 border-slate-200 bg-white/70 text-slate-300 shadow-sm cursor-not-allowed opacity-50"
+                  className="rounded-full flex items-center justify-center border-2 border-slate-200 bg-white/70 text-slate-300 shadow-sm cursor-not-allowed opacity-50 relative z-10"
                   style={{ width: NODE_SIZE, height: NODE_SIZE }}
                 >
                   <Lock className={isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
                 </div>
               ) : (
-                <Link href={node.url}>
+                <Link href={node.url} className="relative z-10 block">
                   <motion.div
                     whileHover={{ scale: 1.15 }}
                     whileTap={{ scale: 0.92 }}
                     onHoverStart={() => setHoveredId(node.id)}
                     onHoverEnd={() => setHoveredId(null)}
                     className={cn(
-                      'rounded-full flex items-center justify-center border-2 border-white shadow-md cursor-pointer transition-shadow',
+                      'rounded-full flex items-center justify-center border-2 border-white shadow-md cursor-pointer transition-shadow overflow-hidden',
                       isDone
-                        ? 'bg-emerald-500 text-white shadow-emerald-300/60 hover:shadow-emerald-300/80'
-                        : 'bg-indigo-600 text-white shadow-indigo-300/60 hover:shadow-indigo-300/80'
+                        ? 'bg-green-500 text-white shadow-green-300/60 hover:shadow-green-300/80'
+                        : 'bg-blue-600 text-white shadow-blue-300/60 hover:shadow-blue-300/80'
                     )}
                     style={{ width: NODE_SIZE, height: NODE_SIZE }}
                   >
@@ -334,14 +335,14 @@ export function ExpeditionMap({
 
               {/* Type label below node (mobile: smaller) */}
               <div
-                className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap"
+                className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap pointer-events-none"
                 style={{ top: `${NODE_SIZE + 2}px` }}
               >
                 <span className={cn(
                   'font-bold rounded',
                   isMobile ? 'text-[8px]' : 'text-[9px]',
-                  isDone ? 'text-emerald-600' :
-                  isCurrent ? 'text-indigo-600' :
+                  isDone ? 'text-green-600' :
+                  isCurrent ? 'text-blue-600' :
                   'text-slate-400'
                 )}>
                   {node.isQuiz ? 'Kuis' : 'Materi'}
@@ -354,8 +355,8 @@ export function ExpeditionMap({
         {/* Legend — responsive position */}
         <div className="absolute bottom-3 right-3 z-30 flex flex-wrap items-center gap-2 sm:gap-3 bg-white/85 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 rounded-full shadow border border-white">
           {[
-            { cls: 'bg-emerald-500', label: 'Selesai' },
-            { cls: 'bg-indigo-600', label: 'Aktif' },
+            { cls: 'bg-green-500', label: 'Selesai' },
+            { cls: 'bg-blue-600', label: 'Aktif' },
             { cls: 'bg-slate-300', label: 'Terkunci' },
           ].map(({ cls, label }) => (
             <div key={label} className="flex items-center gap-1">
@@ -367,7 +368,7 @@ export function ExpeditionMap({
 
         {/* Progress badge — top right */}
         <div className="absolute top-3 right-3 z-30 bg-white/85 backdrop-blur-sm px-2.5 sm:px-3 py-1 rounded-full border border-white shadow">
-          <span className="text-[10px] sm:text-[11px] font-bold text-indigo-700">
+          <span className="text-[10px] sm:text-[11px] font-bold text-blue-700">
             {flatNodes.filter(n => n.isQuiz ? completedQuizzes.has(n.id) : completedMaterials.has(n.id)).length}
             /{flatNodes.length} selesai
           </span>

@@ -47,6 +47,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  font-size: 106.25%; /* Meningkatkan ukuran font dasar (17px dari 16px default) */
 }
 
 body {
@@ -102,14 +103,14 @@ body {
 
 /* ─── Gradient Text ───────────────────────────────────── */
 .text-gradient-primary {
-  background: linear-gradient(135deg, #2563EB, #0EA5E9);
+  background: linear-gradient(135deg, #2563EB, #22C55E); /* blue-600 to green-500 */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-edu {
-  background: linear-gradient(135deg, #F59E0B, #EF4444);
+  background: linear-gradient(135deg, #F59E0B, #F97316); /* amber-500 to orange-500 */
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -124,7 +125,7 @@ body {
 
 /* ─── XP Progress Bar ─────────────────────────────────── */
 .xp-bar-fill {
-  background: linear-gradient(90deg, #2563EB, #0EA5E9, #10B981);
+  background: linear-gradient(90deg, #F59E0B, #FBBF24); /* amber-500 to amber-400 */
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: width;
 }

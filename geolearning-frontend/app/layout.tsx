@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body suppressHydrationWarning className="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased" style={{ fontFamily: 'var(--font-outfit, system-ui, sans-serif)' }}>
+      <body suppressHydrationWarning className="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased" style={{ fontFamily: 'var(--font-outfit, system-ui, sans-serif)' }}>
         <TourProvider>
           <ConfirmProvider>
             <NextTopLoader

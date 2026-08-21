@@ -75,9 +75,9 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
   }
 
   return (
-    <div className="flex h-[90vh] md:h-[80vh] w-[95vw] md:w-[90vw] max-w-6xl flex-col md:flex-row overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-2xl">
+    <div className="flex h-[90vh] md:h-[80vh] w-[95vw] md:w-[90vw] max-w-6xl flex-col md:flex-row overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-md">
       {/* Map Area */}
-      <div className="relative bg-slate-100 z-0 h-[50vh] md:h-full md:flex-1 shrink-0">
+      <div className="relative bg-slate-50 z-0 h-[50vh] md:h-full md:flex-1 shrink-0">
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={zoom}
@@ -96,8 +96,8 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
         </MapContainer>
         
         <div className="absolute top-4 left-4 z-[400] rounded-xl bg-white/95 backdrop-blur-sm p-4 shadow-lg flex items-center gap-3 border border-slate-200">
-          <div className="bg-indigo-100 p-2 rounded-lg">
-            <MapIcon className="h-5 w-5 text-indigo-600" />
+          <div className="bg-blue-100 p-2 rounded-lg">
+            <MapIcon className="h-5 w-5 text-blue-600" />
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Pratinjau</p>
@@ -120,33 +120,33 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Judul Peta <span className="text-red-500">*</span></label>
-            <input value={mapTitle} onChange={e => setMapTitle(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" placeholder="Contoh: Peta Persebaran Flora" />
+            <input value={mapTitle} onChange={e => setMapTitle(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-800" placeholder="Contoh: Peta Persebaran Flora" />
           </div>
           
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Bab / Modul <span className="text-red-500">*</span></label>
-            <select value={moduleId} onChange={e => setModuleId(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800">
+            <select value={moduleId} onChange={e => setModuleId(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-800">
               {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
             </select>
           </div>
           
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Urutan ke- <span className="text-red-500">*</span></label>
-            <input type="number" min={0} value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" />
+            <input type="number" min={0} value={order} onChange={e => setOrder(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-800" />
           </div>
 
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Poin XP <span className="text-red-500">*</span></label>
-            <input type="number" min={0} value={xpReward} onChange={e => setXpReward(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all font-medium text-slate-800" />
+            <input type="number" min={0} value={xpReward} onChange={e => setXpReward(Number(e.target.value))} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-800" />
           </div>
 
           <div className="pt-4 border-t border-slate-100">
-            <label className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2 flex items-center gap-1.5">
+            <label className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-2 flex items-center gap-1.5">
               <Sparkles className="w-4 h-4" /> Jenis Peta
             </label>
             <div className="space-y-2 mt-3 max-h-48 overflow-y-auto pr-1">
               {MAP_TYPES.map(m => (
-                <label key={m.id} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedThemes.includes(m.id as MapTheme) ? 'border-indigo-500 bg-indigo-50/50' : 'border-slate-100 hover:border-indigo-200'}`}>
+                <label key={m.id} className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${selectedThemes.includes(m.id as MapTheme) ? 'border-blue-500 bg-blue-50/50' : 'border-slate-100 hover:border-blue-200'}`}>
                   <input 
                     type="checkbox" 
                     checked={selectedThemes.includes(m.id as MapTheme)}
@@ -162,7 +162,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
                         }
                       }
                     }}
-                    className="mt-1 w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                    className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
                   <div>
                     <p className="text-sm font-bold text-slate-800">{m.name}</p>
@@ -171,7 +171,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
                   {selectedThemes.includes(m.id as MapTheme) && (
                     <button 
                       onClick={(e) => { e.preventDefault(); setPreviewTheme(m.id as MapTheme) }} 
-                      className={`ml-auto text-xs px-2 py-1 rounded-md font-bold ${previewTheme === m.id ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
+                      className={`ml-auto text-xs px-2 py-1 rounded-md font-bold ${previewTheme === m.id ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'}`}
                     >
                       {previewTheme === m.id ? 'Pratinjau Aktif' : 'Lihat'}
                     </button>
@@ -189,7 +189,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
           <button
             onClick={handleSaveAll}
             disabled={!mapTitle}
-            className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
+            className="w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:hover:translate-y-0"
           >
             Simpan Peta Pembelajaran
           </button>

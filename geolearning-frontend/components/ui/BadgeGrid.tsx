@@ -47,11 +47,11 @@ export const BadgeIcon = ({ id, className }: { id: string, className?: string })
   
   switch(id) {
     case 'first_quiz': return <Target className={cn(baseClass, "text-rose-400")} />;
-    case 'xp_100': return <Star className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'xp_100': return <Star className={cn(baseClass, "text-amber-400 fill-amber-400")} />;
     case 'level_5': return (
       <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
         <Settings className="w-[90%] h-[90%] text-slate-300" />
-        <Leaf className="absolute w-[45%] h-[45%] text-emerald-400 fill-emerald-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <Leaf className="absolute w-[45%] h-[45%] text-green-400 fill-green-400 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </div>
     );
     case 'streak_3': return <Flame className={cn(baseClass, "text-orange-500 fill-orange-500")} />;
@@ -62,25 +62,25 @@ export const BadgeIcon = ({ id, className }: { id: string, className?: string })
       </div>
     );
     case 'level_10': return <Library className={cn(baseClass, "text-amber-200")} />;
-    case 'streak_7': return <Zap className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'streak_7': return <Zap className={cn(baseClass, "text-amber-400 fill-amber-400")} />;
     case 'perfect_score': return (
-      <div className={cn("flex flex-col items-center justify-center w-full h-full text-emerald-400", className)}>
+      <div className={cn("flex flex-col items-center justify-center w-full h-full text-green-400", className)}>
         <span className="font-black italic text-[0.6em] leading-none -mb-[2px]">100</span>
-        <div className="w-[60%] h-[3px] bg-emerald-400 rounded-full mt-[2px]" />
+        <div className="w-[60%] h-[3px] bg-green-400 rounded-full mt-[2px]" />
       </div>
     );
-    case 'xp_1000': return <Settings className={cn(baseClass, "text-cyan-400")} />;
-    case 'level_20': return <Trophy className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'xp_1000': return <Settings className={cn(baseClass, "text-blue-400")} />;
+    case 'level_20': return <Trophy className={cn(baseClass, "text-amber-400 fill-amber-400")} />;
     case 'streak_30': return (
       <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
         <Rocket className="w-[80%] h-[80%] text-rose-400 fill-rose-400 -rotate-45" />
       </div>
     );
     case 'xp_5000': return <Globe className={cn(baseClass, "text-blue-300")} />;
-    case 'level_50': return <Crown className={cn(baseClass, "text-yellow-400 fill-yellow-400")} />;
+    case 'level_50': return <Crown className={cn(baseClass, "text-amber-400 fill-amber-400")} />;
     case 'top_10': return (
       <div className={cn("relative flex items-center justify-center w-full h-full", className)}>
-        <Award className="w-[85%] h-[85%] text-fuchsia-400 fill-fuchsia-400" />
+        <Award className="w-[85%] h-[85%] text-amber-400 fill-amber-400" />
       </div>
     );
     default: return <Award className={cn(baseClass, "text-white")} />;
@@ -163,14 +163,14 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
           >
             {/* Equipped indicator */}
             {isEquipped && (
-              <div className="absolute -top-1.5 -right-1.5 z-20 flex h-6 w-6 animate-bounce items-center justify-center rounded-full bg-indigo-600 shadow-lg ring-2 ring-white">
+              <div className="absolute -top-1.5 -right-1.5 z-20 flex h-6 w-6 animate-bounce items-center justify-center rounded-full bg-blue-600 shadow-lg ring-2 ring-white">
                 <span className="text-[10px] text-white">⭐</span>
               </div>
             )}
 
             {/* Aura effect for equipped badge */}
             {isEquipped && (
-              <div className="absolute inset-0 z-0 animate-pulse rounded-full bg-indigo-400/30 blur-xl scale-150" />
+              <div className="absolute inset-0 z-0 animate-pulse rounded-full bg-blue-400/30 blur-xl scale-150" />
             )}
 
             {/* Badge container shape */}
@@ -194,7 +194,7 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
               <div className="flex flex-col items-center mt-1 w-full px-1">
                 <span className={cn(
                   "text-center text-[10px] sm:text-xs font-bold leading-tight w-full truncate",
-                  isEarned ? "text-slate-700 group-hover:text-indigo-600" : "text-slate-400"
+                  isEarned ? "text-slate-700 group-hover:text-blue-600" : "text-slate-400"
                 )}>
                   {badge.display_name}
                 </span>

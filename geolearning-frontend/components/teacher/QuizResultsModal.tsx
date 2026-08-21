@@ -38,8 +38,8 @@ interface QuizResultsModalProps {
 
 function ScoreBadge({ score }: { score: number }) {
   const color =
-    score >= 85 ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-    score >= 70 ? 'bg-cyan-50 text-cyan-600 border-cyan-200' :
+    score >= 85 ? 'bg-green-50 text-green-600 border-green-200' :
+    score >= 70 ? 'bg-blue-50 text-blue-600 border-blue-200' :
     score >= 55 ? 'bg-amber-50 text-amber-600 border-amber-200' :
     'bg-red-50 text-red-600 border-red-200'
   return (
@@ -220,7 +220,7 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-8"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
     >
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-black/60">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-md shadow-black/60">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div>
@@ -238,13 +238,13 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
             {completed.length > 0 && (
               <button
                 onClick={exportCSV}
-                className="flex items-center gap-1.5 rounded-lg border border-emerald-200 px-2.5 py-1.5 text-xs text-emerald-600 hover:bg-emerald-50"
+                className="flex items-center gap-1.5 rounded-lg border border-green-200 px-2.5 py-1.5 text-xs text-green-600 hover:bg-green-50"
               >
                 <Download className="h-3 w-3" />
                 Export CSV
               </button>
             )}
-            <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+            <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -253,7 +253,7 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
         <div className="p-6 space-y-5">
           {/* Real-time indicator */}
           <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
             <span className="text-[11px] text-slate-600">
               Live • terakhir diperbarui {formatDistanceToNow(lastRefreshed, { addSuffix: true, locale: idLocale })}
             </span>
@@ -263,7 +263,7 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               { label: 'Siswa', value: uniqueStudentsCount, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-300' },
-              { label: 'Rata-rata', value: `${avgScore.toFixed(0)}%`, icon: BarChart3, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-200' },
+              { label: 'Rata-rata', value: `${avgScore.toFixed(0)}%`, icon: BarChart3, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
               { label: 'Tertinggi', value: `${highest.toFixed(0)}%`, icon: Trophy, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
               { label: 'Terendah', value: uniqueStudentsCount > 0 ? `${lowest.toFixed(0)}%` : '-', icon: BarChart3, color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
             ].map(({ label, value, icon: Icon, color, bg, border }) => (
@@ -281,10 +281,10 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
           {completed.length > 0 && (
             <div>
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Distribusi Nilai</p>
-              <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-100">
+              <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-50">
                 {[
-                  { range: [85, 100], color: 'bg-emerald-500' },
-                  { range: [70, 84], color: 'bg-cyan-500' },
+                  { range: [85, 100], color: 'bg-green-500' },
+                  { range: [70, 84], color: 'bg-blue-500' },
                   { range: [55, 69], color: 'bg-amber-500' },
                   { range: [0, 54], color: 'bg-red-500' },
                 ].map(({ range, color }) => {
@@ -295,8 +295,8 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
               </div>
               <div className="mt-1.5 flex gap-4 text-[10px] text-slate-600">
                 {[
-                  { label: '≥85 Sangat Baik', color: 'bg-emerald-500' },
-                  { label: '70–84 Baik', color: 'bg-cyan-500' },
+                  { label: '≥85 Sangat Baik', color: 'bg-green-500' },
+                  { label: '70–84 Baik', color: 'bg-blue-500' },
                   { label: '55–69 Cukup', color: 'bg-amber-500' },
                   { label: '<55 Kurang', color: 'bg-red-500' },
                 ].map(({ label, color }) => (
@@ -343,10 +343,10 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                         (userAttemptsCount.get(a.user_id) || 0) >= quiz.max_attempts &&
                         (bestScores.get(a.user_id) || 0) < (quiz.passing_score || 0)
                       return (
-                      <tr key={a.id} className={cn('transition-colors hover:bg-slate-50', i === 0 && a.completed_at && 'bg-violet-50')}>
+                      <tr key={a.id} className={cn('transition-colors hover:bg-slate-50', i === 0 && a.completed_at && 'bg-amber-50')}>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-[10px] font-bold text-slate-800">
+                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-[10px] font-bold text-slate-800">
                               {a.student_name.charAt(0).toUpperCase()}
                             </div>
                             <span className="text-sm font-medium text-slate-800">{a.student_name}</span>
@@ -377,7 +377,7 @@ export function QuizResultsModal({ quiz, onClose }: QuizResultsModalProps) {
                               <button
                                 onClick={() => handleForceUnlock(a.user_id, a.student_name)}
                                 title="Loloskan (Buka bab selanjutnya)"
-                                className="inline-flex items-center justify-center rounded-lg bg-emerald-50 p-1.5 text-emerald-600 hover:bg-emerald-100 transition-colors border border-emerald-200"
+                                className="inline-flex items-center justify-center rounded-lg bg-green-50 p-1.5 text-green-600 hover:bg-green-100 transition-colors border border-green-200"
                               >
                                 <Unlock className="h-3.5 w-3.5" />
                               </button>

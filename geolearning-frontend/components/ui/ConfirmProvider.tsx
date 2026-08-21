@@ -47,10 +47,10 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       
       {isOpen && options && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-800/60 backdrop-blur-md animate-in fade-in duration-300"
         >
           <div 
-            className="relative w-full max-w-sm rounded-[32px] bg-white shadow-2xl shadow-black/20 overflow-hidden animate-in zoom-in-95 duration-300 p-8 text-center"
+            className="relative w-full max-w-sm rounded-[32px] bg-white shadow-md shadow-black/20 overflow-hidden animate-in zoom-in-95 duration-300 p-8 text-center"
             role="dialog"
             aria-modal="true"
           >
@@ -76,7 +76,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             <div className="flex items-center justify-center gap-3">
               <button
                 onClick={handleCancel}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-slate-100 px-4 py-3.5 text-[13px] font-bold text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl bg-slate-50 px-4 py-3.5 text-[13px] font-bold text-slate-600 hover:bg-slate-200 hover:text-slate-800 transition-colors"
               >
                 {options.cancelText || 'Batal'}
               </button>

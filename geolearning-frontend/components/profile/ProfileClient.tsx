@@ -326,18 +326,14 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
         <OnboardingTour tourKey="profile_teacher" steps={profileTeacherSteps} />
       )}
       {/* ── Page Header ──────────────────────────────────────────────────── */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
-            <User className="h-8 w-8 text-blue-200" />
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+            <User className="h-8 w-8 text-blue-400 drop-shadow-sm" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Pengaturan Profil</h1>
-            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+            <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">
               Perbarui informasi pribadi dan sesuaikan tampilan profil Anda.
             </p>
           </div>
@@ -349,15 +345,15 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
         <div className="mb-8 grid gap-6 md:grid-cols-2">
           {/* Status & Progress */}
           <div id="tour-student-profile-gamification" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="mb-4 text-lg font-bold text-slate-800 flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" /> Status Gamifikasi
             </h2>
             
             <div className="flex flex-col md:flex-row items-center gap-5 mb-5">
-              <div className="relative w-24 h-24 flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-100 to-blue-50 border-4 border-indigo-200">
+              <div className="relative w-24 h-24 flex items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-50 border-4 border-blue-200">
                 <div className="text-center">
-                  <p className="text-xs font-bold text-indigo-500 uppercase">Level</p>
-                  <p className="text-3xl font-black text-indigo-700">{profile.level}</p>
+                  <p className="text-xs font-bold text-blue-500 uppercase">Level</p>
+                  <p className="text-3xl font-black text-blue-700">{profile.level}</p>
                 </div>
               </div>
               
@@ -366,9 +362,9 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                   <span className="font-bold text-slate-700">{getLevelMeaning(profile.level).title}</span>
                   <span className="font-semibold text-slate-500">{profile.xp} XP</span>
                 </div>
-                <div className="h-4 w-full rounded-full bg-slate-100 overflow-hidden shadow-inner">
+                <div className="h-4 w-full rounded-full bg-slate-50 overflow-hidden shadow-inner">
                   <div 
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-1000 relative"
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-1000 relative"
                     style={{ width: `${levelProgressPercent(profile.xp)}%` }}
                   >
                     <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-white/30 to-transparent"></div>
@@ -387,7 +383,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Streak Belajar</p>
                 </div>
                 <div className="rounded-xl bg-slate-50 p-3 text-center border border-slate-100">
-                  <Book className="mx-auto h-6 w-6 text-emerald-500 mb-1" />
+                  <Book className="mx-auto h-6 w-6 text-green-500 mb-1" />
                   <p className="text-xl font-bold text-slate-800">{stats.materialCount}</p>
                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Ketuntasan Materi</p>
                 </div>
@@ -402,8 +398,8 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
           {/* Badge Showcase */}
           <div id="tour-student-profile-badges" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-500" /> Pameran Lencana
+            <h2 className="mb-4 text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-amber-500" /> Pameran Lencana
             </h2>
             
             <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
@@ -425,7 +421,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
       {role === 'TEACHER' && (
         <div className="mb-8">
           <div id="tour-teacher-profile-stats" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="mb-4 text-lg font-bold text-slate-900 flex items-center gap-2">
+            <h2 className="mb-4 text-lg font-bold text-slate-800 flex items-center gap-2">
               <Star className="h-5 w-5 text-amber-500" /> Statistik Mengajar
             </h2>
             
@@ -436,12 +432,12 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Kelas Aktif</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-5 text-center border border-slate-100 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 hover:shadow-md">
-                <GraduationCap className="h-8 w-8 text-emerald-500 mb-2" />
+                <GraduationCap className="h-8 w-8 text-green-500 mb-2" />
                 <p className="text-3xl font-black text-slate-800">{teacherStats.studentCount}</p>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Siswa Diajar</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-5 text-center border border-slate-100 flex flex-col items-center justify-center transition-transform hover:-translate-y-1 hover:shadow-md">
-                <Target className="h-8 w-8 text-indigo-500 mb-2" />
+                <Target className="h-8 w-8 text-blue-500 mb-2" />
                 <p className="text-3xl font-black text-slate-800">{teacherStats.quizCount}</p>
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">Total Kuis Dibuat</p>
               </div>
@@ -461,7 +457,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                 xp={0}
                 size="lg"
               />
-              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-900/40 opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="absolute inset-0 flex items-center justify-center rounded-full bg-slate-800/40 opacity-0 transition-opacity group-hover:opacity-100">
                 {uploading ? (
                   <Loader2 className="h-6 w-6 animate-spin text-white" />
                 ) : (
@@ -476,7 +472,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
               accept="image/*"
               className="hidden"
             />
-            <h3 className="font-bold text-slate-900">{profile.name}</h3>
+            <h3 className="font-bold text-slate-800">{profile.name}</h3>
             <span className={cn(
               "mt-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
               role === 'TEACHER' ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-blue-50 text-blue-600 border border-blue-200"
@@ -493,7 +489,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
         {/* Right Column: Form */}
         <div className="md:col-span-2">
           <form id={role === 'STUDENT' ? "tour-student-profile-edit" : "tour-teacher-profile-edit"} onSubmit={handleSave} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-5 border-b border-slate-100 pb-3">
+            <h2 className="text-lg font-bold text-slate-800 mb-5 border-b border-slate-100 pb-3">
               Biodata Diri
             </h2>
 
@@ -511,7 +507,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -527,7 +523,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       required
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -544,7 +540,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                     readOnly
                     disabled
                     value={profile.email}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed"
                   />
                   <p className="mt-1.5 text-[10px] text-slate-600">Email tidak dapat diubah.</p>
                 </div>
@@ -563,7 +559,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       value={nisNip}
                       onChange={(e) => setNisNip(e.target.value)}
                       placeholder="Masukkan NISN / NIM"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -579,7 +575,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       value={nisNip}
                       onChange={(e) => setNisNip(e.target.value)}
                       placeholder="Contoh: 19800101 200501 1 001"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -598,7 +594,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       value={schoolClass}
                       onChange={(e) => setSchoolClass(e.target.value)}
                       placeholder="Contoh: XII IPA 1"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -614,7 +610,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       value={schoolClass}
                       onChange={(e) => setSchoolClass(e.target.value)}
                       placeholder="Contoh: Guru Geografi"
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -633,7 +629,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                       onChange={(e) => setBio(e.target.value)}
                       placeholder="Tuliskan spesialisasi, bidang keahlian, dan riwayat singkat..."
                       rows={3}
-                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
+                      className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 focus:border-blue-500 focus:bg-white focus:ring-1 focus:ring-blue-500/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -658,8 +654,8 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
           {/* Change Password Form */}
           <form id={role === 'STUDENT' ? "tour-student-profile-password" : "tour-teacher-profile-password"} onSubmit={handleUpdatePassword} className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-bold text-slate-900 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2">
-              <KeyRound className="h-5 w-5 text-emerald-600" /> Keamanan Akun
+            <h2 className="text-lg font-bold text-slate-800 mb-5 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-green-600" /> Keamanan Akun
             </h2>
 
             <div className="space-y-4">
@@ -674,7 +670,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimal 6 karakter"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-11 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-11 text-sm text-slate-800 focus:border-green-500 focus:bg-white focus:ring-1 focus:ring-green-500/20 outline-none transition-all"
                   />
                   <button
                     type="button"
@@ -698,7 +694,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
                     placeholder="Ulangi kata sandi"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-11 text-sm text-slate-900 focus:border-emerald-500 focus:bg-white focus:ring-1 focus:ring-emerald-500/20 outline-none transition-all"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-4 pr-11 text-sm text-slate-800 focus:border-green-500 focus:bg-white focus:ring-1 focus:ring-green-500/20 outline-none transition-all"
                   />
                 </div>
               </div>
@@ -708,7 +704,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-700 disabled:opacity-60"
+                className="flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-green-600/20 transition-all hover:bg-green-700 disabled:opacity-60"
               >
                 {savingPassword ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

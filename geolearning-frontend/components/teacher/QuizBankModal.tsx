@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface QuizItem {
   id: string
@@ -173,13 +175,23 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
     }
   }
 
-  const filtered = quizzes.filter(q => q.title.toLowerCase().includes(searchQuery.toLowerCase()))
+  const [filterType, setFilterType] = useState('ALL')
+
+  const filtered = quizzes.filter(q => {
+    const matchSearch = q.title.toLowerCase().includes(searchQuery.toLowerCase())
+    if (!matchSearch) return false
+
+    if (filterType === 'ALL') return true
+    if (filterType === 'FORMATIF') return q.quiz_type === 'FORMATIF'
+    if (filterType === 'SUMATIF') return q.quiz_type === 'SUMATIF'
+    return true
+  })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-slate-800/40 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative flex h-full max-h-[800px] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+      <div className="relative flex h-full max-h-[800px] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-md">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>
@@ -188,7 +200,7 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
           </div>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-full p-2 text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-colors"
           >
             <X className="h-5 w-5" />
           </button>
@@ -198,17 +210,17 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
         <div className="flex-1 overflow-y-auto bg-slate-50 p-6 space-y-6">
           
           {/* Target Module Selection */}
-          <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4">
-            <h3 className="text-sm font-bold text-indigo-900 mb-3">Tujuan Kuis</h3>
+          <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-4">
+            <h3 className="text-sm font-bold text-blue-900 mb-3">Tujuan Kuis</h3>
             <div className="grid gap-3 sm:grid-cols-12">
               <div className="sm:col-span-5">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-indigo-500/70 mb-1.5 block">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-blue-500/70 mb-1.5 block">
                   Pilih Bab / Modul
                 </label>
                 <select
                   value={targetModuleId}
                   onChange={e => setTargetModuleId(e.target.value)}
-                  className="w-full rounded-xl border border-white bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-indigo-300 focus:ring-4 focus:ring-indigo-600/10"
+                  className="w-full rounded-xl border border-white bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-600/10"
                 >
                   <option value="">-- Pilih --</option>
                   {existingModules.map(m => (
@@ -219,7 +231,7 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
               </div>
               
               <div className="sm:col-span-3">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-indigo-500/70 mb-1.5 block">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-blue-500/70 mb-1.5 block">
                   Urutan
                 </label>
                 <input
@@ -227,42 +239,53 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
                   min="0"
                   value={quizOrder}
                   onChange={e => setQuizOrder(parseInt(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-white bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-indigo-300 focus:ring-4 focus:ring-indigo-600/10"
+                  className="w-full rounded-xl border border-white bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-600/10"
                 />
               </div>
               
               {targetModuleId === 'new' && (
                 <div className="animate-in fade-in slide-in-from-top-1 sm:col-span-4">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-indigo-500/70 mb-1.5 block">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-blue-500/70 mb-1.5 block">
                     Nama Modul Baru
                   </label>
                   <input
                     value={newModuleTitle}
                     onChange={e => setNewModuleTitle(e.target.value)}
                     placeholder="Ketik nama modul..."
-                    className="w-full rounded-xl border border-white bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-sm outline-none transition-all focus:border-indigo-300 focus:ring-4 focus:ring-indigo-600/10"
+                    className="w-full rounded-xl border border-white bg-white px-3.5 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all focus:border-blue-300 focus:ring-4 focus:ring-blue-600/10"
                   />
                 </div>
               )}
             </div>
           </div>
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cari kuis di bank..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm shadow-sm outline-none transition-all focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/10"
+          {/* Search & Filter */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Cari kuis di bank..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm shadow-sm outline-none transition-all focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
+              />
+            </div>
+            <AnimatedFilterTabs
+              options={[
+                { id: 'ALL', label: 'Semua Kuis' },
+                { id: 'FORMATIF', label: 'Formatif' },
+                { id: 'SUMATIF', label: 'Sumatif' },
+              ]}
+              activeTab={filterType}
+              onChange={setFilterType}
             />
           </div>
 
           {/* Quiz List */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
               <p className="mt-4 text-sm text-slate-500">Memuat bank kuis...</p>
             </div>
           ) : filtered.length === 0 ? (
@@ -272,37 +295,47 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
               <p className="text-xs text-slate-400 mt-1">Buat template kuis di halaman Manajemen Kuis.</p>
             </div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {filtered.map(quiz => (
-                <div key={quiz.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-indigo-200 hover:shadow-md">
-                  <h4 className="font-bold text-slate-800 line-clamp-1 mb-2">{quiz.title}</h4>
-                  <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
-                    <span className="flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> {quiz.question_count} Soal</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {quiz.time_limit ? `${quiz.time_limit} detik` : '∞'}</span>
-                    <span className="flex items-center gap-1 text-emerald-500"><Trophy className="h-3 w-3" /> {quiz.passing_score} KKM</span>
-                    {quiz.quiz_type === 'SUMATIF' && (
-                      <span className="flex items-center gap-1 text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded text-[10px]">SUMATIF</span>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleClone(quiz)}
-                    disabled={!!cloningId}
-                    className={cn(
-                      "mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-bold transition-all",
-                      cloningId === quiz.id
-                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                        : "bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"
-                    )}
+            <motion.div layout className="grid gap-3 sm:grid-cols-2">
+              <AnimatePresence mode="popLayout">
+                {filtered.map(quiz => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
+                    key={quiz.id}
+                    className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-blue-200 hover:shadow-md"
                   >
-                    {cloningId === quiz.id ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" /> Menyalin...</>
-                    ) : (
-                      'Pilih Kuis Ini'
-                    )}
-                  </button>
-                </div>
-              ))}
-            </div>
+                    <h4 className="font-bold text-slate-800 line-clamp-1 mb-2">{quiz.title}</h4>
+                    <div className="flex items-center gap-4 text-xs text-slate-500 mb-4">
+                      <span className="flex items-center gap-1"><FileText className="h-3.5 w-3.5" /> {quiz.question_count} Soal</span>
+                      <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {quiz.time_limit ? `${quiz.time_limit} detik` : '∞'}</span>
+                      <span className="flex items-center gap-1 text-green-500"><Trophy className="h-3 w-3" /> {quiz.passing_score} KKM</span>
+                      {quiz.quiz_type === 'SUMATIF' && (
+                        <span className="flex items-center gap-1 text-purple-600 bg-purple-100 px-1.5 py-0.5 rounded text-[10px]">SUMATIF</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleClone(quiz)}
+                      disabled={!!cloningId}
+                      className={cn(
+                        "mt-auto flex w-full items-center justify-center gap-2 rounded-xl py-2 text-sm font-bold transition-all",
+                        cloningId === quiz.id
+                          ? "bg-slate-50 text-slate-400 cursor-not-allowed"
+                          : "bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white"
+                      )}
+                    >
+                      {cloningId === quiz.id ? (
+                        <><Loader2 className="h-4 w-4 animate-spin" /> Menyalin...</>
+                      ) : (
+                        'Pilih Kuis Ini'
+                      )}
+                    </button>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
 
         </div>

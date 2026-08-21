@@ -12,6 +12,8 @@ import { createClient } from '@/lib/supabase/client'
 import { CreatePostModal } from '@/components/teacher/CreatePostModal'
 import toast from 'react-hot-toast'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -155,13 +157,13 @@ function PostCard({
                   <BookOpen className="h-2.5 w-2.5" /> {cls.name}
                 </span>
               ) : (
-                <span className="flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">
+                <span className="flex items-center gap-1 rounded-full border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-600">
                   <Globe className="h-2.5 w-2.5" /> Semua Kelas
                 </span>
               )}
             </div>
 
-            <h3 className="font-semibold text-slate-900">{post.title}</h3>
+            <h3 className="font-semibold text-slate-800">{post.title}</h3>
             <p className="mt-1 text-xs text-slate-500 line-clamp-2">{post.body}</p>
           </div>
 
@@ -209,7 +211,7 @@ function PostCard({
                 const isMyReply = reply.user_id === userId
                 return (
                   <div key={reply.id} className="flex gap-3 group">
-                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600/30 to-sky-500/30 border border-blue-300 text-xs font-bold text-blue-700">
+                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600/30 to-blue-500/30 border border-blue-300 text-xs font-bold text-blue-700">
                       {replyUser.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
@@ -250,7 +252,7 @@ function PostCard({
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Tulis balasan..."
               maxLength={1000}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
+              className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
             />
             <button
               type="submit"
@@ -318,25 +320,17 @@ export function TeacherForumClient({
       {/* Toolbar */}
       <div className="mb-5 flex flex-wrap items-center gap-3">
         {/* Class filter */}
-        <div className="flex flex-1 gap-1.5 overflow-x-auto">
-          {[
-            { id: 'all', label: 'Semua' },
-            { id: 'global', label: '🌐 Global' },
-            ...classes.map((c) => ({ id: c.id, label: c.name })),
-          ].map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => setFilterClassId(opt.id)}
-              className={cn(
-                'whitespace-nowrap rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all',
-                filterClassId === opt.id
-                  ? 'border-blue-200 bg-blue-100 text-blue-700'
-                  : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
+        <div className="flex flex-1 min-w-0 overflow-hidden">
+          <AnimatedFilterTabs
+            activeTab={filterClassId}
+            onChange={(tab) => setFilterClassId(tab)}
+            options={[
+              { id: 'all', label: 'Semua' },
+              { id: 'global', label: '🌐 Global' },
+              ...classes.map((c) => ({ id: c.id, label: c.name })),
+            ]}
+            layoutId="forum-class-filter"
+          />
         </div>
 
         {/* New post button */}
@@ -358,16 +352,26 @@ export function TeacherForumClient({
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              userId={userId}
-              onDelete={handleDeletePost}
-              onReplyAdded={handleReplyAdded}
-              onReplyDeleted={handleReplyDeleted}
-            />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {filteredPosts.map((post) => (
+              <motion.div
+                key={post.id}
+                layout
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PostCard
+                  post={post}
+                  userId={userId}
+                  onDelete={handleDeletePost}
+                  onReplyAdded={handleReplyAdded}
+                  onReplyDeleted={handleReplyDeleted}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 

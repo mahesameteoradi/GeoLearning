@@ -83,7 +83,7 @@ interface AvailableClassItem {
 function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-slate-100 ${className ?? ''}`}
+      className={`animate-pulse rounded-lg bg-slate-50 ${className ?? ''}`}
     />
   )
 }
@@ -617,13 +617,10 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
       {/* Interactive Cursor Glow is handled by InteractiveBackground component in the layout/page now, so it is removed from here to prevent duplication */}
 
       {/* ─── Hero Header ─────────────────────────────────────────────────── */}
-      <div id="tour-student-hero" className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div id="tour-student-hero" className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
 
         <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
-          <div className="flex-shrink-0 transition-transform duration-500 hover:scale-105 hover:rotate-3 drop-shadow-xl">
+          <div className="flex-shrink-0 transition-transform duration-500 hover:scale-105 hover:rotate-3 drop-shadow-md">
             <AvatarDisplay
               avatarUrl={profile.avatar_url}
               name={profile.name}
@@ -634,7 +631,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           </div>
 
           <div className="flex-1 min-w-0 text-center sm:text-left mt-2 sm:mt-0">
-            <p className="text-sm font-medium text-indigo-200/80 mb-1">{greeting},</p>
+            <p className="text-sm font-medium text-blue-200/80 mb-1">{greeting},</p>
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 mb-2">
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{profile.name}</h1>
               <LevelBadge level={level} size="md" />
@@ -645,13 +642,13 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
                 </span>
               )}
               {profile.learning_style && (
-                <span className="flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-300 shadow-sm backdrop-blur-sm">
-                  <BrainCircuit className="h-4 w-4 text-indigo-400" />
+                <span className="flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-500/20 px-3 py-1 text-xs font-bold text-blue-300 shadow-sm backdrop-blur-sm">
+                  <BrainCircuit className="h-4 w-4 text-blue-400" />
                   Gaya Belajar: {profile.learning_style}
                 </span>
               )}
             </div>
-            <p className="text-sm text-indigo-100/80 mb-5 max-w-xl leading-relaxed">
+            <p className="text-sm text-blue-100/80 mb-5 max-w-xl leading-relaxed">
               Terus tingkatkan semangat belajarmu! Kamu telah mengumpulkan <span className="font-bold text-amber-400">{profile.xp.toLocaleString()} XP</span> secara keseluruhan dan mencapai predikat <span className="font-bold text-white">Level {level} Explorer</span>.
             </p>
             <div className="max-w-md bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md shadow-inner">
@@ -665,11 +662,11 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
       <div id="tour-student-stats" className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: 'Total XP', value: profile.xp.toLocaleString(), icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent', subtitle: 'Keep going!' },
-          { label: 'Level', value: level, icon: Trophy, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent', subtitle: `Max: ${xpForLevel(level + 1).toLocaleString()} XP` },
+          { label: 'Level', value: level, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', gradient: 'from-blue-500/5 to-transparent', subtitle: `Max: ${xpForLevel(level + 1).toLocaleString()} XP` },
           { label: 'Streak', value: `${profile.current_streak}d`, icon: Flame, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100', gradient: 'from-orange-500/5 to-transparent', subtitle: `Best: ${profile.longest_streak}d` },
-          { label: 'Kuis Selesai', value: attempts.length, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', gradient: 'from-emerald-500/5 to-transparent', subtitle: 'Great work!' },
+          { label: 'Kuis Selesai', value: attempts.length, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', gradient: 'from-green-500/5 to-transparent', subtitle: 'Great work!' },
         ].map(({ label, value, icon: Icon, color, bg, border, gradient, subtitle }) => (
-          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1`}>
+          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
             <div className="relative flex items-start justify-between">
               <div>
@@ -715,13 +712,13 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
                   <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
                   <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
                 </div>
-                <div className="flex flex-col gap-1 rounded-xl bg-indigo-50 p-3">
-                  <span className="text-xs font-semibold text-indigo-700">Dari Materi</span>
-                  <span className="text-xl font-black text-indigo-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
+                <div className="flex flex-col gap-1 rounded-xl bg-blue-50 p-3">
+                  <span className="text-xs font-semibold text-blue-700">Dari Materi</span>
+                  <span className="text-xl font-black text-blue-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
                 </div>
-                <div className="flex flex-col gap-1 rounded-xl bg-emerald-50 p-3">
-                  <span className="text-xs font-semibold text-emerald-700">Dari Proyek</span>
-                  <span className="text-xl font-black text-emerald-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
+                <div className="flex flex-col gap-1 rounded-xl bg-green-50 p-3">
+                  <span className="text-xs font-semibold text-green-700">Dari Proyek</span>
+                  <span className="text-xl font-black text-green-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
                 </div>
               </div>
             </div>

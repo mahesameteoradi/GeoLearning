@@ -312,7 +312,7 @@ export function AdminClient({ user }: { user: any }) {
   const uniqueTeachers = Array.from(new Set(classes.map(c => c.teacher?.name).filter(Boolean)))
 
   const StatCard = ({ title, value, icon: Icon, colorClass, gradient }: any) => (
-    <div className={`relative overflow-hidden rounded-3xl border border-white/40 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]`}>
+    <div className={`relative overflow-hidden rounded-2xl border border-white/40 bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:-translate-y-1 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]`}>
       <div className={`absolute -right-6 -top-6 h-24 w-24 rounded-full ${gradient} opacity-20 blur-2xl transition-all group-hover:opacity-40`} />
       <div className="flex items-center gap-4">
         <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${colorClass} bg-opacity-10 backdrop-blur-sm`}>
@@ -320,7 +320,7 @@ export function AdminClient({ user }: { user: any }) {
         </div>
         <div>
           <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">{title}</p>
-          <p className="text-3xl font-black text-slate-900">{value}</p>
+          <p className="text-3xl font-black text-slate-800">{value}</p>
         </div>
       </div>
     </div>
@@ -363,7 +363,7 @@ export function AdminClient({ user }: { user: any }) {
               <ShieldCheck className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-black tracking-tight text-slate-900">Super Admin</h1>
+              <h1 className="text-lg font-black tracking-tight text-slate-800">Super Admin</h1>
               <p className="text-xs font-medium text-slate-500">System Management</p>
             </div>
           </div>
@@ -404,7 +404,7 @@ export function AdminClient({ user }: { user: any }) {
           
           <div className="flex items-center gap-4">
             <span className="text-xs font-medium text-slate-500 flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
               Live Sync
             </span>
             <span className="text-xs text-slate-400">
@@ -434,7 +434,7 @@ export function AdminClient({ user }: { user: any }) {
               {(activeTab === 'dashboard' || activeTab === 'teachers' || activeTab === 'students') && (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                   <StatCard title="Total Guru" value={teachers.length} icon={UserCheck} colorClass="bg-blue-100" gradient="bg-blue-400" />
-                  <StatCard title="Total Siswa" value={students.length} icon={GraduationCap} colorClass="bg-emerald-100" gradient="bg-emerald-400" />
+                  <StatCard title="Total Siswa" value={students.length} icon={GraduationCap} colorClass="bg-green-100" gradient="bg-green-400" />
                   <StatCard title="Total Kelas" value={classes.length} icon={BookOpen} colorClass="bg-amber-100" gradient="bg-amber-400" />
                   <StatCard title="Total Kuis" value={quizzes.length} icon={FileText} colorClass="bg-purple-100" gradient="bg-purple-400" />
                 </div>
@@ -444,7 +444,7 @@ export function AdminClient({ user }: { user: any }) {
               {activeTab === 'teachers' && (
                 <div className="space-y-6">
                   {showAddTeacher && (
-                    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
                           <UserCheck className="h-5 w-5" />
@@ -469,7 +469,7 @@ export function AdminClient({ user }: { user: any }) {
                           <input type="password" required value={newTeacher.password} onChange={e => setNewTeacher({ ...newTeacher, password: e.target.value })} className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition" placeholder="••••••••" minLength={6} />
                         </div>
                         <div className="sm:col-span-2 flex justify-end gap-3 mt-2">
-                          <button type="button" onClick={() => setShowAddTeacher(false)} className="rounded-xl px-6 py-3 font-bold text-slate-600 transition hover:bg-slate-100">Batal</button>
+                          <button type="button" onClick={() => setShowAddTeacher(false)} className="rounded-xl px-6 py-3 font-bold text-slate-600 transition hover:bg-slate-50">Batal</button>
                           <button type="submit" disabled={creatingTeacher} className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-700 disabled:opacity-70">
                             {creatingTeacher ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Buat Akun'}
                           </button>
@@ -478,14 +478,14 @@ export function AdminClient({ user }: { user: any }) {
                     </div>
                   )}
 
-                  <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                     <div className="px-6 py-5 border-b border-slate-100 bg-white flex justify-between items-center">
                       <h3 className="font-bold text-slate-800">Daftar Guru Terdaftar</h3>
                       <div className="flex gap-2">
-                        <button onClick={() => setShowImportModal(true)} className="flex items-center gap-2 rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-600 transition hover:bg-emerald-100 border border-emerald-200">
+                        <button onClick={() => setShowImportModal(true)} className="flex items-center gap-2 rounded-xl bg-green-50 px-4 py-2 text-sm font-bold text-green-600 transition hover:bg-green-100 border border-green-200">
                           <FileSpreadsheet className="h-4 w-4" /> Import Excel
                         </button>
-                        <button onClick={() => setShowAddTeacher(!showAddTeacher)} className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 shadow-md shadow-slate-900/20">
+                        <button onClick={() => setShowAddTeacher(!showAddTeacher)} className="rounded-xl bg-slate-800 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 shadow-md shadow-slate-800/20">
                           + Tambah Guru
                         </button>
                       </div>
@@ -519,12 +519,12 @@ export function AdminClient({ user }: { user: any }) {
                         {filteredTeachers.length > 0 ? filteredTeachers.map(teacher => (
                           <tr key={teacher.id} className="transition-colors hover:bg-slate-50/50">
                             <td className="px-6 py-4">
-                              <div className="font-bold text-slate-900">{teacher.name}</div>
+                              <div className="font-bold text-slate-800">{teacher.name}</div>
                               <div className="text-slate-500">{teacher.email}</div>
                             </td>
                             <td className="px-6 py-4">
                               <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
-                                teacher.verification_status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' :
+                                teacher.verification_status === 'VERIFIED' ? 'bg-green-100 text-green-700' :
                                 teacher.verification_status === 'UNVERIFIED' ? 'bg-amber-100 text-amber-700' :
                                 'bg-red-100 text-red-700'
                               }`}>
@@ -541,7 +541,7 @@ export function AdminClient({ user }: { user: any }) {
                                   <Edit className="h-4 w-4" />
                                 </button>
                                 {teacher.verification_status !== 'VERIFIED' && (
-                                  <button onClick={() => verifyTeacher(teacher.id)} className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-600 transition hover:bg-emerald-100">
+                                  <button onClick={() => verifyTeacher(teacher.id)} className="rounded-lg bg-green-50 px-3 py-1.5 text-xs font-bold text-green-600 transition hover:bg-green-100">
                                     Verifikasi
                                   </button>
                                 )}
@@ -568,7 +568,7 @@ export function AdminClient({ user }: { user: any }) {
 
               {/* Students Tab */}
               {activeTab === 'students' && (
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                   <div className="px-6 py-5 border-b border-slate-100 bg-white">
                     <h3 className="font-bold text-slate-800">Daftar Siswa Terdaftar</h3>
                   </div>
@@ -601,7 +601,7 @@ export function AdminClient({ user }: { user: any }) {
                         {filteredStudents.length > 0 ? filteredStudents.map(student => (
                           <tr key={student.id} className="transition-colors hover:bg-slate-50/50">
                             <td className="px-6 py-4">
-                              <div className="font-bold text-slate-900">{student.name}</div>
+                              <div className="font-bold text-slate-800">{student.name}</div>
                               <div className="text-slate-500">{student.email}</div>
                             </td>
                             <td className="px-6 py-4 text-slate-600 font-medium">{student.nis_nip || '-'}</td>
@@ -633,7 +633,7 @@ export function AdminClient({ user }: { user: any }) {
 
               {/* Classes Tab */}
               {activeTab === 'classes' && (
-                <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                   <div className="px-6 py-5 border-b border-slate-100 bg-white">
                     <h3 className="font-bold text-slate-800">Daftar Kelas</h3>
                   </div>
@@ -665,13 +665,13 @@ export function AdminClient({ user }: { user: any }) {
                         {filteredClasses.length > 0 ? filteredClasses.map(cls => (
                           <tr key={cls.id} className="transition-colors hover:bg-slate-50/50">
                             <td className="px-6 py-4">
-                              <div className="font-bold text-slate-900">{cls.name}</div>
+                              <div className="font-bold text-slate-800">{cls.name}</div>
                               <div className="text-xs text-slate-500 truncate max-w-[300px] mt-0.5">{cls.description || 'Tidak ada deskripsi'}</div>
                             </td>
                             <td className="px-6 py-4 font-medium text-slate-700">
                               {cls.teacher?.name ? (
                                 <div className="flex items-center gap-2">
-                                  <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold">
+                                  <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
                                     {cls.teacher.name.charAt(0)}
                                   </div>
                                   {cls.teacher.name}
@@ -679,7 +679,7 @@ export function AdminClient({ user }: { user: any }) {
                               ) : 'Tidak ada'}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-bold text-slate-700">
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1 font-bold text-slate-700">
                                 <Users className="h-3 w-3 text-slate-400" />
                                 {cls._count.enrollments}
                               </span>
@@ -702,19 +702,19 @@ export function AdminClient({ user }: { user: any }) {
                     <input type="text" placeholder="Cari bank soal berdasarkan nama kelas, judul kuis, atau materi..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-12 pr-4 py-4 rounded-2xl border border-slate-200 bg-white shadow-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition font-medium" />
                   </div>
                   {filteredQuizzes.length > 0 ? filteredQuizzes.map(cls => (
-                    <div key={cls.id} className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md">
+                    <div key={cls.id} className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md">
                       <div 
                         className="flex cursor-pointer items-center justify-between p-6 bg-slate-50/50 hover:bg-slate-50 transition-colors"
                         onClick={() => setExpandedClasses(prev => ({ ...prev, [cls.id]: !prev[cls.id] }))}
                       >
                         <div className="flex items-center gap-4">
-                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600 shadow-inner">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 shadow-inner">
                             <Folder className="h-6 w-6" />
                           </div>
                           <div>
                             <h3 className="text-lg font-black text-slate-800">{cls.name}</h3>
                             <p className="text-sm font-medium text-slate-500 mt-0.5">
-                              Guru: <span className="text-indigo-600 font-bold">{cls.teacher?.name || 'Tidak ada'}</span>
+                              Guru: <span className="text-blue-600 font-bold">{cls.teacher?.name || 'Tidak ada'}</span>
                             </p>
                           </div>
                         </div>
@@ -723,7 +723,7 @@ export function AdminClient({ user }: { user: any }) {
                             <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 font-bold text-blue-700 text-xs border border-blue-100">
                               {cls.quizzes.length} Kuis
                             </span>
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 font-bold text-emerald-700 text-xs border border-emerald-100">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 font-bold text-green-700 text-xs border border-green-100">
                               {cls.modules.reduce((acc, m) => acc + m.materials.length, 0)} Materi
                             </span>
                           </div>
@@ -744,7 +744,7 @@ export function AdminClient({ user }: { user: any }) {
                                 {cls.quizzes.map(quiz => (
                                   <div key={quiz.id} className="flex items-center justify-between rounded-xl border border-slate-100 p-4 transition hover:border-blue-200 hover:bg-blue-50/30">
                                     <div className="font-bold text-slate-700">{quiz.title}</div>
-                                    <span className="rounded-md bg-slate-100 px-2 py-1 text-[11px] font-bold text-slate-600">
+                                    <span className="rounded-md bg-slate-50 px-2 py-1 text-[11px] font-bold text-slate-600">
                                       {quiz._count.questions} Butir Soal
                                     </span>
                                   </div>
@@ -769,7 +769,7 @@ export function AdminClient({ user }: { user: any }) {
                                       <div className="flex flex-col gap-2">
                                         {module.materials.map(mat => (
                                           <div key={mat.id} className="flex items-center gap-3 rounded-lg bg-white p-3 shadow-sm border border-slate-100">
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100 text-green-600">
                                               <FileText className="h-4 w-4" />
                                             </div>
                                             <div>
@@ -794,7 +794,7 @@ export function AdminClient({ user }: { user: any }) {
                       )}
                     </div>
                   )) : (
-                    <div className="flex h-40 flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-white">
+                    <div className="flex h-40 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-white">
                       <Folder className="h-10 w-10 text-slate-300 mb-3" />
                       <p className="font-medium text-slate-500">Tidak ada bank soal ditemukan.</p>
                     </div>
@@ -808,8 +808,8 @@ export function AdminClient({ user }: { user: any }) {
 
       {/* Edit Teacher Modal */}
       {editingTeacher && (
-        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/40 p-4 py-8 md:py-12 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-800/40 p-4 py-8 md:py-12 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-lg font-bold text-slate-800">Edit Data Guru</h3>
               <button onClick={() => setEditingTeacher(null)} className="text-slate-400 hover:text-slate-600 transition">
@@ -849,7 +849,7 @@ export function AdminClient({ user }: { user: any }) {
                 </div>
               </div>
               <div className="mt-8 flex justify-end gap-3">
-                <button type="button" onClick={() => setEditingTeacher(null)} className="rounded-xl px-6 py-3 font-bold text-slate-600 transition hover:bg-slate-100">Batal</button>
+                <button type="button" onClick={() => setEditingTeacher(null)} className="rounded-xl px-6 py-3 font-bold text-slate-600 transition hover:bg-slate-50">Batal</button>
                 <button type="submit" disabled={updatingTeacher} className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white transition hover:bg-blue-700 disabled:opacity-70">
                   {updatingTeacher ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Simpan Perubahan'}
                 </button>
@@ -861,19 +861,19 @@ export function AdminClient({ user }: { user: any }) {
 
       {/* Delete Teacher Modal */}
       {teacherToDelete && (
-        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/40 p-4 py-8 md:py-12 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-800/40 p-4 py-8 md:py-12 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
             <div className="p-6 text-center">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
                 <AlertTriangle className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-black text-slate-900">Hapus Akun Guru?</h3>
+              <h3 className="text-xl font-black text-slate-800">Hapus Akun Guru?</h3>
               <p className="mt-2 text-sm text-slate-500">
                 Anda yakin ingin menghapus <b>{teacherToDelete.name}</b>? Tindakan ini akan mencabut akses masuk mereka. Data kelas dan soal akan dipindahtangankan ke Super Admin.
               </p>
             </div>
             <div className="flex gap-3 px-6 pb-6">
-              <button onClick={() => setTeacherToDelete(null)} className="flex-1 rounded-xl bg-slate-100 py-3 font-bold text-slate-700 transition hover:bg-slate-200">
+              <button onClick={() => setTeacherToDelete(null)} className="flex-1 rounded-xl bg-slate-50 py-3 font-bold text-slate-700 transition hover:bg-slate-200">
                 Batal
               </button>
               <button onClick={deleteTeacherAccount} disabled={deletingTeacher} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 font-bold text-white transition hover:bg-red-700 disabled:opacity-70">
@@ -886,11 +886,11 @@ export function AdminClient({ user }: { user: any }) {
 
       {/* Import Excel Modal */}
       {showImportModal && (
-        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-900/40 p-4 py-8 md:py-12 backdrop-blur-sm">
-          <div className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-800/40 p-4 py-8 md:py-12 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-md overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600">
                   <FileSpreadsheet className="h-5 w-5" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800">Import Data Guru (Excel)</h3>
@@ -917,7 +917,7 @@ export function AdminClient({ user }: { user: any }) {
                     <Upload className="mx-auto h-10 w-10 text-slate-400 mb-3" />
                     <h4 className="font-bold text-slate-700 mb-1">Langkah 2: Unggah File Excel</h4>
                     <p className="text-sm text-slate-500 mb-4">Pilih file .xlsx yang sudah Anda isi</p>
-                    <label className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 font-bold text-white transition hover:bg-emerald-700 shadow-md shadow-emerald-600/20">
+                    <label className="cursor-pointer inline-flex items-center justify-center rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700 shadow-md shadow-green-600/20">
                       Pilih File
                       <input type="file" accept=".xlsx, .xls" className="hidden" onChange={handleFileUpload} />
                     </label>
@@ -975,7 +975,7 @@ export function AdminClient({ user }: { user: any }) {
                       <span>Proses: {importProgress.current} / {importProgress.total}</span>
                       <span>{Math.round((importProgress.current / (importProgress.total || 1)) * 100)}%</span>
                     </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-blue-600 transition-all duration-300"
                         style={{ width: `${(importProgress.current / (importProgress.total || 1)) * 100}%` }}
@@ -983,7 +983,7 @@ export function AdminClient({ user }: { user: any }) {
                     </div>
                     {(importProgress.success > 0 || importProgress.failed > 0) && (
                       <div className="flex justify-center gap-4 mt-4 text-sm font-semibold">
-                        <span className="text-emerald-600">{importProgress.success} Sukses</span>
+                        <span className="text-green-600">{importProgress.success} Sukses</span>
                         <span className="text-red-500">{importProgress.failed} Gagal</span>
                       </div>
                     )}
@@ -997,7 +997,7 @@ export function AdminClient({ user }: { user: any }) {
                 <button onClick={closeImportModal} className="rounded-xl px-6 py-3 font-bold text-slate-600 transition hover:bg-slate-200">
                   Batal
                 </button>
-                <button onClick={processImport} className="rounded-xl bg-emerald-600 px-6 py-3 font-bold text-white transition hover:bg-emerald-700 shadow-lg shadow-emerald-600/30">
+                <button onClick={processImport} className="rounded-xl bg-green-600 px-6 py-3 font-bold text-white transition hover:bg-green-700 shadow-lg shadow-green-600/30">
                   Mulai Import {importPreview.length} Guru
                 </button>
               </div>

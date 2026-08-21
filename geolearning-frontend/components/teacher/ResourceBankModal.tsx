@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { X, Search, FileText, Video, Presentation, Link as LinkIcon, FileImage, CheckCircle2, Loader2, Eye, Check } from 'lucide-react'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
@@ -149,12 +151,12 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
 
   const getIconAndColor = (type: string, url: string | null) => {
     if (type === 'VIDEO') return { icon: Video, color: 'text-rose-500', bg: 'bg-rose-50' }
-    if (type === 'LINK') return { icon: LinkIcon, color: 'text-indigo-500', bg: 'bg-indigo-50' }
+    if (type === 'LINK') return { icon: LinkIcon, color: 'text-blue-500', bg: 'bg-blue-50' }
     
     if (url) {
       if (url.endsWith('.pdf')) return { icon: FileText, color: 'text-red-500', bg: 'bg-red-50' }
       if (url.match(/\.(ppt|pptx)$/)) return { icon: Presentation, color: 'text-orange-500', bg: 'bg-orange-50' }
-      if (url.match(/\.(png|jpg|jpeg|gif)$/i)) return { icon: FileImage, color: 'text-emerald-500', bg: 'bg-emerald-50' }
+      if (url.match(/\.(png|jpg|jpeg|gif)$/i)) return { icon: FileImage, color: 'text-green-500', bg: 'bg-green-50' }
     }
     return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50' }
   }
@@ -171,8 +173,8 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
   })
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in">
-      <div className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] bg-slate-50 shadow-2xl animate-in zoom-in-95 relative">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-800/60 p-4 backdrop-blur-sm animate-in fade-in">
+      <div className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] bg-slate-50 shadow-md animate-in zoom-in-95 relative">
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-8 py-6">
@@ -184,14 +186,14 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
           </div>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-900"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-800"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
         {/* Target Module Configuration */}
-        <div className="border-b border-slate-200 bg-slate-100/50 px-8 py-5">
+        <div className="border-b border-slate-200 bg-slate-50/50 px-8 py-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="flex-1">
               <label className="mb-2 block text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -200,7 +202,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
               <select
                 value={targetModuleId}
                 onChange={(e) => setTargetModuleId(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               >
                 {existingModules.map((mod) => (
                   <option key={mod.id} value={mod.id}>{mod.title}</option>
@@ -218,7 +220,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
                   value={newModuleTitle}
                   onChange={(e) => setNewModuleTitle(e.target.value)}
                   placeholder="Misal: Bab 1: Pengantar Geografi"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
             )}
@@ -230,7 +232,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
                 type="number"
                 value={resourceOrder}
                 onChange={(e) => setResourceOrder(parseInt(e.target.value) || 0)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold outline-none transition-all focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
           </div>
@@ -251,22 +253,16 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
                   className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
                 />
               </div>
-              <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
-                {['ALL', 'PDF', 'VIDEO', 'LINK'].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setFilterType(status)}
-                    className={cn(
-                      "rounded-xl px-5 py-2 text-sm font-bold transition-all",
-                      filterType === status
-                        ? "bg-white text-blue-700 shadow-sm"
-                        : "text-slate-500 hover:text-slate-700"
-                    )}
-                  >
-                    {status === 'ALL' ? 'Semua' : status}
-                  </button>
-                ))}
-              </div>
+              <AnimatedFilterTabs
+                options={[
+                  { id: 'ALL', label: 'Semua Materi' },
+                  { id: 'PDF', label: 'Dokumen / PDF' },
+                  { id: 'VIDEO', label: 'Video' },
+                  { id: 'LINK', label: 'Tautan' },
+                ]}
+                activeTab={filterType}
+                onChange={setFilterType}
+              />
             </div>
           </div>
 
@@ -287,21 +283,27 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredResources.map((item) => {
-                  const meta = getIconAndColor(item.type, item.file_url)
-                  const Icon = meta.icon
-                  const isSelected = selectedIds.includes(item.id)
+              <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                <AnimatePresence mode="popLayout">
+                  {filteredResources.map((item) => {
+                    const meta = getIconAndColor(item.type, item.file_url)
+                    const Icon = meta.icon
+                    const isSelected = selectedIds.includes(item.id)
 
-                  return (
-                    <div
-                      key={item.id}
-                      onClick={() => toggleSelection(item.id)}
-                      className={cn(
-                        "group relative flex cursor-pointer flex-col rounded-3xl border bg-white p-5 transition-all duration-300 select-none",
-                        isSelected ? "border-blue-500 shadow-md shadow-blue-500/20 ring-1 ring-blue-500 bg-blue-50/10" : "border-slate-200 hover:border-blue-300 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1"
-                      )}
-                    >
+                    return (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ type: "spring", duration: 0.4, bounce: 0.2 }}
+                        key={item.id}
+                        onClick={() => toggleSelection(item.id)}
+                        className={cn(
+                          "group relative flex cursor-pointer flex-col rounded-2xl border bg-white p-5 transition-all duration-300 select-none",
+                          isSelected ? "border-blue-500 shadow-md shadow-blue-500/20 ring-1 ring-blue-500 bg-blue-50/10" : "border-slate-200 hover:border-blue-300 hover:shadow-md hover:shadow-blue-900/5"
+                        )}
+                      >
                       <div className="absolute right-4 top-4">
                         <div className={cn("flex h-6 w-6 items-center justify-center rounded-full border transition-colors", isSelected ? "border-blue-500 bg-blue-500 text-white" : "border-slate-300 bg-slate-50 text-transparent")}>
                           <Check className="h-3.5 w-3.5" />
@@ -313,14 +315,15 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
                           <Icon className={cn('h-7 w-7', meta.color)} />
                         </div>
                         <div className="flex-1 pt-1">
-                          <h3 className="text-base font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">{item.title}</h3>
+                          <h3 className="text-base font-bold text-slate-800 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">{item.title}</h3>
                           <p className="text-[11px] font-semibold text-slate-400 mt-1">{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                         </div>
                       </div>
-                    </div>
-                  )
-                })}
-              </div>
+                      </motion.div>
+                    )
+                  })}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </div>

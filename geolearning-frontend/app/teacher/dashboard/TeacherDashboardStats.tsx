@@ -18,7 +18,7 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
       )
     `)
     .eq('teacher_id', user.id)
-    .order('created_at', { ascending: false })
+    .order('name', { ascending: true })
 
   const uniqueStudentsMap = new Map()
   if (classes) {
@@ -38,25 +38,27 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
       }
     }
   }
-  const allStudents = Array.from(uniqueStudentsMap.values())
+  const allStudentsUnsorted = Array.from(uniqueStudentsMap.values())
+  const totalStudents = allStudentsUnsorted.length
+  const totalClasses = classes?.length ?? 0
+
+  const avgXp = totalStudents > 0
+    ? Math.round(allStudentsUnsorted.reduce((s, u) => s + u.xp, 0) / totalStudents)
+    : 0
+
+  const topStudents = [...allStudentsUnsorted]
     .sort((a, b) => b.xp - a.xp)
     .slice(0, 50)
-
-  const totalStudents = allStudents?.length ?? 0
-  const totalClasses = classes?.length ?? 0
-  const avgXp = totalStudents > 0
-    ? Math.round((allStudents ?? []).reduce((s, u) => s + u.xp, 0) / totalStudents)
-    : 0
 
   return (
     <>
       <div id="tour-teacher-stats" className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { label: 'Kelas Saya',   value: totalClasses,             icon: BookMarked,     color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
-          { label: 'Total Siswa',        value: totalStudents,            icon: Users,          color: 'text-cyan-600',   bg: 'bg-cyan-50',   border: 'border-cyan-100', gradient: 'from-cyan-500/5 to-transparent'   },
+          { label: 'Kelas Saya',   value: totalClasses,             icon: BookMarked,     color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', gradient: 'from-blue-500/5 to-transparent' },
+          { label: 'Total Siswa',        value: totalStudents,            icon: Users,          color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-100', gradient: 'from-blue-500/5 to-transparent'   },
           { label: 'Rata-rata XP', value: avgXp.toLocaleString(),   icon: BarChart3,      color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent'  },
         ].map(({ label, value, icon: Icon, color, bg, border, gradient }) => (
-          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1`}>
+          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
             <div className="relative flex items-start justify-between">
               <div>
@@ -99,7 +101,7 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
 
       <div id="tour-teacher-progress" className="mt-5">
         <h2 className="mb-2.5 text-xs font-bold uppercase tracking-widest text-slate-500">📈 Peringkat & Progres Siswa Keseluruhan (Top 50)</h2>
-        <StudentProgressTable students={allStudents} />
+        <StudentProgressTable students={topStudents} />
       </div>
     </>
   )

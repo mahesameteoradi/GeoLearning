@@ -124,9 +124,9 @@ export function ClassLeaderboard({ classId }: { classId: string }) {
               className={cn(
                 "relative flex items-center gap-2 sm:gap-4 rounded-2xl border p-2 sm:p-3 overflow-hidden",
                 isCurrentUser 
-                  ? "border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50/50 shadow-sm" 
+                  ? "border-blue-300 bg-gradient-to-r from-blue-50 to-blue-50/50 shadow-sm" 
                   : idx === 0 
-                    ? "border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50/50"
+                    ? "border-amber-200 bg-gradient-to-r from-amber-50 to-amber-50/50"
                     : idx === 1 
                       ? "border-slate-300 bg-gradient-to-r from-slate-100 to-slate-50"
                       : idx === 2 

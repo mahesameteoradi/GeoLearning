@@ -151,18 +151,18 @@ export function VarkTestModal({ userId, onComplete }: VarkTestModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-white rounded-2xl shadow-md max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="bg-indigo-600 px-6 py-6 text-white text-center relative overflow-hidden">
+        <div className="bg-blue-600 px-6 py-6 text-white text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('/img/pattern.svg')] opacity-10"></div>
-          <BrainCircuit className="w-12 h-12 mx-auto mb-3 text-indigo-200" />
+          <BrainCircuit className="w-12 h-12 mx-auto mb-3 text-blue-200" />
           <h2 className="text-2xl font-black mb-1 relative z-10">Kenali Gaya Belajarmu!</h2>
-          <p className="text-indigo-100/90 text-sm max-w-md mx-auto relative z-10">
+          <p className="text-blue-100/90 text-sm max-w-md mx-auto relative z-10">
             Jawab beberapa pertanyaan singkat ini agar kami bisa menyesuaikan pengalaman belajarmu.
           </p>
         </div>
@@ -173,9 +173,9 @@ export function VarkTestModal({ userId, onComplete }: VarkTestModalProps) {
             <div className="space-y-6">
               {/* Progress */}
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-slate-50 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-indigo-500 transition-all duration-300"
+                    className="h-full bg-blue-500 transition-all duration-300"
                     style={{ width: `${(currentQIndex / varkQuestions.length) * 100}%` }}
                   ></div>
                 </div>
@@ -196,12 +196,12 @@ export function VarkTestModal({ userId, onComplete }: VarkTestModalProps) {
                     key={i}
                     onClick={() => handleSelect(opt.style)}
                     disabled={isSubmitting}
-                    className="flex items-center justify-between w-full p-4 text-left border-2 border-slate-100 rounded-2xl hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group disabled:opacity-50"
+                    className="flex items-center justify-between w-full p-4 text-left border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50/50 transition-all group disabled:opacity-50"
                   >
-                    <span className="text-slate-700 font-medium group-hover:text-indigo-900">
+                    <span className="text-slate-700 font-medium group-hover:text-blue-900">
                       {opt.text}
                     </span>
-                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
                       <ChevronRight className="w-4 h-4" />
                     </div>
                   </button>
@@ -210,7 +210,7 @@ export function VarkTestModal({ userId, onComplete }: VarkTestModalProps) {
             </div>
           ) : (
             <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-4 animate-bounce">
+              <div className="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-4 animate-bounce">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3 className="text-xl font-bold text-slate-800 mb-2">Menganalisis Jawaban...</h3>

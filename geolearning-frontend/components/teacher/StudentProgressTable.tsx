@@ -22,7 +22,7 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
   const sorted = [...students].sort((a, b) => b.xp - a.xp)
 
   return (
-    <div className={cn('overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40', className)}>
+    <div className={cn('overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40', className)}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
           <thead>
@@ -71,12 +71,12 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                   key={student.id}
                   className="group relative z-0 transition-all duration-300 hover:z-10 hover:scale-[1.01] hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] cursor-default"
                 >
-                  <td className="px-5 py-4 text-center text-sm font-bold text-slate-500 transition-colors group-hover:text-indigo-600">
+                  <td className="px-5 py-4 text-center text-sm font-bold text-slate-500 transition-colors group-hover:text-blue-600">
                     {idx + 1}
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-indigo-500 text-sm font-bold text-white shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:shadow-md group-hover:shadow-indigo-500/30 overflow-hidden relative">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-sm font-bold text-white shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:shadow-md group-hover:shadow-blue-500/30 overflow-hidden relative">
                         {student.avatar_url ? (
                           <img src={student.avatar_url} alt={student.name} className="h-full w-full object-cover" />
                         ) : (
@@ -94,11 +94,11 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                       className={cn(
                         'inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold',
                         level >= 20
-                          ? 'bg-violet-50 text-blue-700'
+                          ? 'bg-amber-50 text-blue-700'
                           : level >= 10
-                          ? 'bg-cyan-50 text-cyan-600'
+                          ? 'bg-blue-50 text-blue-600'
                           : level >= 5
-                          ? 'bg-emerald-50 text-emerald-600'
+                          ? 'bg-green-50 text-green-600'
                           : 'bg-slate-50 text-slate-500'
                       )}
                     >
@@ -107,9 +107,9 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-2.5 w-32 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+                      <div className="h-2.5 w-32 overflow-hidden rounded-full bg-slate-50 shadow-inner">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500"
+                          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-amber-500"
                           style={{ width: `${progress}%` }}
                         />
                       </div>

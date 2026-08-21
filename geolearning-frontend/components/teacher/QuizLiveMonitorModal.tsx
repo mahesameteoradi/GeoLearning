@@ -109,12 +109,12 @@ export function QuizLiveMonitorModal({ quiz, onClose }: QuizLiveMonitorModalProp
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-8"
       style={{ backgroundColor: 'rgba(15,23,42,0.9)', backdropFilter: 'blur(8px)' }}
     >
-      <div className="relative w-full max-w-4xl rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+      <div className="relative w-full max-w-4xl rounded-2xl border border-slate-700 bg-slate-800 shadow-md">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-700/50 bg-slate-800/50 px-6 py-4 rounded-t-2xl">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500/20 text-green-400">
                 <Activity className="h-4 w-4 animate-pulse" />
               </div>
               <h2 className="text-lg font-bold text-white">Live Monitor</h2>
@@ -146,7 +146,7 @@ export function QuizLiveMonitorModal({ quiz, onClose }: QuizLiveMonitorModalProp
             <div className="rounded-xl border border-slate-700 bg-slate-800 p-4">
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Selesai</p>
               <p className="text-2xl font-black text-white flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-emerald-400" />
+                <CheckCircle className="h-5 w-5 text-green-400" />
                 {attempts.filter(a => a.is_completed).length}
               </p>
             </div>
@@ -179,7 +179,7 @@ export function QuizLiveMonitorModal({ quiz, onClose }: QuizLiveMonitorModalProp
                   
                   return (
                     <div key={a.id} className="p-4 px-6 flex items-center gap-4 transition-colors hover:bg-slate-700/30">
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white font-bold shadow-lg shadow-indigo-500/20">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-500 text-white font-bold shadow-lg shadow-blue-500/20">
                         {a.student_name.charAt(0).toUpperCase()}
                       </div>
                       
@@ -187,7 +187,7 @@ export function QuizLiveMonitorModal({ quiz, onClose }: QuizLiveMonitorModalProp
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-sm font-bold text-white truncate pr-4">{a.student_name}</span>
                           {a.is_completed ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-1 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/20 px-2.5 py-1 text-[10px] font-bold text-green-400 border border-green-500/30">
                               <CheckCircle className="h-3 w-3" /> Selesai • {a.score.toFixed(0)}%
                             </span>
                           ) : (
@@ -197,11 +197,11 @@ export function QuizLiveMonitorModal({ quiz, onClose }: QuizLiveMonitorModalProp
                           )}
                         </div>
                         
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-900 shadow-inner">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800 shadow-inner">
                           <div
                             className={cn(
                               "h-full rounded-full transition-all duration-1000 ease-out",
-                              a.is_completed ? "bg-emerald-500" : "bg-gradient-to-r from-blue-500 to-cyan-400"
+                              a.is_completed ? "bg-green-500" : "bg-gradient-to-r from-blue-500 to-blue-400"
                             )}
                             style={{ width: `${progressPct}%` }}
                           />

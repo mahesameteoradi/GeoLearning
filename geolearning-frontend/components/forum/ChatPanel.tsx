@@ -151,11 +151,11 @@ export function ChatPanel({ roomId, roomName, userId }: ChatPanelProps) {
     <div className="flex h-full flex-col overflow-hidden">
       {/* ── Room Header ── */}
       <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-5 py-3.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800 flex-shrink-0">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-xs font-bold text-slate-800 flex-shrink-0">
           {roomName.charAt(0).toUpperCase()}
         </div>
         <div>
-          <h2 className="text-sm font-bold text-slate-900">{roomName}</h2>
+          <h2 className="text-sm font-bold text-slate-800">{roomName}</h2>
           <p className="text-[10px] text-slate-600">{messages.length} pesan</p>
         </div>
       </div>
@@ -220,7 +220,7 @@ export function ChatPanel({ roomId, roomName, userId }: ChatPanelProps) {
             placeholder={replyTo ? `Balas ${replyTo.user?.name ?? 'Pengguna'}…` : 'Kirim pesan… (Enter untuk kirim, Shift+Enter baris baru)'}
             rows={1}
             className={cn(
-              'flex-1 max-h-28 resize-none rounded-2xl border bg-slate-100 px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all',
+              'flex-1 max-h-28 resize-none rounded-2xl border bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all',
               replyTo
                 ? 'border-blue-500 focus:ring-1 focus:ring-blue-500/30'
                 : 'border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20'

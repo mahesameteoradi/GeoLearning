@@ -126,13 +126,13 @@ function Confetti() {
 
 function TimerBar({ seconds, total }: { seconds: number; total: number }) {
   const pct = (seconds / total) * 100
-  const color = pct > 50 ? 'bg-emerald-500' : pct > 25 ? 'bg-amber-500' : 'bg-red-500'
+  const color = pct > 50 ? 'bg-green-500' : pct > 25 ? 'bg-amber-500' : 'bg-red-500'
   const urgent = pct <= 25
 
   return (
     <div className="flex items-center gap-2">
       <Clock className={cn('h-4 w-4 flex-shrink-0', urgent ? 'text-red-600 animate-pulse' : 'text-slate-500')} />
-      <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+      <div className="flex-1 h-2 rounded-full bg-slate-50 overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all duration-1000', color)}
           style={{ width: `${pct}%` }}
@@ -196,14 +196,14 @@ function ResultScreen({
     'Jangan menyerah! Pelajari lagi materinya.'
 
   const scoreColor =
-    score >= 85 ? 'from-emerald-500 to-cyan-500' :
-    score >= 70 ? 'from-violet-500 to-fuchsia-500' :
+    score >= 85 ? 'from-green-500 to-blue-500' :
+    score >= 70 ? 'from-amber-500 to-amber-500' :
     score >= 55 ? 'from-amber-500 to-orange-500' :
     'from-red-500 to-rose-500'
 
   return (
     <>
-      <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950">
+      <div className="flex min-h-screen items-center justify-center p-4 bg-gradient-to-br from-blue-900 via-purple-900 to-blue-950">
         <div className="w-full max-w-md text-center">
           {/* Big score */}
           <div className="mb-6 relative">
@@ -231,9 +231,9 @@ function ResultScreen({
           {/* Score breakdown */}
           <div className="mb-8 grid grid-cols-3 gap-3 text-center">
             {[
-              { label: 'Benar', value: correctCount, color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' },
+              { label: 'Benar', value: correctCount, color: 'text-green-400', border: 'border-green-500/30', bg: 'bg-green-500/10' },
               { label: 'Salah', value: totalQuestions - correctCount, color: 'text-rose-400', border: 'border-rose-500/30', bg: 'bg-rose-500/10' },
-              { label: 'Total', value: totalQuestions, color: 'text-cyan-400', border: 'border-cyan-500/30', bg: 'bg-cyan-500/10' },
+              { label: 'Total', value: totalQuestions, color: 'text-blue-400', border: 'border-blue-500/30', bg: 'bg-blue-500/10' },
             ].map(({ label, value, color, border, bg }) => (
               <div key={label} className={`rounded-xl border ${border} ${bg} p-3 backdrop-blur-sm`}>
                 <p className={`text-2xl font-bold ${color}`}>{value}</p>
@@ -259,34 +259,34 @@ function ResultScreen({
                     isCorrect = studentAns === q.correct_answer
                  }
                  return (
-                    <div key={q.id} className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div key={q.id} className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm shadow-lg hover:shadow-md hover:-translate-y-1 transition-all duration-300">
                        <div className="flex items-start justify-between gap-4">
-                         <h3 className="font-semibold text-white leading-relaxed"><span className="text-indigo-300 mr-2">{idx+1}.</span> {q.text}</h3>
-                         {isCorrect ? <CheckCircle className="text-emerald-400 shrink-0 h-6 w-6 mt-0.5" /> : <XCircle className="text-rose-400 shrink-0 h-6 w-6 mt-0.5" />}
+                         <h3 className="font-semibold text-white leading-relaxed"><span className="text-blue-300 mr-2">{idx+1}.</span> {q.text}</h3>
+                         {isCorrect ? <CheckCircle className="text-green-400 shrink-0 h-6 w-6 mt-0.5" /> : <XCircle className="text-rose-400 shrink-0 h-6 w-6 mt-0.5" />}
                        </div>
                        
                        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
                          <div className="rounded-xl bg-white/5 p-3.5 border border-white/5 shadow-inner">
                             <p className="text-[11px] uppercase tracking-wider font-bold text-white/50 mb-1.5">Jawaban Kamu</p>
-                            <p className={cn("text-sm font-medium", isCorrect ? "text-emerald-300" : "text-rose-300")}>
+                            <p className={cn("text-sm font-medium", isCorrect ? "text-green-300" : "text-rose-300")}>
                                {isMap ? (studentAns ? 'Pin di peta' : 'Tidak dijawab') : (studentAns || 'Tidak dijawab')}
                             </p>
                          </div>
                          <div className="rounded-xl bg-white/5 p-3.5 border border-white/5 shadow-inner">
                             <p className="text-[11px] uppercase tracking-wider font-bold text-white/50 mb-1.5">Jawaban Benar</p>
-                            <p className="text-sm font-medium text-emerald-300">
+                            <p className="text-sm font-medium text-green-300">
                                {isMap ? 'Lokasi target' : q.correct_answer}
                             </p>
                          </div>
                        </div>
                        
                        {q.explanation && (
-                         <div className="mt-5 rounded-xl bg-indigo-500/20 border border-indigo-400/30 p-4 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-1 h-full bg-indigo-400"></div>
-                            <p className="text-[11px] font-bold text-indigo-200 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
+                         <div className="mt-5 rounded-xl bg-blue-500/20 border border-blue-400/30 p-4 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-blue-400"></div>
+                            <p className="text-[11px] font-bold text-blue-200 mb-1.5 uppercase tracking-wider flex items-center gap-1.5">
                               <span>💡</span> Penjelasan Guru
                             </p>
-                            <p className="text-sm text-indigo-100/90 leading-relaxed font-medium">{q.explanation}</p>
+                            <p className="text-sm text-blue-100/90 leading-relaxed font-medium">{q.explanation}</p>
                          </div>
                        )}
                     </div>
@@ -307,7 +307,7 @@ function ResultScreen({
                         onBack()
                       }
                     }}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-md shadow-amber-900/20 hover:scale-105 transition-all duration-300"
                   >
                     <BookOpen className="h-4 w-4" />
                     Pelajari Materi Kembali
@@ -315,24 +315,24 @@ function ResultScreen({
                 ) : attemptsCount === 1 && !justFinished ? (
                   <button
                     onClick={onRetry}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-md shadow-amber-900/20 hover:scale-105 transition-all duration-300"
                   >
                     <Play className="h-4 w-4" />
                     Mulai Percobaan ke-2
                   </button>
                 ) : (maxAttempts != null && (attemptsCount ?? 0) >= maxAttempts && score < (passingScore || 0)) ? (
-                  <div className="p-4 text-sm text-center text-rose-100 bg-rose-600/90 rounded-xl border border-rose-500 shadow-xl shadow-rose-900/20 mb-2 font-medium">
+                  <div className="p-4 text-sm text-center text-rose-100 bg-rose-600/90 rounded-xl border border-rose-500 shadow-md shadow-rose-900/20 mb-2 font-medium">
                     <p className="font-black text-lg mb-1 uppercase tracking-widest text-white">REMEDIAL</p>
                     Batas percobaan maksimal ({maxAttempts}x) telah habis dan nilai Anda di bawah KKM. Silakan hubungi Guru Anda untuk penugasan Remedial metode lain.
                   </div>
                 ) : (maxAttempts != null && (attemptsCount ?? 0) >= maxAttempts && score >= (passingScore || 0)) ? (
-                  <div className="p-3 text-sm text-center text-emerald-300 bg-emerald-500/10 rounded-xl border border-emerald-500/20 mb-2 font-medium">
+                  <div className="p-3 text-sm text-center text-green-300 bg-green-500/10 rounded-xl border border-green-500/20 mb-2 font-medium">
                     Selamat! Anda sudah lulus KKM dan percobaan maksimal ({maxAttempts}x) telah habis.
                   </div>
                 ) : onRetry && (
                   <button
                     onClick={onRetry}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-xl shadow-amber-900/20 hover:scale-105 transition-all duration-300"
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 py-3.5 text-sm font-bold text-white shadow-md shadow-amber-900/20 hover:scale-105 transition-all duration-300"
                   >
                     <RefreshCw className="h-4 w-4" />
                     Coba Lagi
@@ -342,7 +342,7 @@ function ResultScreen({
             )}
             <button
               onClick={onBack}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-bold text-indigo-900 shadow-xl shadow-black/20 hover:bg-slate-100 hover:scale-105 transition-all duration-300"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-white py-3.5 text-sm font-bold text-blue-900 shadow-md shadow-black/20 hover:bg-slate-50 hover:scale-105 transition-all duration-300"
             >
               <ArrowLeft className="h-4 w-4" />
               Kembali ke Daftar Kuis
@@ -777,19 +777,19 @@ export default function QuizPlayerPage() {
 
   if (state === 'ready' && quiz) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950">
+      <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-blue-900 via-purple-900 to-blue-950">
         <div className="w-full max-w-md text-center z-10">
-          <div className="mb-6 flex h-24 w-24 mx-auto items-center justify-center rounded-3xl bg-gradient-to-br from-fuchsia-500 to-violet-600 shadow-[0_0_30px_rgba(168,85,247,0.5)] transform -rotate-3">
+          <div className="mb-6 flex h-24 w-24 mx-auto items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 shadow-[0_0_30px_rgba(168,85,247,0.5)] transform -rotate-3">
             <Trophy className="h-12 w-12 text-white" />
           </div>
           <h1 className="mb-3 text-3xl font-black text-white drop-shadow-md">{quiz.title}</h1>
           <div className="mb-8 flex flex-wrap items-center justify-center gap-3 text-sm font-semibold text-purple-200">
             <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur-sm"><span className="text-white">{quiz.questions.length}</span> soal</span>
-            {quiz.time_limit && <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur-sm"><Clock className="h-4 w-4 text-cyan-400" /><span className="text-cyan-400">{Math.floor(quiz.time_limit / 60)} menit</span></span>}
+            {quiz.time_limit && <span className="flex items-center gap-1.5 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur-sm"><Clock className="h-4 w-4 text-blue-400" /><span className="text-blue-400">{Math.floor(quiz.time_limit / 60)} menit</span></span>}
             <span className="flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-500/50 px-4 py-1.5 backdrop-blur-sm"><Zap className="h-4 w-4 text-amber-400" /><span className="text-amber-400">+{quiz.xp_reward} XP</span></span>
           </div>
           
-          <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-left text-sm text-purple-100 backdrop-blur-md shadow-xl">
+          <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-5 text-left text-sm text-purple-100 backdrop-blur-md shadow-md">
             <p className="font-bold text-white mb-3 text-base flex items-center gap-2">📢 Pengumuman & Cara Bermain:</p>
             <ul className="space-y-2.5">
               <li className="flex items-start gap-2">👉 <span>Pilih satu jawaban yang paling tepat.</span></li>
@@ -799,7 +799,7 @@ export default function QuizPlayerPage() {
           </div>
           <button
             onClick={startQuiz}
-            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-sky-500 py-3.5 text-sm font-bold text-slate-800 shadow-xl shadow-violet-900/40 transition hover:from-violet-500 hover:to-fuchsia-500"
+            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 py-3.5 text-sm font-bold text-slate-800 shadow-md shadow-amber-900/40 transition hover:from-amber-500 hover:to-amber-500"
           >
             🚀 Mulai Kuis!
           </button>
@@ -823,7 +823,7 @@ export default function QuizPlayerPage() {
   const BGM_URL = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3"
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-950 p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-blue-950 p-4 relative overflow-hidden">
       {/* Background Music */}
       <audio src={BGM_URL} autoPlay loop />
       
@@ -853,13 +853,13 @@ export default function QuizPlayerPage() {
       `}</style>
 
       {/* Decorative background elements */}
-      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-fuchsia-600/10 rounded-full blur-[100px] pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-amber-600/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Time Bonus Animation */}
       {timeBonusActive && (
         <div className="pointer-events-none fixed right-10 top-20 z-50 flex flex-col items-center animate-float-up">
-          <span className="text-3xl font-black italic text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]">
+          <span className="text-3xl font-black italic text-green-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]">
             +10 DETIK! ⏳
           </span>
         </div>
@@ -896,7 +896,7 @@ export default function QuizPlayerPage() {
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-white/10 shadow-inner">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 transition-all duration-500 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
+              className="h-full rounded-full bg-gradient-to-r from-green-400 to-green-400 transition-all duration-500 shadow-[0_0_10px_rgba(52,211,153,0.5)]"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -910,7 +910,7 @@ export default function QuizPlayerPage() {
 
         {/* Question card */}
         <div className={cn(
-          "rounded-3xl bg-white p-7 mb-6 transition-transform duration-200 shadow-[0_10px_40px_rgba(0,0,0,0.2)]", 
+          "rounded-2xl bg-white p-7 mb-6 transition-transform duration-200 shadow-[0_10px_40px_rgba(0,0,0,0.2)]", 
           shake && "animate-shake border-2 border-red-500 shadow-[0_0_30px_rgba(239,68,68,0.4)]"
         )}>
           <p className="mb-8 text-lg font-bold leading-relaxed text-slate-800 text-center">
@@ -931,13 +931,13 @@ export default function QuizPlayerPage() {
                 const isCorrectOpt = opt.label === currentQ.correct_answer
                 const showResult = state === 'reviewing'
 
-                let optStyle = 'border-slate-200 bg-slate-50 hover:border-indigo-400 hover:bg-indigo-50 hover:shadow-md'
+                let optStyle = 'border-slate-200 bg-slate-50 hover:border-blue-400 hover:bg-blue-50 hover:shadow-md'
                 if (showResult) {
-                  if (isCorrectOpt) optStyle = 'border-emerald-500 bg-emerald-100/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                  if (isCorrectOpt) optStyle = 'border-green-500 bg-green-100/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]'
                   else if (isSelected && !isCorrectOpt) optStyle = 'border-rose-400 bg-rose-50'
                   else optStyle = 'border-slate-100 bg-white opacity-40'
                 } else if (isSelected) {
-                  optStyle = 'border-indigo-500 bg-indigo-50 shadow-md transform scale-[1.02]'
+                  optStyle = 'border-blue-500 bg-blue-50 shadow-md transform scale-[1.02]'
                 }
 
                 return (
@@ -953,9 +953,9 @@ export default function QuizPlayerPage() {
                   >
                     <span className={cn(
                       'flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-sm font-black transition-colors',
-                      showResult && isCorrectOpt ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' :
+                      showResult && isCorrectOpt ? 'bg-green-500 text-white shadow-lg shadow-green-500/30' :
                       showResult && isSelected && !isCorrectOpt ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' :
-                      isSelected ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' :
+                      isSelected ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' :
                       'bg-slate-200 text-slate-600'
                     )}>
                       {showResult && isCorrectOpt ? '✓' :
@@ -964,7 +964,7 @@ export default function QuizPlayerPage() {
                     </span>
                     <span className={cn(
                       "flex-1 text-base font-bold", 
-                      showResult && isCorrectOpt ? 'text-emerald-900' :
+                      showResult && isCorrectOpt ? 'text-green-900' :
                       showResult && isSelected && !isCorrectOpt ? 'text-rose-900' :
                       'text-slate-700'
                     )}>{opt.value}</span>
@@ -999,7 +999,7 @@ export default function QuizPlayerPage() {
                       if (mapAnswer) handleAnswer(JSON.stringify(mapAnswer))
                     }}
                     disabled={!mapAnswer}
-                    className="rounded-lg bg-emerald-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 shadow-md shadow-emerald-500/20"
+                    className="rounded-lg bg-green-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-green-500 disabled:opacity-50 shadow-md shadow-green-500/20"
                   >
                     Konfirmasi Lokasi
                   </button>
@@ -1034,7 +1034,7 @@ export default function QuizPlayerPage() {
                   {/* Manual Next Button for Map */}
                   <button
                     onClick={() => handleNextRef.current?.()}
-                    className="mt-4 rounded-xl bg-indigo-600 px-6 py-2 text-sm font-bold text-white hover:bg-indigo-500 shadow-md"
+                    className="mt-4 rounded-xl bg-blue-600 px-6 py-2 text-sm font-bold text-white hover:bg-blue-500 shadow-md"
                   >
                     Lanjut Soal Berikutnya
                   </button>
@@ -1048,8 +1048,8 @@ export default function QuizPlayerPage() {
         {state === 'reviewing' && currentQ.type === 'MULTIPLE_CHOICE' && (
           <div className="flex flex-col items-center justify-center mt-6">
             <div className={cn(
-              'flex items-center gap-3 rounded-2xl px-8 py-4 backdrop-blur-md shadow-2xl border transition-all animate-popup',
-              isCorrect ? 'bg-emerald-500/90 border-emerald-400 text-white' : 'bg-rose-500/90 border-rose-400 text-white'
+              'flex items-center gap-3 rounded-2xl px-8 py-4 backdrop-blur-md shadow-md border transition-all animate-popup',
+              isCorrect ? 'bg-green-500/90 border-green-400 text-white' : 'bg-rose-500/90 border-rose-400 text-white'
             )}>
               {isCorrect
                 ? <><CheckCircle className="h-8 w-8" /><span className="text-xl font-black tracking-wide">{praiseText} {streak > 1 ? `(Streak 🔥)` : ''}</span></>

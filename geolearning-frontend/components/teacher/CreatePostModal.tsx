@@ -64,7 +64,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
       className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12"
       style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
     >
-      <div className="relative w-full max-w-lg animate-pop-in rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl shadow-black/60">
+      <div className="relative w-full max-w-lg animate-pop-in rounded-2xl border border-slate-200 bg-white p-6 shadow-md shadow-black/60">
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -75,7 +75,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
           </div>
           <button
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+            className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
           >
             <X className="h-4 w-4" />
           </button>
@@ -91,7 +91,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
               value={form.classId}
               onChange={(e) => setForm({ ...form, classId: e.target.value })}
               required
-              className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
             >
               <option value="global" style={{ backgroundColor: '#13131f' }}>
                 🌐 Umum (Global)
@@ -115,7 +115,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
               required
               maxLength={150}
               placeholder="Judul diskusi atau pengumuman…"
-              className="w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
             />
           </div>
 
@@ -131,7 +131,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
               rows={5}
               maxLength={2000}
               placeholder="Tulis isi diskusi, materi, atau pengumuman di sini…"
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-violet-500/30"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
             />
           </div>
 
@@ -139,7 +139,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
           <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 transition-colors hover:border-amber-200">
             <div
               className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
-                form.is_pinned ? 'bg-amber-50' : 'bg-slate-100'
+                form.is_pinned ? 'bg-amber-50' : 'bg-slate-50'
               }`}
             >
               <Pin className={`h-4 w-4 transition-colors ${form.is_pinned ? 'text-amber-600' : 'text-slate-600'}`} />
@@ -150,7 +150,7 @@ export function CreatePostModal({ classes, userId, onClose, onCreated }: CreateP
             </div>
             <div
               className={`relative h-5 w-9 rounded-full transition-colors ${
-                form.is_pinned ? 'bg-amber-500' : 'bg-slate-100'
+                form.is_pinned ? 'bg-amber-500' : 'bg-slate-50'
               }`}
             >
               <div

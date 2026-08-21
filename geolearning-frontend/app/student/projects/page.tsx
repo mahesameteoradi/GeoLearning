@@ -7,11 +7,14 @@ import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { projectsStudentSteps } from '@/lib/utils/tourSteps'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function StudentProjectsPage() {
   const supabase = createClient()
   const [projects, setProjects] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'DONE'>('ALL')
 
   const loadData = async () => {
     setLoading(true)
@@ -69,37 +72,47 @@ export default function StudentProjectsPage() {
     <div className="min-h-screen bg-slate-50 p-8">
       <OnboardingTour tourKey="projects_student" steps={projectsStudentSteps} />
       {/* ── Page Header ──────────────────────────────────────────────────── */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex items-center gap-6">
-          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+          <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
             <FileText className="h-8 w-8 text-blue-200" />
           </div>
           <div>
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">Tugas Proyek</h1>
-            <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">
+            <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">
               Kerjakan dan kumpulkan tugas proyek dari gurumu. Jangan sampai terlewat tenggat waktu!
             </p>
           </div>
         </div>
       </div>
 
+      <div className="mb-6 flex">
+        <AnimatedFilterTabs
+          activeTab={filterStatus}
+          onChange={(tab) => setFilterStatus(tab as 'ALL' | 'PENDING' | 'DONE')}
+          options={[
+            { id: 'ALL', label: 'Semua Proyek' },
+            { id: 'PENDING', label: 'Belum Selesai' },
+            { id: 'DONE', label: 'Sudah Selesai' }
+          ]}
+          layoutId="student-projects-filter"
+        />
+      </div>
+
       {loading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden min-h-[220px]">
+            <div key={i} className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm overflow-hidden min-h-[220px]">
               <div className="flex items-start justify-between mb-4">
                 <div className="h-6 w-24 bg-slate-200 rounded-lg animate-pulse" />
                 <div className="h-6 w-20 bg-slate-200 rounded-lg animate-pulse" />
               </div>
               <div className="h-6 w-3/4 bg-slate-200 rounded-md mb-2 animate-pulse" />
-              <div className="h-4 w-full bg-slate-100 rounded-md mb-2 animate-pulse" />
-              <div className="h-4 w-2/3 bg-slate-100 rounded-md mb-4 animate-pulse" />
+              <div className="h-4 w-full bg-slate-50 rounded-md mb-2 animate-pulse" />
+              <div className="h-4 w-2/3 bg-slate-50 rounded-md mb-4 animate-pulse" />
               <div className="mt-auto flex items-center justify-between">
-                <div className="h-6 w-20 bg-slate-100 rounded-md animate-pulse" />
+                <div className="h-6 w-20 bg-slate-50 rounded-md animate-pulse" />
                 <div className="h-8 w-24 bg-slate-200 rounded-xl animate-pulse" />
               </div>
             </div>
@@ -113,19 +126,28 @@ export default function StudentProjectsPage() {
         </div>
       ) : (
         <div id="tour-student-project-list" className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map(proj => {
-            const sub = proj.submission
-            const isLate = proj.deadline && !sub && new Date() > new Date(proj.deadline)
+          <AnimatePresence mode="popLayout">
+            {projects.filter(p => filterStatus === 'ALL' || (filterStatus === 'DONE' ? !!p.submission : !p.submission)).map(proj => {
+              const sub = proj.submission
+              const isLate = proj.deadline && !sub && new Date() > new Date(proj.deadline)
 
-            return (
-              <div key={proj.id} className="group relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col transition-all duration-300 cursor-pointer hover:-translate-y-1.5 hover:shadow-xl hover:scale-[1.02] hover:border-blue-300">
+              return (
+                <motion.div 
+                  key={proj.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  className="group relative rounded-2xl border border-slate-200 bg-white p-5 shadow-sm flex flex-col transition-all duration-300 cursor-pointer hover:-translate-y-1.5 hover:shadow-md hover:scale-[1.02] hover:border-blue-300"
+                >
                 <div className="flex items-start justify-between mb-3 relative z-10">
-                  <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wider bg-slate-100 px-2 py-1 rounded-md">
+                  <span className="text-[10px] text-slate-600 font-bold uppercase tracking-wider bg-slate-50 px-2 py-1 rounded-md">
                     {proj.class?.name || 'Unknown Class'}
                   </span>
                   <div className="flex items-center gap-2">
                     {proj.is_group_project && (
-                      <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-md border border-violet-100">
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md border border-amber-100">
                         Kelompok
                       </span>
                     )}
@@ -152,7 +174,7 @@ export default function StudentProjectsPage() {
                   {sub ? (
                     <div className="flex flex-col gap-1 w-full">
                        <div className="flex items-center justify-between w-full">
-                         <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100">
+                         <span className="text-[11px] font-bold text-green-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded-md border border-green-100">
                            <CheckCircle className="h-3.5 w-3.5" /> Terkumpul
                          </span>
                          {sub.score !== null ? (
@@ -175,7 +197,7 @@ export default function StudentProjectsPage() {
                     className={cn(
                       'ml-auto flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold transition-all duration-300',
                       sub
-                        ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 group-hover:scale-105'
+                        ? 'bg-green-50 text-green-600 hover:bg-green-100 group-hover:scale-105'
                         : 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20 group-hover:scale-105 group-hover:shadow-blue-500/30'
                     )}
                   >
@@ -188,9 +210,10 @@ export default function StudentProjectsPage() {
                 <Link href={`/student/projects/${proj.id}`} className="absolute inset-0 z-0 rounded-2xl">
                   <span className="sr-only">Detail {proj.title}</span>
                 </Link>
-              </div>
-            )
-          })}
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
         </div>
       )}
     </div>

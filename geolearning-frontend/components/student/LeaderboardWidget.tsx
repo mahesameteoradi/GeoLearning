@@ -40,7 +40,7 @@ export function LeaderboardWidget({ entries, currentUserId, className }: Leaderb
               className={cn(
                 'relative flex items-center gap-1.5 sm:gap-2.5 rounded-xl border px-2 sm:px-3 py-2 overflow-hidden',
                 // Unique coloring
-                index === 0 && 'border-amber-200 bg-gradient-to-r from-amber-50 to-yellow-50/50',
+                index === 0 && 'border-amber-200 bg-gradient-to-r from-amber-50 to-amber-50/50',
                 index === 1 && 'border-slate-200 bg-gradient-to-r from-slate-100 to-slate-50',
                 index === 2 && 'border-orange-200 bg-gradient-to-r from-orange-50 to-rose-50/30',
                 index >= 3 && 'border-slate-100 bg-white',
@@ -56,7 +56,7 @@ export function LeaderboardWidget({ entries, currentUserId, className }: Leaderb
               </span>
 
               {/* Avatar initial */}
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-[11px] font-bold text-slate-800">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-[11px] font-bold text-slate-800">
                 {entry.name.charAt(0).toUpperCase()}
               </div>
 

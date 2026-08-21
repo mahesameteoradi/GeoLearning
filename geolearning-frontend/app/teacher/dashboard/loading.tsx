@@ -10,7 +10,7 @@ export default function TeacherDashboardLoading() {
   return (
     <div className="min-h-full p-5 lg:p-7">
       {/* Header Skeleton */}
-      <div className="mb-8 rounded-3xl bg-white p-8 shadow-sm">
+      <div className="mb-8 rounded-2xl bg-white p-8 shadow-sm">
         <Skeleton className="h-10 w-64 mb-3" />
         <Skeleton className="h-5 w-96 mb-6" />
         
@@ -33,7 +33,7 @@ export default function TeacherDashboardLoading() {
       {/* Student Progress Table Skeleton */}
       <div className="mt-5">
         <Skeleton className="mb-2.5 h-4 w-40" />
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           <Skeleton className="h-10 w-full" />
           <Skeleton className="h-16 w-full" />
           <Skeleton className="h-16 w-full" />

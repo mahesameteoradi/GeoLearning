@@ -23,18 +23,24 @@ interface Student {
 
 interface StudentSearchTableProps {
   students: Student[]
+  classes?: { id: string; name: string }[]
 }
 
 type SortKey = 'name' | 'xp' | 'level' | 'streak'
 
-export function StudentSearchTable({ students }: StudentSearchTableProps) {
+export function StudentSearchTable({ students, classes = [] }: StudentSearchTableProps) {
   const [query, setQuery] = useState('')
+  const [selectedClass, setSelectedClass] = useState<string>('ALL')
   const [sortKey, setSortKey] = useState<SortKey>('xp')
   const [sortAsc, setSortAsc] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
 
   const sorted = useMemo(() => {
     let data = [...students]
+    if (selectedClass !== 'ALL') {
+      const targetClass = selectedClass.toLowerCase().trim()
+      data = data.filter((s) => (s.enrolledClasses ?? []).some(c => c.toLowerCase().trim() === targetClass))
+    }
     if (query.trim()) {
       const q = query.toLowerCase()
       data = data.filter(
@@ -55,7 +61,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
       return sortAsc ? (va as number) - (vb as number) : (vb as number) - (va as number)
     })
     return data
-  }, [students, query, sortKey, sortAsc])
+  }, [students, query, sortKey, sortAsc, selectedClass])
 
   const handleSort = (key: SortKey) => {
     if (key === sortKey) setSortAsc(!sortAsc)
@@ -68,9 +74,9 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
     ) : null
 
   const levelColors = (lvl: number) =>
-    lvl >= 20 ? 'bg-violet-50 text-blue-700'
-    : lvl >= 10 ? 'bg-cyan-50 text-cyan-600'
-    : lvl >= 5 ? 'bg-emerald-50 text-emerald-600'
+    lvl >= 20 ? 'bg-amber-50 text-blue-700'
+    : lvl >= 10 ? 'bg-blue-50 text-blue-600'
+    : lvl >= 5 ? 'bg-green-50 text-green-600'
     : 'bg-slate-50 text-slate-500'
 
   const hasClassData = students.some((s) => (s.enrolledClasses?.length ?? 0) > 0)
@@ -79,19 +85,36 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
     <div className="flex flex-col xl:flex-row gap-4">
       {/* Table area */}
       <div className={cn('flex-1 min-w-0 transition-all', selectedStudent ? 'xl:max-w-[calc(100%-300px)]' : '')}>
-        {/* Search */}
-        <div className="mb-4 relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari nama, email, atau kelas…"
-            className="w-full rounded-2xl border border-slate-200/80 bg-white py-3 pl-11 pr-4 text-sm text-slate-800 placeholder-slate-400 shadow-sm transition-all focus:border-indigo-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
-          />
+        {/* Filter Area */}
+        <div className="mb-4 flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Cari nama, email, atau kelas…"
+              className="w-full rounded-2xl border border-slate-200/80 bg-white py-3 pl-11 pr-4 text-sm text-slate-800 placeholder-slate-400 shadow-sm transition-all focus:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
+            />
+          </div>
+          {classes.length > 0 && (
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-all focus:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 sm:max-w-xs appearance-none cursor-pointer"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
+            >
+              <option value="ALL">Semua Kelas</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.name}>
+                  Kelas {c.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         {/* Table */}
-        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40">
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
               <thead>
@@ -106,7 +129,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                     <th
                       key={key}
                       onClick={() => handleSort(key)}
-                      className="cursor-pointer select-none px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:text-indigo-600"
+                      className="cursor-pointer select-none px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 transition-colors hover:text-blue-600"
                     >
                       <span className="inline-flex items-center gap-1">
                         {label}
@@ -134,16 +157,16 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                       className={cn(
                         'group cursor-pointer transition-all duration-300 hover:shadow-sm',
                         isSelected
-                          ? 'bg-indigo-50/80'
-                          : 'hover:bg-indigo-50/60'
+                          ? 'bg-blue-50/80'
+                          : 'hover:bg-blue-50/60'
                       )}
                     >
-                      <td className="px-5 py-4 text-sm font-bold text-slate-600 transition-colors group-hover:text-indigo-600">
+                      <td className="px-5 py-4 text-sm font-bold text-slate-600 transition-colors group-hover:text-blue-600">
                         {idx < 3 ? ['🥇', '🥈', '🥉'][idx] : idx + 1}
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2.5">
-                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xs font-bold text-slate-800 overflow-hidden relative">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-xs font-bold text-slate-800 overflow-hidden relative">
                             {s.avatar_url ? (
                               <img src={s.avatar_url} alt={s.name} className="h-full w-full object-cover" />
                             ) : (
@@ -163,9 +186,9 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100 shadow-inner">
+                          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-50 shadow-inner">
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500"
+                              className="h-full rounded-full bg-gradient-to-r from-blue-600 to-amber-500"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
@@ -228,7 +251,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
               <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Detail Siswa</p>
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-700"
+                className="flex h-6 w-6 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-700"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
@@ -236,7 +259,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
 
             {/* Avatar + Name */}
             <div className="mb-4 flex flex-col items-center text-center">
-              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-500 text-xl font-extrabold text-slate-900 shadow-lg shadow-blue-600/20 overflow-hidden relative">
+              <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-xl font-extrabold text-slate-800 shadow-lg shadow-blue-600/20 overflow-hidden relative">
                 {selectedStudent.avatar_url ? (
                   <img src={selectedStudent.avatar_url} alt={selectedStudent.name} className="h-full w-full object-cover" />
                 ) : (
@@ -259,7 +282,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
 
               <Link
                 href={`/teacher/analytics/student/${selectedStudent.id}`}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 active:translate-y-0 active:shadow-sm"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-500/30 active:translate-y-0 active:shadow-sm"
               >
                 Lihat Analisis Detail
               </Link>
@@ -312,9 +335,9 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                     <span className="text-[11px] text-slate-600">Progres Level</span>
                     <span className="text-[11px] text-slate-500">{Math.round(percent)}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-2 overflow-hidden rounded-full bg-slate-50">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-500 transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-blue-600 to-amber-500 transition-all"
                       style={{ width: `${percent}%` }}
                     />
                   </div>

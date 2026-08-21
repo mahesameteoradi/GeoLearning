@@ -56,7 +56,7 @@ export default function WelcomeScreen() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Gradient orbs */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[120px] animate-pulse" />
-        <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-[100px]" style={{ animation: 'float 4s ease-in-out infinite' }} />
+        <div className="absolute top-1/3 left-1/3 w-[400px] h-[400px] rounded-full bg-blue-500/10 blur-[100px]" style={{ animation: 'float 4s ease-in-out infinite' }} />
         <div className="absolute bottom-1/3 right-1/3 w-[350px] h-[350px] rounded-full bg-amber-500/8 blur-[100px]" style={{ animation: 'float 5s ease-in-out infinite reverse' }} />
 
         {/* Floating particles */}
@@ -110,8 +110,8 @@ export default function WelcomeScreen() {
 
           {/* Orbiting pin 2 */}
           <div className="absolute -inset-3" style={{ animation: 'orbit 4s linear infinite reverse' }}>
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-white rounded-full p-1 shadow-lg shadow-emerald-500/30">
-              <Navigation className="w-3 h-3 text-emerald-500" />
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 bg-white rounded-full p-1 shadow-lg shadow-green-500/30">
+              <Navigation className="w-3 h-3 text-green-500" />
             </div>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function WelcomeScreen() {
         {/* Title */}
         <div className="mt-10 flex flex-col items-center">
           <h1 className="text-4xl font-black text-white tracking-tight" style={{ animation: 'fadeSlideUp 0.8s ease-out forwards' }}>
-            Geo<span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">Learning</span>
+            Geo<span className="bg-gradient-to-r from-blue-400 to-blue-400 bg-clip-text text-transparent">Learning</span>
           </h1>
           <p className="text-slate-400 mt-3 text-sm font-medium tracking-[0.2em] uppercase" style={{ animation: 'fadeSlideUp 0.8s ease-out 0.2s both' }}>
             Menyiapkan petualanganmu...
@@ -130,7 +130,7 @@ export default function WelcomeScreen() {
         <div className="mt-8 w-56" style={{ animation: 'fadeSlideUp 0.8s ease-out 0.4s both' }}>
           <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden backdrop-blur-sm border border-slate-700/50">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-amber-400 shadow-lg shadow-blue-500/30 transition-all duration-100 ease-out"
+              className="h-full rounded-full bg-gradient-to-r from-blue-500 via-blue-400 to-amber-400 shadow-lg shadow-blue-500/30 transition-all duration-100 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

@@ -124,9 +124,9 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
 
   if (result) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm animate-in fade-in">
-        <div className="relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl p-8 flex flex-col items-center text-center">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-4">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-800/60 p-4 backdrop-blur-sm animate-in fade-in">
+        <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-md p-8 flex flex-col items-center text-center">
+          <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-bold text-slate-800 mb-2">Import Selesai!</h2>
@@ -135,7 +135,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
           <div className="w-full bg-slate-50 rounded-2xl p-4 text-left space-y-3 mb-6">
             <div className="flex justify-between items-center text-sm border-b border-slate-200 pb-2">
               <span className="text-slate-600 font-medium">Kelas Baru Dibuat</span>
-              <span className="font-bold text-emerald-600">{result.classesCreated}</span>
+              <span className="font-bold text-green-600">{result.classesCreated}</span>
             </div>
             <div className="flex justify-between items-center text-sm border-b border-slate-200 pb-2">
               <span className="text-slate-600 font-medium">Kelas Sudah Ada (Reused)</span>
@@ -143,7 +143,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
             </div>
             <div className="flex justify-between items-center text-sm border-b border-slate-200 pb-2">
               <span className="text-slate-600 font-medium">Siswa Berhasil Diimport</span>
-              <span className="font-bold text-emerald-600">{result.studentsSuccess || result.studentsAdded || 0}</span>
+              <span className="font-bold text-green-600">{result.studentsSuccess || result.studentsAdded || 0}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-slate-600 font-medium">Siswa Gagal/Dilewati</span>
@@ -176,11 +176,11 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 py-8 md:py-12 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
             <div>
@@ -195,7 +195,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
 
         <div 
           className={`border-2 border-dashed rounded-2xl p-8 text-center transition-colors mb-4 cursor-pointer ${
-            file ? 'border-emerald-500 bg-emerald-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'
+            file ? 'border-green-500 bg-green-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-50 hover:border-slate-400'
           }`}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
@@ -210,14 +210,14 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
           />
           {file ? (
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-3">
+              <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-3">
                 <CheckCircle className="w-6 h-6" />
               </div>
               <p className="text-sm font-bold text-slate-700">{file.name}</p>
               <p className="text-xs text-slate-500 mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
               <button 
                 type="button"
-                className="mt-3 text-xs text-emerald-600 font-semibold hover:underline"
+                className="mt-3 text-xs text-green-600 font-semibold hover:underline"
                 onClick={(e) => { e.stopPropagation(); setFile(null) }}
               >
                 Ganti File
@@ -253,7 +253,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
             <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col items-center">
               <div className="w-full bg-slate-200 rounded-full h-3 mb-4 overflow-hidden">
                 <div 
-                  className="bg-emerald-500 h-3 rounded-full transition-all duration-300 ease-out relative"
+                  className="bg-green-500 h-3 rounded-full transition-all duration-300 ease-out relative"
                   style={{ width: `${progress}%` }}
                 >
                   <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-full">
@@ -263,7 +263,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
               </div>
               <div className="flex items-center justify-between w-full">
                 <span className="text-xs font-semibold text-slate-600 animate-pulse">{progressText}</span>
-                <span className="text-xs font-black text-emerald-600">{progress}%</span>
+                <span className="text-xs font-black text-green-600">{progress}%</span>
               </div>
             </div>
           ) : (
@@ -279,7 +279,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
                 type="button"
                 disabled={!file}
                 onClick={handleUpload}
-                className="flex-1 rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 rounded-xl bg-green-600 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 Proses Import
               </button>

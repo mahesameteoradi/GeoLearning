@@ -80,10 +80,10 @@ const CATEGORY_META: Record<FileCategoryExpanded, {
   pdf:   { icon: FileText,     color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    label: 'PDF',        actionLabel: 'Lihat PDF' },
   video: { icon: Video,        color: 'text-blue-400',   bg: 'bg-blue-50',   border: 'border-blue-200',   label: 'Video',      actionLabel: 'Tonton' },
   ppt:   { icon: Presentation, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', label: 'Presentasi', actionLabel: 'Unduh' },
-  doc:   { icon: FileText,     color: 'text-sky-600',    bg: 'bg-sky-50',    border: 'border-sky-200',    label: 'Dokumen',    actionLabel: 'Unduh' },
-  link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-violet-50', border: 'border-violet-200', label: 'Link',       actionLabel: 'Buka' },
-  image: { icon: FileImage,    color: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-200',label: 'Gambar',     actionLabel: 'Lihat' },
-  interactive_map: { icon: MapIcon, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Peta Pembelajaran', actionLabel: 'Buka Peta' },
+  doc:   { icon: FileText,     color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',    label: 'Dokumen',    actionLabel: 'Unduh' },
+  link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-amber-50', border: 'border-amber-200', label: 'Link',       actionLabel: 'Buka' },
+  image: { icon: FileImage,    color: 'text-green-600',bg: 'bg-green-50',border: 'border-green-200',label: 'Gambar',     actionLabel: 'Lihat' },
+  interactive_map: { icon: MapIcon, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Peta Pembelajaran', actionLabel: 'Buka Peta' },
 }
 
 function Skeleton({ className }: { className?: string }) {
@@ -116,7 +116,7 @@ function MaterialCard({ mat, index, onViewMap }: { mat: MaterialItem; index: num
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <h3 className="text-sm font-bold text-slate-900 group-hover:text-white/90 transition-colors truncate">
+          <h3 className="text-sm font-bold text-slate-800 group-hover:text-white/90 transition-colors truncate">
             {mat.title}
           </h3>
           <span className={cn(
@@ -395,32 +395,29 @@ export default function StudentClassDetailPage() {
       </Link>
 
       {/* Class Header */}
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6">
-          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-indigo-600 text-4xl font-black text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
+          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-gradient-to-br from-blue-500 to-blue-600 text-4xl font-black text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3">
             {cls.name.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{cls.name}</h1>
             {cls.description && (
-              <p className="mt-2 text-sm text-indigo-100/80 max-w-2xl leading-relaxed">{cls.description}</p>
+              <p className="mt-2 text-sm text-blue-100/80 max-w-2xl leading-relaxed">{cls.description}</p>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-3">
               {cls.teacher && (
-                <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100 backdrop-blur-md">
+                <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-blue-100 backdrop-blur-md">
                   <GraduationCap className="h-4 w-4 text-blue-300" />
                   <span>{cls.teacher.name}</span>
                 </span>
               )}
-              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] text-indigo-100 backdrop-blur-md">
-                <Hash className="h-3 w-3 text-emerald-300" />
+              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[11px] text-blue-100 backdrop-blur-md">
+                <Hash className="h-3 w-3 text-green-300" />
                 {cls.join_code}
               </span>
-              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100 backdrop-blur-md">
+              <span className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-blue-100 backdrop-blur-md">
                 <BookOpen className="h-3.5 w-3.5 text-amber-300" />
                 {allMaterials.length} materi tersedia
               </span>
@@ -438,7 +435,7 @@ export default function StudentClassDetailPage() {
               'flex-1 flex justify-center items-center gap-2 rounded-full px-2 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300',
               activeTab === 'materi'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-500/25 scale-[1.02]'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/80'
             )}
           >
             <BookOpen className={cn("h-4 w-4", activeTab === 'materi' ? "text-blue-200" : "text-slate-400")} />
@@ -451,7 +448,7 @@ export default function StudentClassDetailPage() {
               'flex-1 flex justify-center items-center gap-2 rounded-full px-2 sm:px-4 py-2.5 text-xs sm:text-sm font-semibold transition-all duration-300',
               activeTab === 'ujian'
                 ? 'bg-red-500 text-white shadow-md shadow-red-500/25 scale-[1.02]'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/80'
             )}
           >
             <FileText className={cn("h-4 w-4", activeTab === 'ujian' ? "text-red-200" : "text-slate-400")} />
@@ -465,7 +462,7 @@ export default function StudentClassDetailPage() {
               'w-1/2 flex justify-center items-center gap-2 rounded-full px-4 sm:px-6 py-2.5 text-sm sm:text-base font-semibold transition-all duration-300',
               activeTab === 'peringkat'
                 ? 'bg-amber-500 text-white shadow-md shadow-amber-500/25 scale-[1.02]'
-                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100/80'
+                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50/80'
             )}
           >
             <Trophy className={cn("h-4 w-4", activeTab === 'peringkat' ? "text-amber-200" : "text-slate-400")} />
@@ -538,7 +535,7 @@ export default function StudentClassDetailPage() {
                       <div className="flex items-center justify-between">
                         <span className="rounded-full bg-red-100 px-2.5 py-1 text-[10px] font-bold tracking-wider text-red-700">UJIAN SUMATIF</span>
                         {isCompleted && (
-                          <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-bold text-emerald-700">
+                          <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[10px] font-bold text-green-700">
                             <CheckCircle className="h-3 w-3" /> Selesai
                           </span>
                         )}

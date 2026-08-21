@@ -45,10 +45,10 @@ function CopyableCode({ code }: { code: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 font-mono text-[11px] text-slate-500 transition-all hover:border-blue-300 hover:text-blue-700"
+      className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 font-mono text-[11px] text-slate-500 transition-all hover:border-blue-300 hover:text-blue-700"
     >
       {copied ? (
-        <Check className="h-3 w-3 text-emerald-600" />
+        <Check className="h-3 w-3 text-green-600" />
       ) : (
         <Copy className="h-3 w-3" />
       )}
@@ -133,11 +133,11 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
       {/* Stats Row */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
-          { label: 'Total Kelas', value: classes.length, icon: BookMarked, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100', gradient: 'from-indigo-500/5 to-transparent' },
-          { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-cyan-600', bg: 'bg-cyan-50', border: 'border-cyan-100', gradient: 'from-cyan-500/5 to-transparent' },
+          { label: 'Total Kelas', value: classes.length, icon: BookMarked, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', gradient: 'from-blue-500/5 to-transparent' },
+          { label: 'Total Siswa', value: totalStudents, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', gradient: 'from-blue-500/5 to-transparent' },
           { label: 'Total Modul', value: totalModules, icon: BookOpen, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent' },
         ].map(({ label, value, icon: Icon, color, bg, border, gradient }) => (
-          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1`}>
+          <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
             <div className="relative flex items-start justify-between">
               <div>
@@ -164,7 +164,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
               onClick={() => setShowImportModal(true)}
               className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300"
             >
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+              <FileSpreadsheet className="h-4 w-4 text-green-600" />
               Import Excel
             </button>
             <button
@@ -182,7 +182,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
           <div className="mb-4 flex items-center justify-between bg-white px-4 py-3 rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-slate-700">Daftar Kelas</h2>
-              <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">{classes.length}</span>
+              <span className="bg-slate-50 text-slate-600 text-xs font-bold px-2 py-0.5 rounded-full">{classes.length}</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -210,7 +210,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
               ) : (
                 <button 
                   onClick={() => setIsSelectMode(true)}
-                  className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-indigo-600 bg-slate-50 hover:bg-indigo-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-indigo-200 transition-all"
+                  className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-slate-200 hover:border-blue-200 transition-all"
                 >
                   <CheckSquare className="w-3.5 h-3.5" />
                   Pilih Kelas
@@ -228,10 +228,10 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
                   if (isSelectMode) toggleSelectClass(e, cls.id)
                 }}
                 className={cn(
-                  "group relative overflow-hidden rounded-3xl border bg-white p-6 transition-all duration-300 block",
+                  "group relative overflow-hidden rounded-2xl border bg-white p-6 transition-all duration-300 block",
                   isSelectMode && selectedClasses.includes(cls.id) 
-                    ? "border-indigo-500 shadow-md shadow-indigo-500/10" 
-                    : "border-slate-200/60 hover:border-indigo-300/50 hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 cursor-pointer"
+                    ? "border-blue-500 shadow-md shadow-blue-500/10" 
+                    : "border-slate-200/60 hover:border-blue-300/50 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1 cursor-pointer"
                 )}
               >
                 {/* Checkbox overlay when select mode is active */}
@@ -239,19 +239,19 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
                   <div className="absolute right-4 top-4 z-20">
                     <div className={cn(
                       "w-6 h-6 rounded-full flex items-center justify-center transition-colors border",
-                      selectedClasses.includes(cls.id) ? "bg-indigo-500 border-indigo-500 text-white" : "border-slate-300 bg-slate-50 text-transparent"
+                      selectedClasses.includes(cls.id) ? "bg-blue-500 border-blue-500 text-white" : "border-slate-300 bg-slate-50 text-transparent"
                     )}>
                       <Check className="w-4 h-4" />
                     </div>
                   </div>
                 )}
               {/* Decorative blur */}
-              <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-indigo-50 to-blue-50 blur-3xl transition-all duration-500 group-hover:bg-indigo-100 group-hover:scale-150" />
+              <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-gradient-to-br from-blue-50 to-blue-50 blur-3xl transition-all duration-500 group-hover:bg-blue-100 group-hover:scale-150" />
 
               {/* Header */}
               <div className="mb-4 flex items-start justify-between relative z-10">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-sky-500 text-lg font-black text-white shadow-lg shadow-indigo-600/20">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 text-lg font-black text-white shadow-lg shadow-blue-600/20">
                     {cls.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex flex-col gap-1 mt-0.5">
@@ -281,7 +281,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
               )}
             </div>
 
-              <h3 className="mb-1.5 line-clamp-1 text-lg font-bold text-slate-900 relative z-10">
+              <h3 className="mb-1.5 line-clamp-1 text-lg font-bold text-slate-800 relative z-10">
                 {cls.name}
               </h3>
               {cls.description && (
@@ -291,17 +291,17 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
               {/* Stats */}
               <div className="mt-4 flex items-center gap-4 border-t border-slate-100 pt-4">
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Users className="h-3.5 w-3.5 text-cyan-500" />
+                  <Users className="h-3.5 w-3.5 text-blue-500" />
                   <span className="font-semibold text-slate-700">{cls.studentCount}</span>
                   <span>siswa</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <BookOpen className="h-3.5 w-3.5 text-violet-500" />
+                  <BookOpen className="h-3.5 w-3.5 text-amber-500" />
                   <span className="font-semibold text-slate-700">{cls.moduleCount}</span>
                   <span>modul</span>
                 </div>
                 <div className="ml-auto">
-                  <TrendingUp className="h-3.5 w-3.5 text-slate-700 transition-colors group-hover:text-violet-500" />
+                  <TrendingUp className="h-3.5 w-3.5 text-slate-700 transition-colors group-hover:text-amber-500" />
                 </div>
               </div>
             </Link>
@@ -312,8 +312,8 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
             id="tour-teacher-create-class"
             onClick={() => setShowModal(true)}
             className={cn(
-              'flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-500',
-              'transition-all duration-300 hover:border-indigo-300 hover:bg-indigo-50/50 hover:text-indigo-600 hover:-translate-y-1'
+              'flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-500',
+              'transition-all duration-300 hover:border-blue-300 hover:bg-blue-50/50 hover:text-blue-600 hover:-translate-y-1'
             )}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-current">
@@ -326,8 +326,8 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
           <button
             onClick={() => setShowImportModal(true)}
             className={cn(
-              'flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-500',
-              'transition-all duration-300 hover:border-emerald-300 hover:bg-emerald-50/50 hover:text-emerald-600 hover:-translate-y-1'
+              'flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 py-12 text-slate-500',
+              'transition-all duration-300 hover:border-green-300 hover:bg-green-50/50 hover:text-green-600 hover:-translate-y-1'
             )}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-current">

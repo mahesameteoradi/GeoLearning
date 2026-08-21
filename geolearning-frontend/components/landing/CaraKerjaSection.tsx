@@ -44,7 +44,7 @@ export default function CaraKerjaSection() {
           viewport={{ once: true, margin: "-100px" }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">Cara Kerja</h2>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-800 mb-6 tracking-tight">Cara Kerja</h2>
           <p className="text-lg text-slate-600">Alur penggunaan yang sangat simpel dan terarah.</p>
         </motion.div>
 
@@ -54,16 +54,16 @@ export default function CaraKerjaSection() {
             className={`relative px-8 py-3 rounded-full font-bold text-sm transition-all overflow-hidden ${activeTab === 'guru' ? 'text-white shadow-lg shadow-blue-500/30' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
           >
             {activeTab === 'guru' && (
-              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-indigo-600" />
+              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-blue-600" />
             )}
             <span className="relative z-10">Untuk Guru</span>
           </button>
           <button 
             onClick={() => setActiveTab('siswa')}
-            className={`relative px-8 py-3 rounded-full font-bold text-sm transition-all overflow-hidden ${activeTab === 'siswa' ? 'text-white shadow-lg shadow-sky-500/30' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+            className={`relative px-8 py-3 rounded-full font-bold text-sm transition-all overflow-hidden ${activeTab === 'siswa' ? 'text-white shadow-lg shadow-blue-500/30' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
           >
             {activeTab === 'siswa' && (
-              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-sky-500" />
+              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-blue-500" />
             )}
             <span className="relative z-10">Untuk Siswa</span>
           </button>
@@ -90,12 +90,12 @@ export default function CaraKerjaSection() {
               <motion.div 
                 key={`${activeTab}-${step.num}`} 
                 variants={itemVariants}
-                className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm relative z-10 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 group"
+                className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm relative z-10 flex flex-col items-center text-center hover:shadow-md transition-shadow duration-300 group"
               >
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-extrabold text-xl text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 ${activeTab === 'guru' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-500/40' : 'bg-gradient-to-br from-sky-400 to-sky-600 shadow-sky-500/40'}`}>
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-extrabold text-xl text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 ${activeTab === 'guru' ? 'bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-500/40' : 'bg-gradient-to-br from-blue-400 to-blue-600 shadow-blue-500/40'}`}>
                   {step.num}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-3">{step.title}</h3>
+                <h3 className="text-lg font-bold text-slate-800 mb-3">{step.title}</h3>
                 <p className="text-slate-600 text-sm leading-relaxed font-medium">{step.desc}</p>
               </motion.div>
             ))}

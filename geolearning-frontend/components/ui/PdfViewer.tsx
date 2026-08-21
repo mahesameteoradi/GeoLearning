@@ -25,10 +25,10 @@ export default function PdfViewer({ url }: { url: string }) {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-slate-100 rounded-2xl overflow-hidden border border-slate-200">
+    <div className="flex flex-col w-full h-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-200">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 shadow-sm z-10">
-        <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-1">
           <button 
             type="button" 
             disabled={pageNumber <= 1} 
@@ -51,7 +51,7 @@ export default function PdfViewer({ url }: { url: string }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1 hidden sm:flex">
+          <div className="flex items-center gap-1 bg-slate-50 rounded-lg p-1 hidden sm:flex">
             <button onClick={() => setScale(s => Math.max(0.5, s - 0.25))} className="p-1.5 text-slate-600 hover:bg-white rounded transition"><ZoomOut className="w-4 h-4" /></button>
             <span className="text-xs font-semibold text-slate-600 w-12 text-center">{Math.round(scale * 100)}%</span>
             <button onClick={() => setScale(s => Math.min(3, s + 0.25))} className="p-1.5 text-slate-600 hover:bg-white rounded transition"><ZoomIn className="w-4 h-4" /></button>
@@ -66,7 +66,7 @@ export default function PdfViewer({ url }: { url: string }) {
       {/* PDF Viewport */}
       <div className="flex-1 overflow-auto bg-slate-200/50 flex flex-col items-center p-4 custom-scrollbar relative min-h-[400px]">
         {loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-100/80 z-20">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 z-20">
             <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-2" />
             <p className="text-sm font-semibold text-slate-600">Memuat Dokumen...</p>
           </div>
@@ -85,7 +85,7 @@ export default function PdfViewer({ url }: { url: string }) {
               </a>
             </div>
           }
-          className="flex flex-col items-center drop-shadow-xl"
+          className="flex flex-col items-center drop-shadow-md"
         >
           {numPages !== null && (
             <Page 

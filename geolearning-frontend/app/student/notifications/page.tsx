@@ -20,7 +20,7 @@ interface Notification {
 }
 
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-slate-100 ${className ?? ''}`} />
+  return <div className={`animate-pulse rounded-lg bg-slate-50 ${className ?? ''}`} />
 }
 
 const typeConfig: Record<NotificationType, {
@@ -34,7 +34,7 @@ const typeConfig: Record<NotificationType, {
   REMINDER:    { icon: Bell,       bg: 'bg-blue-50',    border: 'border-blue-200',   iconColor: 'text-blue-400',    label: 'Pengingat' },
   INTERVENTION:{ icon: AlertCircle,bg: 'bg-red-50',     border: 'border-red-200',    iconColor: 'text-red-600',     label: 'Intervensi' },
   SYSTEM:      { icon: Info,       bg: 'bg-slate-50',   border: 'border-slate-200',  iconColor: 'text-slate-500',   label: 'Sistem' },
-  FORUM:       { icon: BookOpen,   bg: 'bg-violet-50',  border: 'border-blue-300', iconColor: 'text-blue-600',  label: 'Forum' },
+  FORUM:       { icon: BookOpen,   bg: 'bg-amber-50',  border: 'border-blue-300', iconColor: 'text-blue-600',  label: 'Forum' },
 }
 
 export default function NotificationsPage() {
@@ -94,7 +94,7 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <Bell className="h-5 w-5 text-blue-600" />
             Notifikasi
             {unreadCount > 0 && (
@@ -112,7 +112,7 @@ export default function NotificationsPage() {
           <button
             onClick={markAllRead}
             disabled={markingAll}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-xs font-medium text-slate-500 hover:text-white hover:border-blue-200 transition disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-500 hover:text-white hover:border-blue-200 transition disabled:opacity-50"
           >
             <CheckCircle className="h-3.5 w-3.5" />
             Tandai semua dibaca
@@ -177,7 +177,7 @@ export default function NotificationsPage() {
 
                 {/* Unread dot */}
                 {!notif.is_read && (
-                  <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-violet-500" />
+                  <div className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-amber-500" />
                 )}
               </button>
             )

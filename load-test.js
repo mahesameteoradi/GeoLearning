@@ -3,8 +3,8 @@ import { sleep, check } from 'k6';
 
 // Konfigurasi pengujian k6
 export const options = {
-  vus: 70,             // 40 Virtual Users (user bersamaan)
-  duration: '10m',      // Durasi pengujian selama 1 menit
+  vus: 300,             // 40 Virtual Users (user bersamaan)
+  duration: '1m',      // Durasi pengujian selama 1 menit
 };
 
 export default function () {

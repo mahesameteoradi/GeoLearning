@@ -28,11 +28,11 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
   const [isSubmittingIntervention, setIsSubmittingIntervention] = useState(false)
   
   const typeColors: Record<string, string> = {
-    ACADEMIC:    'border-blue-300 bg-violet-50 text-blue-700',
+    ACADEMIC:    'border-blue-300 bg-amber-50 text-blue-700',
     BEHAVIORAL:  'border-orange-200 bg-orange-50 text-orange-600',
-    ATTENDANCE:  'border-cyan-200 bg-cyan-50 text-cyan-600',
+    ATTENDANCE:  'border-blue-200 bg-blue-50 text-blue-600',
     EMOTIONAL:   'border-pink-200 bg-pink-50 text-pink-600',
-    POSITIVE:    'border-emerald-300 bg-emerald-50 text-emerald-700',
+    POSITIVE:    'border-green-300 bg-green-50 text-green-700',
     CORRECTIVE:  'border-red-300 bg-red-50 text-red-700',
   }
   
@@ -168,7 +168,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
 
         return (
           <div id="tour-teacher-student-summary" className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Kemampuan Siswa</p>
                 <div className="flex items-baseline gap-2">
@@ -182,16 +182,16 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
               </div>
             </div>
             
-            <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
+            <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40 flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Tingkat Keaktifan</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-emerald-500">{keaktifan}</span>
+                  <span className="text-4xl font-black text-green-500">{keaktifan}</span>
                   <span className="text-lg font-bold text-slate-400">%</span>
                 </div>
                 <p className="text-xs text-slate-400 mt-2">Materi yang telah dibuka</p>
               </div>
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 shadow-inner">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-50 text-green-500 shadow-inner">
                 <CheckCircle className="h-8 w-8" />
               </div>
             </div>
@@ -201,7 +201,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
 
       {/* Rincian per Bab */}
       {moduleProgress.length > 0 && (
-        <div id="tour-teacher-student-progress" className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40 mt-6">
+        <div id="tour-teacher-student-progress" className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40 mt-6">
           <div className="bg-slate-50/80 backdrop-blur-sm px-6 py-5 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Rincian Progres per Bab</h3>
           </div>
@@ -220,7 +220,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                     <td className="px-6 py-4 font-semibold text-slate-800">{mod.title}</td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex flex-col items-center gap-1">
-                        <span className="font-bold text-emerald-600">{mod.keaktifan}%</span>
+                        <span className="font-bold text-green-600">{mod.keaktifan}%</span>
                         <span className="text-[10px] text-slate-400 uppercase tracking-wider">{mod.materials_read} / {mod.materials_total} Materi</span>
                       </div>
                     </td>
@@ -250,7 +250,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
               key={t.id}
               onClick={() => setTimeRange(t.id as any)}
               className={`rounded-lg px-4 py-2 text-xs font-bold transition-all duration-300 ${
-                timeRange === t.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'text-slate-500 hover:text-indigo-600 hover:bg-indigo-50'
+                timeRange === t.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30' : 'text-slate-500 hover:text-blue-600 hover:bg-blue-50'
               }`}
             >
               {t.label}
@@ -261,7 +261,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
 
       <div id="tour-teacher-student-trends" className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Score Trend */}
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
           <h3 className="mb-5 font-bold text-slate-800">Tren Skor Kuis</h3>
           <div className="h-64">
             {filteredScoreTrend.length > 0 ? (
@@ -292,7 +292,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
         </div>
 
         {/* XP Trend */}
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
           <h3 className="mb-5 font-bold text-slate-800">Tren Pertumbuhan XP</h3>
           <div className="h-64">
             {filteredXpTrend.length > 0 ? (
@@ -326,7 +326,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
           {/* Answer Stats Pie Chart */}
-          <div className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
             <h3 className="mb-5 font-bold text-slate-800">Akurasi Jawaban Keseluruhan</h3>
             <div className="h-[200px] w-full">
               {answerStats && answerStats.total > 0 ? (
@@ -356,7 +356,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                    <div className="w-1/2 flex flex-col justify-center gap-4 pl-4 border-l border-slate-100">
                      <div>
                        <p className="text-[11px] font-bold text-slate-400 uppercase">Jawaban Benar</p>
-                       <p className="text-2xl font-black text-emerald-500">{answerStats.correct}</p>
+                       <p className="text-2xl font-black text-green-500">{answerStats.correct}</p>
                      </div>
                      <div>
                        <p className="text-[11px] font-bold text-slate-400 uppercase">Jawaban Salah</p>
@@ -371,7 +371,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
           </div>
 
           {/* Competency Profile Radar */}
-          <div id="tour-teacher-student-spider" className="rounded-3xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
+          <div id="tour-teacher-student-spider" className="rounded-2xl border border-slate-200/80 bg-white p-6 flex flex-col shadow-lg shadow-slate-200/40">
             <h3 className="mb-5 font-bold text-slate-800">Profil Partisipasi Siswa</h3>
             <div className="flex-1 min-h-[250px] w-full relative">
               {topicBreakdown.length > 0 ? (
@@ -397,17 +397,21 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
             </div>
             
             <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600">
-              <div>
-                <span className="font-bold text-slate-800">Engagements:</span> Tingkat partisipasi rutinitas login (streak) & aktivitas membaca materi.
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
+                <span className="font-bold text-blue-700 block mb-1">Engagement (Keaktifan)</span>
+                Mengukur rutinitas siswa mengakses platform (streak login) dan seberapa rajin mereka membuka materi yang dibagikan guru.
               </div>
-              <div>
-                <span className="font-bold text-slate-800">Mastery:</span> Penguasaan materi akademis berdasarkan rata-rata skor dan akurasi kuis.
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
+                <span className="font-bold text-blue-700 block mb-1">Mastery (Penguasaan)</span>
+                Menunjukkan tingkat pemahaman konsep akademis siswa, dilihat dari nilai rata-rata tertinggi dan persentase akurasi jawaban kuis.
               </div>
-              <div>
-                <span className="font-bold text-slate-800">Progress:</span> Kegigihan dan usaha siswa mencoba ulang kuis serta total XP yang diraih.
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
+                <span className="font-bold text-blue-700 block mb-1">Progress (Perkembangan)</span>
+                Menilai kegigihan siswa (pantang menyerah) dalam mencoba ulang kuis untuk memperbaiki nilai, serta perolehan total XP mereka.
               </div>
-              <div>
-                <span className="font-bold text-slate-800">Projects:</span> Tingkat keterlibatan dan penyelesaian tugas proyek kelas.
+              <div className="rounded-xl bg-slate-50 p-3 border border-slate-100">
+                <span className="font-bold text-blue-700 block mb-1">Projects (Tugas Proyek)</span>
+                Mengukur tingkat kedisiplinan dan kualitas siswa dalam menyelesaikan tugas proyek mandiri maupun kerja kelompok tepat waktu.
               </div>
             </div>
           </div>
@@ -416,7 +420,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
         {/* Timeline Badge & Interventions */}
         <div className="lg:col-span-2 space-y-6">
           {/* Badge Timeline */}
-          <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
+          <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
             <div className="bg-slate-50/80 backdrop-blur-sm px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Pencapaian Badge</h3>
             </div>
@@ -426,7 +430,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                   {badgeTimeline.map((b, i) => (
                     <div 
                       key={i} 
-                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-indigo-100 bg-white p-4 text-center transition-all hover:border-indigo-300 hover:shadow-md group"
+                      className="flex min-w-[120px] flex-col items-center gap-3 rounded-2xl border border-blue-100 bg-white p-4 text-center transition-all hover:border-blue-300 hover:shadow-md group"
                     >
                       <BadgeShieldContainer 
                         isEarned={true}
@@ -449,9 +453,9 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
           </div>
 
           {/* Kamus Makna Badges */}
-          <div className="rounded-3xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-inner">
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-inner">
             <div className="mb-5 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600 shadow-inner">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600 shadow-inner">
                 <Info className="h-5 w-5" />
               </div>
               <div>
@@ -462,7 +466,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
             
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {ALL_BADGES.map(badge => (
-                <div key={badge.id} className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md">
+                <div key={badge.id} className="group flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:border-blue-300 hover:shadow-md">
                   <BadgeShieldContainer 
                         isEarned={true}
                         hoverGlow={true}
@@ -482,7 +486,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
           </div>
 
           {/* Form Intervensi */}
-          <div className="rounded-3xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-inner">
+          <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-6 shadow-inner">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-100 text-orange-600 shadow-inner">
                 <AlertTriangle className="h-5 w-5" />
@@ -501,7 +505,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                 <select
                   value={interventionType}
                   onChange={(e) => setInterventionType(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-indigo-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                  className="w-full rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 focus:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
                   disabled={isSubmittingIntervention}
                 >
                   {(['ACADEMIC', 'BEHAVIORAL', 'ATTENDANCE', 'EMOTIONAL', 'POSITIVE', 'CORRECTIVE']).map((t) => (
@@ -520,14 +524,14 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                   placeholder="Contoh: Ayo pelajari lebih lanjut bab Peta Geografi!"
                   rows={2}
                   required
-                  className="w-full resize-none rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all"
+                  className="w-full resize-none rounded-xl border border-slate-200/80 bg-slate-50 px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:border-blue-300 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
                   disabled={isSubmittingIntervention}
                 />
               </div>
 
               {interventionType === 'POSITIVE' && (
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-emerald-600">
+                  <label className="mb-1 block text-[11px] font-medium uppercase tracking-widest text-green-600">
                     XP Bonus (Reward)
                   </label>
                   <input
@@ -536,7 +540,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
                     step="10"
                     value={xpBonus}
                     onChange={(e) => setXpBonus(parseInt(e.target.value) || 0)}
-                    className="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-slate-800 focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all font-bold"
+                    className="w-full rounded-xl border border-green-200 bg-green-50 px-4 py-2.5 text-sm text-slate-800 focus:border-green-400 focus:outline-none focus:ring-4 focus:ring-green-500/10 transition-all font-bold"
                     disabled={isSubmittingIntervention}
                   />
                 </div>
@@ -545,7 +549,7 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
               <button
                 type="submit"
                 disabled={!interventionMsg.trim() || isSubmittingIntervention}
-                className="w-full rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white hover:bg-indigo-700 transition-all hover:shadow-lg hover:shadow-indigo-600/30 disabled:opacity-50"
+                className="w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700 transition-all hover:shadow-lg hover:shadow-blue-600/30 disabled:opacity-50"
               >
                 {isSubmittingIntervention ? 'Menyimpan...' : 'Kirim Intervensi'}
               </button>
@@ -553,24 +557,24 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
           </div>
 
           {/* Interventions */}
-          <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
+          <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
             <div className="bg-slate-50/80 backdrop-blur-sm px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <h3 className="font-bold text-slate-800 uppercase tracking-wider text-sm">Riwayat Intervensi Guru</h3>
             </div>
             <ul className="divide-y divide-slate-100">
               {interventions.length > 0 ? (
                 interventions.map((inv, i) => (
-                  <li key={i} className={cn('flex items-start gap-4 p-6 transition-colors hover:bg-indigo-50/30 group', inv.status === 'completed' && 'opacity-60')}>
+                  <li key={i} className={cn('flex items-start gap-4 p-6 transition-colors hover:bg-blue-50/30 group', inv.status === 'completed' && 'opacity-60')}>
                     <span className={cn('mt-0.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shadow-sm', typeColors[inv.type || 'ACADEMIC'] || typeColors['ACADEMIC'])}>
                       {inv.type || 'ACADEMIC'}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{inv.message || inv.note}</p>
+                      <p className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{inv.message || inv.note}</p>
                       <div className="mt-1 flex items-center gap-2 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                         <span>{format(new Date(inv.created_at), 'dd MMM yyyy HH:mm', { locale: id })}</span>
                       </div>
                     </div>
-                    {inv.status === 'completed' && <CheckCircle className="h-5 w-5 flex-shrink-0 text-emerald-600 drop-shadow-sm" />}
+                    {inv.status === 'completed' && <CheckCircle className="h-5 w-5 flex-shrink-0 text-green-600 drop-shadow-sm" />}
                   </li>
                 ))
               ) : (
@@ -582,51 +586,51 @@ export function StudentAnalyticsClient({ studentId, studentData }: { studentId: 
       </div>
 
       {/* Rubrik Pemaknaan Level */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
-        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 px-6 py-5 border-b border-slate-100 flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-            <Award className="h-4 w-4 text-indigo-600" />
+      <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-lg shadow-slate-200/40">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50 px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+            <Award className="h-4 w-4 text-blue-600" />
           </div>
           <h3 className="font-bold text-slate-800 tracking-tight">Rubrik Pemaknaan Level (Gelar Siswa)</h3>
         </div>
         <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">🎓</span>
-              <h4 className="font-bold text-slate-700 text-sm">Level 1 - 4: Pemula (Novice)</h4>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-xl">🌱</span>
+              <h4 className="font-bold text-slate-800 text-sm">Level 1-4: Pemula</h4>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Sedang memulai perjalanan belajar dan mulai mengenal materi dasar.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Siswa baru dalam tahap adaptasi. Membutuhkan dorongan ekstra dari guru agar lebih rajin login dan mulai membaca materi dasar.
             </p>
           </div>
           
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">🚀</span>
-              <h4 className="font-bold text-slate-700 text-sm">Level 5 - 9: Berkembang (Developing)</h4>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-xl">📈</span>
+              <h4 className="font-bold text-slate-800 text-sm">Level 5-9: Berkembang</h4>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Mulai aktif berpartisipasi dan memahami konsep-konsep dasar dengan baik.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Siswa mulai menunjukkan rutinitas belajar yang baik, aktif mencoba mengerjakan kuis dasar, dan mengumpulkan tugas sederhana.
             </p>
           </div>
           
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">⚔️</span>
-              <h4 className="font-bold text-slate-700 text-sm">Level 10 - 19: Terampil (Capable)</h4>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100 text-xl">⚔️</span>
+              <h4 className="font-bold text-slate-800 text-sm">Level 10-19: Terampil</h4>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Sangat aktif, memiliki pemahaman yang baik, dan sering berpartisipasi dalam kuis.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Siswa sangat mandiri, memiliki pemahaman konsep yang matang, konsisten mendapat nilai bagus, dan aktif berpartisipasi di forum.
             </p>
           </div>
           
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-xl">👑</span>
-              <h4 className="font-bold text-slate-700 text-sm">Level 20+: Ahli (Expert)</h4>
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 text-xl">👑</span>
+              <h4 className="font-bold text-slate-800 text-sm">Level 20+: Ahli</h4>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Sangat berprestasi, konsisten aktif dan menguasai banyak materi pembelajaran.
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Siswa dengan dedikasi luar biasa. Selalu mengincar nilai sempurna (Mastery) dan berpotensi dijadikan tutor sebaya bagi temannya.
             </p>
           </div>
         </div>

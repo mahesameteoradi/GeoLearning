@@ -13,21 +13,21 @@ const variantStyles = {
   default: 'border-slate-200 bg-slate-50',
   xp:      'border-amber-200  bg-amber-50',
   streak:  'border-orange-200 bg-orange-50',
-  quiz:    'border-cyan-200   bg-cyan-50',
+  quiz:    'border-blue-200   bg-blue-50',
 }
 
 const iconBg = {
-  default: 'bg-slate-100',
+  default: 'bg-slate-50',
   xp:      'bg-amber-50',
   streak:  'bg-orange-50',
-  quiz:    'bg-cyan-50',
+  quiz:    'bg-blue-50',
 }
 
 const valueColor = {
-  default: 'text-slate-900',
+  default: 'text-slate-800',
   xp:      'text-amber-600',
   streak:  'text-orange-600',
-  quiz:    'text-cyan-600',
+  quiz:    'text-blue-600',
 }
 
 export function StatsCard({

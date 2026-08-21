@@ -9,6 +9,8 @@ import { useConfirm } from '@/components/ui/ConfirmProvider'
 import { UploadBankResourceModal } from './UploadBankResourceModal'
 import { EditResourceBankModal } from './EditResourceBankModal'
 import { Edit3 } from 'lucide-react'
+import { AnimatedFilterTabs } from '@/components/ui/AnimatedFilterTabs'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface TeacherResource {
   id: string
@@ -82,12 +84,12 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
 
   const getIconAndColor = (type: string, url: string | null) => {
     if (type === 'VIDEO') return { icon: Video, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200', label: 'Video' }
-    if (type === 'LINK') return { icon: LinkIcon, color: 'text-indigo-500', bg: 'bg-indigo-50', border: 'border-indigo-200', label: 'Link' }
+    if (type === 'LINK') return { icon: LinkIcon, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Link' }
     
     if (url) {
       if (url.endsWith('.pdf')) return { icon: FileText, color: 'text-red-500', bg: 'bg-red-50', border: 'border-red-200', label: 'PDF' }
       if (url.match(/\.(ppt|pptx)$/)) return { icon: Presentation, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', label: 'PPT' }
-      if (url.match(/\.(png|jpg|jpeg|gif)$/i)) return { icon: FileImage, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-200', label: 'Gambar' }
+      if (url.match(/\.(png|jpg|jpeg|gif)$/i)) return { icon: FileImage, color: 'text-green-500', bg: 'bg-green-50', border: 'border-green-200', label: 'Gambar' }
     }
     return { icon: FileText, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Dokumen' }
   }
@@ -110,7 +112,7 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
     <div className="min-h-full p-4 lg:p-8 max-w-6xl mx-auto">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Bank Materi</h1>
+          <h1 className="text-3xl font-black text-slate-800 tracking-tight">Bank Materi</h1>
           <p className="mt-2 text-sm font-medium text-slate-500">
             Kelola dan gunakan kembali materi yang pernah Anda unggah ke semua kelas.
           </p>
@@ -136,22 +138,19 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
             className="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm outline-none transition-all focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10"
           />
         </div>
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-1">
-          {['ALL', 'PDF', 'VIDEO', 'LINK', 'PPT', 'DOC'].map((type) => (
-            <button
-              key={type}
-              onClick={() => setFilterType(type)}
-              className={cn(
-                "rounded-lg px-4 py-1.5 text-sm font-semibold transition-all",
-                filterType === type
-                  ? "bg-blue-50 text-blue-700"
-                  : "text-slate-600 hover:bg-slate-50"
-              )}
-            >
-              {type === 'ALL' ? 'Semua' : type}
-            </button>
-          ))}
-        </div>
+        <AnimatedFilterTabs
+          activeTab={filterType}
+          onChange={(tab) => setFilterType(tab)}
+          options={[
+            { id: 'ALL', label: 'Semua' },
+            { id: 'PDF', label: 'PDF' },
+            { id: 'VIDEO', label: 'VIDEO' },
+            { id: 'LINK', label: 'LINK' },
+            { id: 'PPT', label: 'PPT' },
+            { id: 'DOC', label: 'DOC' }
+          ]}
+          layoutId="resource-bank-filter"
+        />
       </div>
 
       {loading ? (
@@ -160,8 +159,8 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
           <p className="mt-4 text-sm text-slate-500 font-medium">Memuat bank materi...</p>
         </div>
       ) : filteredResources.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-20 px-4 text-center shadow-sm">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white py-20 px-4 text-center shadow-sm">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50 text-slate-400">
             <Search className="h-8 w-8" />
           </div>
           <h3 className="text-lg font-bold text-slate-800">Tidak ada materi ditemukan</h3>
@@ -173,12 +172,21 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredResources.map((item: TeacherResource) => {
-            const meta = getIconAndColor(item.type, item.file_url)
-            const Icon = meta.icon
+          <AnimatePresence mode="popLayout">
+            {filteredResources.map((item: TeacherResource) => {
+              const meta = getIconAndColor(item.type, item.file_url)
+              const Icon = meta.icon
 
-            return (
-              <div key={item.id} className="group relative flex flex-col rounded-3xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-300">
+              return (
+                <motion.div 
+                  key={item.id} 
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-5 transition-all duration-300 hover:shadow-md hover:shadow-blue-900/5 hover:-translate-y-1 hover:border-blue-300"
+                >
                 <div className="absolute top-4 right-4 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
                   {item.file_url && (
                     <button onClick={() => setViewingFile({ url: item.file_url!, title: item.title })} className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors shadow-sm" title="Lihat Materi">
@@ -198,7 +206,7 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
                     <Icon className={cn('h-6 w-6', meta.color)} />
                   </div>
                   <div className="flex-1 pt-0.5 pr-12">
-                    <h3 className="text-base font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">{item.title}</h3>
+                    <h3 className="text-base font-bold text-slate-800 line-clamp-2 leading-tight group-hover:text-blue-600 transition-colors">{item.title}</h3>
                     <p className="text-[11px] font-semibold text-slate-400 mt-1.5">{new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                   </div>
                 </div>
@@ -214,9 +222,10 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
                     </p>
                   )}
                 </div>
-              </div>
-            )
-          })}
+              </motion.div>
+              )
+            })}
+          </AnimatePresence>
         </div>
       )}
 
@@ -244,8 +253,8 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
 
       {/* Viewer Modal omitted here for brevity, keeping same viewer code */}
       {viewingFile && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm animate-in fade-in">
-          <div className="relative w-full max-w-5xl h-[85vh] bg-slate-100 rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-800/80 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-5xl h-[85vh] bg-slate-50 rounded-2xl overflow-hidden shadow-md flex flex-col animate-in zoom-in-95">
             <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-100 text-blue-600 rounded-xl">
@@ -258,7 +267,7 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
                   href={viewingFile.url} 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="px-4 py-2 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors shadow-sm"
+                  className="px-4 py-2 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors shadow-sm"
                 >
                   Buka di Tab Baru
                 </a>

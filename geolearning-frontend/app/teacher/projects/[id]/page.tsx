@@ -185,10 +185,7 @@ export default function ProjectSubmissionsPage() {
 
   return (
     <div className="min-h-screen p-5 lg:p-7">
-      <div className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-900/20">
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-indigo-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+      <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-6">
@@ -200,21 +197,21 @@ export default function ProjectSubmissionsPage() {
             </button>
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{project.title}</h1>
-              <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">{project.class?.name} • Max {project.xp_reward} XP</p>
+              <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">{project.class?.name} • Max {project.xp_reward} XP</p>
 
             </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-200/80 bg-white overflow-hidden shadow-xl shadow-slate-200/40">
+      <div className="rounded-2xl border border-slate-200/80 bg-white overflow-hidden shadow-md shadow-slate-200/40">
         <div className="border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm px-6 py-5 flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Daftar Pengumpulan ({submissions.length})</h2>
           
           {submissions.length > 0 && (
             <button
               onClick={exportCSV}
-              className="flex items-center gap-1.5 rounded-lg border border-emerald-200 px-3 py-1.5 text-xs font-bold text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm"
+              className="flex items-center gap-1.5 rounded-lg border border-green-200 px-3 py-1.5 text-xs font-bold text-green-600 hover:bg-green-50 transition-colors shadow-sm"
             >
               <Download className="h-4 w-4" />
               Ekspor CSV
@@ -227,7 +224,7 @@ export default function ProjectSubmissionsPage() {
         ) : (
           <div className="divide-y divide-slate-100">
             {submissions.map((sub, i) => (
-              <div key={sub.id} className="flex flex-col md:flex-row md:items-start justify-between gap-4 p-4 md:p-6 transition-colors hover:bg-indigo-50/30 group">
+              <div key={sub.id} className="flex flex-col md:flex-row md:items-start justify-between gap-4 p-4 md:p-6 transition-colors hover:bg-blue-50/30 group">
                 <div className="flex items-start md:items-center gap-3 md:gap-4 flex-1">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-600 overflow-hidden">
                     {sub.user?.avatar_url ? (
@@ -253,7 +250,7 @@ export default function ProjectSubmissionsPage() {
                       Dikumpulkan: {new Date(sub.submitted_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                     </p>
                     {sub.notes && (
-                      <div className="mt-1.5 rounded bg-slate-100 px-2 py-1 flex items-start gap-1 max-w-sm">
+                      <div className="mt-1.5 rounded bg-slate-50 px-2 py-1 flex items-start gap-1 max-w-sm">
                         <FileText className="h-3 w-3 text-slate-600 mt-0.5 flex-shrink-0" />
                         <span className="text-[10px] italic text-slate-600 line-clamp-2">Catatan Siswa: {sub.notes}</span>
                       </div>
@@ -281,7 +278,7 @@ export default function ProjectSubmissionsPage() {
                   
                   {sub.score !== null ? (
                     <div className="flex flex-col items-end">
-                      <div className="flex items-center gap-1.5 text-emerald-600">
+                      <div className="flex items-center gap-1.5 text-green-600">
                         <CheckCircle className="h-4 w-4" />
                         <span className="text-sm font-bold">{sub.score} / 100</span>
                       </div>
@@ -315,7 +312,7 @@ export default function ProjectSubmissionsPage() {
                         <button 
                           onClick={() => handleSaveScore(sub.id)}
                           disabled={savingScore}
-                          className="rounded bg-emerald-500 py-1.5 px-4 text-white text-sm font-semibold hover:bg-emerald-600 disabled:opacity-50 flex justify-center items-center gap-1.5"
+                          className="rounded bg-green-500 py-1.5 px-4 text-white text-sm font-semibold hover:bg-green-600 disabled:opacity-50 flex justify-center items-center gap-1.5"
                         >
                           {savingScore ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Save className="h-4 w-4" /> Simpan</>}
                         </button>

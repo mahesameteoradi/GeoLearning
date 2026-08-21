@@ -79,7 +79,7 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-12"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
     >
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-md">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
           <div className="flex items-center gap-2.5">
@@ -90,7 +90,7 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
               Edit Tugas Proyek
             </h2>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-800">
+          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -154,7 +154,7 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">Tipe Tugas</label>
               <label className="flex mt-2 cursor-pointer items-center gap-3">
-                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_group_project ? 'bg-violet-500' : 'bg-slate-200')}>
+                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_group_project ? 'bg-amber-500' : 'bg-slate-200')}>
                   <div className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform', form.is_group_project ? 'translate-x-4' : 'translate-x-0.5')} />
                 </div>
                 <input type="checkbox" className="sr-only" checked={form.is_group_project} onChange={e => setForm({ ...form, is_group_project: e.target.checked })} />
@@ -169,7 +169,7 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
             <div>
               <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">Status Publikasi</label>
               <label className="flex mt-2 cursor-pointer items-center gap-3">
-                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_published ? 'bg-emerald-500' : 'bg-slate-200')}>
+                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.is_published ? 'bg-green-500' : 'bg-slate-200')}>
                   <div className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform', form.is_published ? 'translate-x-4' : 'translate-x-0.5')} />
                 </div>
                 <input type="checkbox" className="sr-only" checked={form.is_published} onChange={e => setForm({ ...form, is_published: e.target.checked })} />
