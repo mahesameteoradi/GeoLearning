@@ -291,8 +291,8 @@ export default function MaterialReaderPage() {
                       return (
                         <iframe 
                           src={embedUrl}
-                          className="w-full h-[600px] min-h-full transition-all duration-300"
-                          style={{ minHeight: isFullscreen ? '100vh' : '600px' }}
+                          className="w-full h-[400px] md:h-[600px] transition-all duration-300"
+                          style={isFullscreen ? { minHeight: '100vh' } : undefined}
                           onLoad={() => setHasOpenedLink(true)}
                         />
                       )
