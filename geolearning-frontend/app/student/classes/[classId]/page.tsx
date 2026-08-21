@@ -475,18 +475,27 @@ export default function StudentClassDetailPage() {
       </div>
 
       {/* Content */}
-      {activeTab === 'materi' && (
-        allMaterials.length === 0 ? (
-          <div id="tour-student-class-modules" className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-28 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-50">
-              <BookOpen className="h-7 w-7 text-slate-600" />
+      {activeTab === 'materi' && (() => {
+        // Check if any module has any content (materials OR quizzes)
+        const hasAnyContent = cls.modules.some(m =>
+          (m.materials?.length ?? 0) > 0 || (m.quizzes?.length ?? 0) > 0
+        )
+
+        if (!hasAnyContent) {
+          return (
+            <div id="tour-student-class-modules" className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-28 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-700 bg-slate-50">
+                <BookOpen className="h-7 w-7 text-slate-600" />
+              </div>
+              <p className="text-sm font-semibold text-slate-500">Belum ada materi</p>
+              <p className="mt-1.5 text-xs text-slate-600">
+                Guru belum mengunggah materi untuk kelas ini
+              </p>
             </div>
-            <p className="text-sm font-semibold text-slate-500">Belum ada materi</p>
-            <p className="mt-1.5 text-xs text-slate-600">
-              Guru belum mengunggah materi untuk kelas ini
-            </p>
-          </div>
-        ) : (
+          )
+        }
+
+        return (
           <div id="tour-student-class-modules" className="w-full">
             <h2 className="mb-4 text-xs font-bold uppercase tracking-widest text-slate-500 text-center mt-4">
               🗺️ Peta Ekspedisi
@@ -495,7 +504,7 @@ export default function StudentClassDetailPage() {
               modules={cls.modules.map(m => ({
                 ...m,
                 quizzes: m.quizzes?.filter(q => !q.quiz_type || q.quiz_type === 'FORMATIF') || []
-              }))} 
+              }))}
               completedMaterials={completedMaterials}
               completedQuizzes={completedQuizzes}
               unlockedModules={unlockedModuleIds}
@@ -503,7 +512,7 @@ export default function StudentClassDetailPage() {
             />
           </div>
         )
-      )}
+      })()}
 
       {activeTab === 'ujian' && (
         <div className="w-full max-w-4xl mx-auto mt-4">

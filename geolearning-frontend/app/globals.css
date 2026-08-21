@@ -35,7 +35,7 @@
   --color-text-faint:  #94A3B8;      /* Slate-400 */
 
   /* === Font === */
-  --font-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-sans: var(--font-outfit, 'Outfit', system-ui, sans-serif);
 }
 
 /* ─── Base ─────────────────────────────────────────────── */

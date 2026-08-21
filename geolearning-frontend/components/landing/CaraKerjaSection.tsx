@@ -54,16 +54,16 @@ export default function CaraKerjaSection() {
             className={`relative px-8 py-3 rounded-full font-bold text-sm transition-all overflow-hidden ${activeTab === 'guru' ? 'text-white shadow-lg shadow-blue-500/30' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
           >
             {activeTab === 'guru' && (
-              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-blue-600" />
+              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-indigo-600" />
             )}
             <span className="relative z-10">Untuk Guru</span>
           </button>
           <button 
             onClick={() => setActiveTab('siswa')}
-            className={`relative px-8 py-3 rounded-full font-bold text-sm transition-all overflow-hidden ${activeTab === 'siswa' ? 'text-white shadow-lg shadow-emerald-500/30' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
+            className={`relative px-8 py-3 rounded-full font-bold text-sm transition-all overflow-hidden ${activeTab === 'siswa' ? 'text-white shadow-lg shadow-sky-500/30' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}`}
           >
             {activeTab === 'siswa' && (
-              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-emerald-600" />
+              <motion.div layoutId="activeTabBg" className="absolute inset-0 bg-sky-500" />
             )}
             <span className="relative z-10">Untuk Siswa</span>
           </button>
@@ -92,7 +92,7 @@ export default function CaraKerjaSection() {
                 variants={itemVariants}
                 className="bg-white p-8 rounded-[2rem] border border-slate-200/60 shadow-sm relative z-10 flex flex-col items-center text-center hover:shadow-xl transition-shadow duration-300 group"
               >
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-extrabold text-xl text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 ${activeTab === 'guru' ? 'bg-gradient-to-br from-blue-500 to-blue-700 shadow-blue-500/40' : 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-500/40'}`}>
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center font-extrabold text-xl text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300 ${activeTab === 'guru' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-500/40' : 'bg-gradient-to-br from-sky-400 to-sky-600 shadow-sky-500/40'}`}>
                   {step.num}
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-3">{step.title}</h3>

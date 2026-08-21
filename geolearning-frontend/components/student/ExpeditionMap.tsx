@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Map as MapIcon, Lock, CheckCircle2, ClipboardList, PlayCircle, FileText, ChevronDown, ChevronRight, Unlock } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { Lock, CheckCircle2, ClipboardList, PlayCircle, FileText, Map as MapIcon, BookOpen, HelpCircle } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -32,219 +32,347 @@ interface ModuleItem {
   quizzes: QuizItem[]
 }
 
-export function ExpeditionMap({ 
+// Zigzag X positions (%) — wider spread on desktop, tighter on mobile handled via CSS
+const ZIGZAG = [18, 50, 82, 50, 18, 50, 82, 50, 18, 50, 82, 50, 18, 50, 82, 50]
+// Mobile tighter zigzag (fits narrow screens)
+const ZIGZAG_MOBILE = [15, 50, 85, 50, 15, 50, 85, 50, 15, 50, 85, 50, 15, 50, 85, 50]
+
+interface FlatNode {
+  id: string
+  title: string
+  isQuiz: boolean
+  type?: string
+  xp_reward?: number
+  modId: string
+  modTitle: string
+  isFirstOfMod: boolean
+  url: string
+}
+
+export function ExpeditionMap({
   modules,
   completedMaterials,
   completedQuizzes,
   unlockedModules,
-  classId
-}: { 
-  modules: ModuleItem[],
-  completedMaterials: Set<string>,
-  completedQuizzes: Set<string>,
-  unlockedModules: Set<string>,
+  classId,
+}: {
+  modules: ModuleItem[]
+  completedMaterials: Set<string>
+  completedQuizzes: Set<string>
+  unlockedModules: Set<string>
   classId: string
 }) {
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // Automatically expand unlocked modules on initial load
-    const initialExpanded = new Set<string>()
-    modules.forEach(mod => {
-      if (unlockedModules.has(mod.id)) {
-        initialExpanded.add(mod.id)
-      }
-    })
-    // If no modules are unlocked (or we want to show the first one anyway)
-    if (initialExpanded.size === 0 && modules.length > 0) {
-      initialExpanded.add(modules[0].id)
-    }
-    setExpandedModules(initialExpanded)
-  }, [modules, unlockedModules])
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
-  const toggleModule = (moduleId: string) => {
-    setExpandedModules(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(moduleId)) {
-        newSet.delete(moduleId)
-      } else {
-        newSet.add(moduleId)
-      }
-      return newSet
+  // Flatten ALL materials + quizzes into one ordered list
+  const flatNodes: FlatNode[] = []
+  modules.forEach((mod) => {
+    const items: any[] = []
+    mod.materials?.forEach(m => items.push({ ...m, isQuiz: false }))
+    mod.quizzes?.forEach(q => items.push({ ...q, isQuiz: true }))
+    items.sort((a, b) => a.order - b.order)
+    items.forEach((item, itemIdx) => {
+      flatNodes.push({
+        id: item.id,
+        title: item.title,
+        isQuiz: item.isQuiz,
+        type: item.type,
+        xp_reward: item.xp_reward,
+        modId: mod.id,
+        modTitle: mod.title,
+        isFirstOfMod: itemIdx === 0,
+        url: item.isQuiz
+          ? `/student/quizzes/${item.id}`
+          : `/student/classes/${classId}/materials/${item.id}`,
+      })
     })
+  })
+
+  // Sequential lock map
+  let globalLocked = false
+  const lockMap = new Map<string, boolean>()
+  flatNodes.forEach((node) => {
+    const modIdx = modules.findIndex(m => m.id === node.modId)
+    const modUnlocked = modIdx === 0 || unlockedModules.has(node.modId)
+    if (node.isFirstOfMod && modUnlocked && globalLocked) {
+      lockMap.set(node.id, false)
+    } else {
+      lockMap.set(node.id, globalLocked)
+    }
+    const done = node.isQuiz ? completedQuizzes.has(node.id) : completedMaterials.has(node.id)
+    if (!done && !lockMap.get(node.id)) globalLocked = true
+  })
+  if (flatNodes.length > 0) lockMap.set(flatNodes[0].id, false)
+
+  // Responsive sizing
+  const NODE_SIZE = isMobile ? 40 : 44
+  const NODE_GAP = isMobile ? 110 : 130
+  const LABEL_OFFSET = isMobile ? -28 : -32
+
+  const zigzag = isMobile ? ZIGZAG_MOBILE : ZIGZAG
+
+  // Node positions
+  const nodePositions = flatNodes.map((_, i) => ({
+    x: zigzag[i % zigzag.length],
+    y: 70 + i * NODE_GAP,
+  }))
+
+  // Build SVG cubic bezier path
+  const buildPath = () => {
+    if (flatNodes.length < 2) return ''
+    let d = `M ${nodePositions[0].x} ${nodePositions[0].y}`
+    for (let i = 1; i < nodePositions.length; i++) {
+      const p = nodePositions[i - 1]
+      const c = nodePositions[i]
+      const midY = (p.y + c.y) / 2
+      d += ` C ${p.x} ${midY}, ${c.x} ${midY}, ${c.x} ${c.y}`
+    }
+    return d
   }
 
-  // Pre-calculate sequential locking logic across ALL modules and items
-  const allNodes: any[] = []
-  modules.forEach(mod => {
-    const combined: any[] = []
-    mod.materials?.forEach(m => combined.push({ ...m, isQuiz: false, modId: mod.id }))
-    mod.quizzes?.forEach(q => combined.push({ ...q, isQuiz: true, modId: mod.id }))
-    combined.sort((a, b) => a.order - b.order)
-    allNodes.push(...combined)
-  })
+  const mapHeight = Math.max(360, flatNodes.length * NODE_GAP + 120)
 
-  let isCurrentlyLocked = false
-  const nodeLockMap = new Map<string, boolean>()
-  
-  allNodes.forEach(node => {
-    // If a module is explicitly unlocked, we can bypass previous locks for the start of the module?
-    // According to the original logic, we just sequential lock until we hit an incomplete item.
-    // Wait, the original logic unlocked the *first* item of a module if the module is in unlockedModules.
-    
-    // Let's stick to simple sequential locking:
-    const isCompleted = node.isQuiz ? completedQuizzes.has(node.id) : completedMaterials.has(node.id)
-    
-    // If this node is the first of an explicitly unlocked module, we unlock it
-    if (unlockedModules.has(node.modId) && node.order === 0) { // Assuming order 0 is first, or we can check index
-       // Well, we will just use the sequential lock for now, but ensure current node isn't locked if it's the next available
-    }
-
-    nodeLockMap.set(node.id, isCurrentlyLocked)
-
-    if (!isCompleted) {
-      isCurrentlyLocked = true // Everything after an incomplete item is locked
-    }
-  })
-
-  // Let's ensure the very first item is always unlocked
-  if (allNodes.length > 0) {
-    nodeLockMap.set(allNodes[0].id, false)
+  if (flatNodes.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+        <BookOpen className="w-10 h-10 mb-3 opacity-40" />
+        <p className="text-sm font-semibold">Belum ada materi atau kuis</p>
+      </div>
+    )
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto py-6 px-4 sm:px-6 space-y-6">
-      {modules.map((mod, index) => {
-        const isExpanded = expandedModules.has(mod.id)
-        const isModuleUnlocked = unlockedModules.has(mod.id) || index === 0 // First module always accessible
-        
-        const combinedNodes: any[] = []
-        mod.materials?.forEach(m => combinedNodes.push({ ...m, isQuiz: false }))
-        mod.quizzes?.forEach(q => combinedNodes.push({ ...q, isQuiz: true }))
-        combinedNodes.sort((a, b) => a.order - b.order)
+    <div ref={containerRef} className="w-full overflow-x-hidden">
+      <div
+        className="relative w-full overflow-hidden rounded-2xl border border-indigo-100 shadow-xl"
+        style={{
+          background: 'linear-gradient(180deg, #eff6ff 0%, #eef2ff 40%, #f0fdf4 100%)',
+          height: `${mapHeight}px`,
+        }}
+      >
+        {/* World map background */}
+        <div
+          className="absolute inset-0 opacity-[0.11]"
+          style={{
+            backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center 30%',
+            backgroundRepeat: 'no-repeat',
+          }}
+        />
 
-        const totalItems = combinedNodes.length
-        const completedItems = combinedNodes.filter(n => n.isQuiz ? completedQuizzes.has(n.id) : completedMaterials.has(n.id)).length
-        const isAllCompleted = totalItems > 0 && completedItems === totalItems
+        {/* Dot grid */}
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #6366f1 1.5px, transparent 1.5px)',
+            backgroundSize: isMobile ? '28px 28px' : '40px 40px',
+          }}
+        />
 
-        return (
-          <div key={mod.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            {/* Accordion Header */}
-            <div 
-              onClick={() => toggleModule(mod.id)}
-              className={cn(
-                "flex items-center justify-between p-4 sm:p-5 cursor-pointer transition-colors select-none",
-                isExpanded ? "bg-indigo-50/50" : "hover:bg-slate-50",
-                !isModuleUnlocked && "opacity-75 grayscale-[50%]"
-              )}
+        {/* SVG — paths */}
+        <svg
+          className="absolute inset-0 w-full pointer-events-none"
+          height={mapHeight}
+          viewBox={`0 0 100 ${mapHeight}`}
+          preserveAspectRatio="none"
+          style={{ zIndex: 1 }}
+        >
+          {/* Dashed full route */}
+          <path
+            d={buildPath()}
+            fill="none"
+            stroke="rgba(148,163,184,0.3)"
+            strokeWidth="1.2"
+            strokeDasharray="3,3"
+          />
+
+          {/* Colored completed/active segments */}
+          {flatNodes.map((node, i) => {
+            if (i === 0) return null
+            const prevDone = flatNodes[i - 1].isQuiz
+              ? completedQuizzes.has(flatNodes[i - 1].id)
+              : completedMaterials.has(flatNodes[i - 1].id)
+            const currLocked = lockMap.get(node.id) ?? true
+            if (!prevDone && currLocked) return null
+
+            const p = nodePositions[i - 1]
+            const c = nodePositions[i]
+            const midY = (p.y + c.y) / 2
+
+            return (
+              <path
+                key={`seg-${node.id}`}
+                d={`M ${p.x} ${p.y} C ${p.x} ${midY}, ${c.x} ${midY}, ${c.x} ${c.y}`}
+                fill="none"
+                stroke={prevDone ? '#10b981' : 'rgba(99,102,241,0.65)'}
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            )
+          })}
+        </svg>
+
+        {/* ── NODES ── */}
+        {flatNodes.map((node, i) => {
+          const pos = nodePositions[i]
+          const isDone = node.isQuiz
+            ? completedQuizzes.has(node.id)
+            : completedMaterials.has(node.id)
+          const isLocked = lockMap.get(node.id) ?? true
+          const isCurrent = !isDone && !isLocked
+          const isHovered = hoveredId === node.id
+
+          let Icon = FileText
+          if (node.isQuiz) Icon = HelpCircle
+          else if (node.type === 'VIDEO') Icon = PlayCircle
+          else if (node.type === 'INTERACTIVE_MAP') Icon = MapIcon
+
+          return (
+            <div
+              key={node.id}
+              className="absolute"
+              style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}px`,
+                transform: 'translate(-50%, -50%)',
+                zIndex: 20,
+              }}
             >
-              <div className="flex items-center gap-4">
-                <div className={cn(
-                  "flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-inner",
-                  isAllCompleted ? "bg-emerald-100 text-emerald-600" :
-                  isModuleUnlocked ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400"
+              {/* Chapter label (first item of each module) */}
+              {node.isFirstOfMod && (
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap"
+                  style={{ top: `${LABEL_OFFSET}px`, zIndex: 30 }}
+                >
+                  <span className={cn(
+                    'bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-full shadow-sm',
+                    isMobile ? 'text-[8px]' : 'text-[9px] sm:text-[10px]'
+                  )}>
+                    {node.modTitle}
+                  </span>
+                </div>
+              )}
+
+              {/* Pulse for active node */}
+              {isCurrent && (
+                <motion.div
+                  className="absolute rounded-full bg-indigo-400/30"
+                  style={{
+                    width: NODE_SIZE + 14,
+                    height: NODE_SIZE + 14,
+                    top: -(NODE_SIZE + 14) / 2 + NODE_SIZE / 2,
+                    left: -(NODE_SIZE + 14) / 2 + NODE_SIZE / 2,
+                  }}
+                  animate={{ scale: [1, 1.35, 1], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              )}
+
+              {/* Tooltip on hover (desktop only) */}
+              <AnimatePresence>
+                {isHovered && !isMobile && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 4 }}
+                    className="absolute z-50 bg-slate-900 text-white text-[10px] font-medium px-2.5 py-1.5 rounded-lg shadow-xl pointer-events-none"
+                    style={{
+                      bottom: `${NODE_SIZE + 6}px`,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      maxWidth: 140,
+                      whiteSpace: 'normal',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {node.isQuiz ? '📝 ' : '📖 '}{node.title}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Node circle */}
+              {isLocked ? (
+                <div
+                  className="rounded-full flex items-center justify-center border-2 border-slate-200 bg-white/70 text-slate-300 shadow-sm cursor-not-allowed opacity-50"
+                  style={{ width: NODE_SIZE, height: NODE_SIZE }}
+                >
+                  <Lock className={isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
+                </div>
+              ) : (
+                <Link href={node.url}>
+                  <motion.div
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.92 }}
+                    onHoverStart={() => setHoveredId(node.id)}
+                    onHoverEnd={() => setHoveredId(null)}
+                    className={cn(
+                      'rounded-full flex items-center justify-center border-2 border-white shadow-md cursor-pointer transition-shadow',
+                      isDone
+                        ? 'bg-emerald-500 text-white shadow-emerald-300/60 hover:shadow-emerald-300/80'
+                        : 'bg-indigo-600 text-white shadow-indigo-300/60 hover:shadow-indigo-300/80'
+                    )}
+                    style={{ width: NODE_SIZE, height: NODE_SIZE }}
+                  >
+                    {isDone
+                      ? <CheckCircle2 className={isMobile ? 'w-4 h-4' : 'w-5 h-5'} />
+                      : <Icon className={isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'} />
+                    }
+                  </motion.div>
+                </Link>
+              )}
+
+              {/* Type label below node (mobile: smaller) */}
+              <div
+                className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap"
+                style={{ top: `${NODE_SIZE + 2}px` }}
+              >
+                <span className={cn(
+                  'font-bold rounded',
+                  isMobile ? 'text-[8px]' : 'text-[9px]',
+                  isDone ? 'text-emerald-600' :
+                  isCurrent ? 'text-indigo-600' :
+                  'text-slate-400'
                 )}>
-                  {isAllCompleted ? <CheckCircle2 className="w-6 h-6" /> : 
-                   isModuleUnlocked ? <Unlock className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-800 text-sm sm:text-lg">{mod.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs font-semibold text-slate-500">{completedItems} / {totalItems} Selesai</span>
-                    {/* Progress bar */}
-                    <div className="w-24 sm:w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                      <div 
-                        className={cn("h-full transition-all duration-500", isAllCompleted ? "bg-emerald-500" : "bg-indigo-500")}
-                        style={{ width: `${totalItems > 0 ? (completedItems / totalItems) * 100 : 0}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="text-slate-400">
-                {isExpanded ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+                  {node.isQuiz ? 'Kuis' : 'Materi'}
+                </span>
               </div>
             </div>
+          )
+        })}
 
-            {/* Accordion Content */}
-            <AnimatePresence>
-              {isExpanded && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-4 sm:p-6 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {combinedNodes.map((node) => {
-                      const isCompleted = node.isQuiz ? completedQuizzes.has(node.id) : completedMaterials.has(node.id)
-                      const isLocked = nodeLockMap.get(node.id) ?? true
-                      const isCurrent = !isCompleted && !isLocked
+        {/* Legend — responsive position */}
+        <div className="absolute bottom-3 right-3 z-30 flex flex-wrap items-center gap-2 sm:gap-3 bg-white/85 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 rounded-full shadow border border-white">
+          {[
+            { cls: 'bg-emerald-500', label: 'Selesai' },
+            { cls: 'bg-indigo-600', label: 'Aktif' },
+            { cls: 'bg-slate-300', label: 'Terkunci' },
+          ].map(({ cls, label }) => (
+            <div key={label} className="flex items-center gap-1">
+              <div className={cn('w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full', cls)} />
+              <span className="text-[9px] sm:text-[10px] text-slate-600 font-semibold">{label}</span>
+            </div>
+          ))}
+        </div>
 
-                      let Icon = FileText
-                      if (node.isQuiz) Icon = ClipboardList
-                      else if (node.type === 'VIDEO') Icon = PlayCircle
-                      else if (node.type === 'INTERACTIVE_MAP') Icon = MapIcon
-
-                      const url = node.isQuiz 
-                        ? `/student/quizzes/${node.id}`
-                        : `/student/classes/${classId}/materials/${node.id}`
-
-                      const content = (
-                        <div className={cn(
-                          "relative flex flex-col p-4 rounded-xl border-2 transition-all duration-300",
-                          isCompleted ? "bg-emerald-50 border-emerald-200 hover:border-emerald-300" :
-                          isCurrent ? "bg-white border-indigo-300 shadow-md shadow-indigo-100 hover:shadow-lg hover:border-indigo-400 -translate-y-1" :
-                          "bg-slate-100 border-transparent opacity-70 grayscale-[30%]"
-                        )}>
-                          <div className="flex items-start justify-between mb-3">
-                            <div className={cn(
-                              "p-2 rounded-lg",
-                              isCompleted ? "bg-emerald-100 text-emerald-600" :
-                              isCurrent ? "bg-indigo-100 text-indigo-600" :
-                              "bg-slate-200 text-slate-500"
-                            )}>
-                              <Icon className="w-5 h-5" />
-                            </div>
-                            {isCompleted && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
-                            {isLocked && !isCompleted && <Lock className="w-4 h-4 text-slate-400" />}
-                            {isCurrent && <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-500 animate-pulse" />}
-                          </div>
-                          
-                          <div className="mt-auto">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
-                              {node.isQuiz ? 'Kuis' : 'Materi'}
-                            </span>
-                            <h4 className={cn(
-                              "font-bold text-sm line-clamp-2",
-                              isCompleted ? "text-emerald-900" :
-                              isCurrent ? "text-slate-800" :
-                              "text-slate-600"
-                            )}>
-                              {node.title}
-                            </h4>
-                          </div>
-                        </div>
-                      )
-
-                      if (isLocked) {
-                        return <div key={node.id} className="cursor-not-allowed">{content}</div>
-                      }
-
-                      return (
-                        <Link key={node.id} href={url} className="block group">
-                          {content}
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )
-      })}
+        {/* Progress badge — top right */}
+        <div className="absolute top-3 right-3 z-30 bg-white/85 backdrop-blur-sm px-2.5 sm:px-3 py-1 rounded-full border border-white shadow">
+          <span className="text-[10px] sm:text-[11px] font-bold text-indigo-700">
+            {flatNodes.filter(n => n.isQuiz ? completedQuizzes.has(n.id) : completedMaterials.has(n.id)).length}
+            /{flatNodes.length} selesai
+          </span>
+        </div>
+      </div>
     </div>
   )
 }
