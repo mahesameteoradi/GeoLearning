@@ -293,9 +293,10 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
 
           // Fetch ALL material completions for exact XP
           supabase
-            .from('material_completions')
-            .select('id, material:materials(xp_reward)')
-            .eq('user_id', user.id),
+            .from('xp_logs')
+            .select('amount, source')
+            .eq('user_id', user.id)
+            .eq('source', 'MATERIAL_READ'),
 
           // Fetch ALL project submissions for exact XP
           supabase
@@ -401,9 +402,8 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
         })
         const quizXp = Array.from(bestQuizXp.values()).reduce((sum, xp) => sum + xp, 0)
 
-        const materialXp = allMaterialCompletions.reduce((sum: number, mc: any) => {
-          const reward = (Array.isArray(mc.material) ? mc.material[0] : mc.material)?.xp_reward ?? 15
-          return sum + reward
+        const materialXp = allMaterialCompletions.reduce((sum: number, log: any) => {
+          return sum + (log.amount || 0)
         }, 0)
         
         const projectXp = allProjectSubmissions.reduce((sum: number, p: any) => sum + (p.xp_earned || 0), 0)

@@ -653,6 +653,15 @@ export default function QuizPlayerPage() {
       const result = await res.json()
       if (!result.success) {
         console.error('[QuizPlayer] API submit error:', result.error)
+      } else if (result.earnedBadges && result.earnedBadges.length > 0) {
+        import('react-hot-toast').then(({ toast }) => {
+          result.earnedBadges.forEach((badge: any) => {
+            toast.success(`Lencana Baru: ${badge.name}! ${badge.icon}`, {
+              duration: 5000,
+              icon: '🏅',
+            })
+          })
+        })
       }
     } catch (err) {
       console.error('Failed to submit quiz:', err)

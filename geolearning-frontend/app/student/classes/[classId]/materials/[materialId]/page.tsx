@@ -156,6 +156,20 @@ export default function MaterialReaderPage() {
         const result = await res.json()
         if (!result.success) {
           console.error('Error from API:', result.error)
+        } else {
+          // Show toast for newly earned badges
+          if (result.earnedBadges && result.earnedBadges.length > 0) {
+            // Need to import toast from react-hot-toast dynamically or at top of file
+            // Assuming we can use window.toast or dynamically import
+            import('react-hot-toast').then(({ toast }) => {
+              result.earnedBadges.forEach((badge: any) => {
+                toast.success(`Lencana Baru: ${badge.name}! ${badge.icon}`, {
+                  duration: 5000,
+                  icon: '🏅',
+                })
+              })
+            })
+          }
         }
       } catch (err) {
         console.error('Fetch error:', err)
@@ -164,7 +178,7 @@ export default function MaterialReaderPage() {
 
     setTimeout(() => {
       window.location.href = `/student/classes/${classId}`
-    }, 1500)
+    }, 2000) // increased timeout slightly to let user read toast
   }
 
   useEffect(() => {

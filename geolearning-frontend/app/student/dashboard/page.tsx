@@ -76,9 +76,10 @@ async function StudentDashboardData({ user }: { user: any }) {
         .not('completed_at', 'is', null),
 
       supabase
-        .from('material_completions')
-        .select('id, material:materials(xp_reward)')
-        .eq('user_id', user.id),
+        .from('xp_logs')
+        .select('amount, source')
+        .eq('user_id', user.id)
+        .eq('source', 'MATERIAL_READ'),
 
       supabase
         .from('project_submissions')
@@ -155,9 +156,10 @@ async function StudentDashboardData({ user }: { user: any }) {
     })
     const quizXp = Array.from(bestQuizXp.values()).reduce((sum, xp) => sum + xp, 0)
     
-    const materialXp = (allMaterialCompletionsRes.data || []).reduce((sum: number, mc: any) => {
-      const reward = (Array.isArray(mc.material) ? mc.material[0] : mc.material)?.xp_reward ?? 15
-      return sum + reward
+    // Calculate exact historical XP earned from materials instead of joining current material xp_reward
+    // (since teacher might have edited the material's XP after the student completed it)
+    const materialXp = (allMaterialCompletionsRes.data || []).reduce((sum: number, log: any) => {
+      return sum + (log.amount || 0)
     }, 0)
     
     const projectXp = (allProjectSubmissionsRes.data || []).reduce((sum: number, p: any) => sum + (p.xp_earned || 0), 0)

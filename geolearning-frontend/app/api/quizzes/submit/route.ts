@@ -91,8 +91,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: updateError.message || updateError }, { status: 400 })
     }
 
-    // Call gamification backend to award XP and unlock badges
-    if (newXpToAward > 0 && accessToken) {
+    let earnedBadges: any[] = []
+    
+    // Synchronous Gamification (XP, Level, Badges)
+    if (newXpToAward > 0) {
       try {
         const { count } = await supabase
           .from('quiz_attempts')
@@ -100,31 +102,50 @@ export async function POST(req: Request) {
           .eq('user_id', userId)
           .not('completed_at', 'is', null)
 
-        // Await the fetch so that gamification (XP, level up, badges) finishes and real-time events are broadcasted before returning.
-        const gamificationRes = await fetch(process.env.NEXT_PUBLIC_API_URL + '/gamification/award-xp', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            userId,
-            xpAmount: newXpToAward,
-            quizAttemptId: attemptId,
+        // Log XP
+        await supabase.from('xp_logs').insert({
+          user_id: userId,
+          amount: newXpToAward,
+          source: 'QUIZ_ATTEMPT',
+          reference_id: attemptId
+        })
+        
+        // Update user XP
+        const { data: userData } = await supabase
+          .from('users')
+          .select('xp, current_streak')
+          .eq('id', userId)
+          .single()
+
+        if (userData) {
+          const { calculateLevel } = await import('@/lib/utils/level')
+          const newXp = userData.xp + newXpToAward
+          const newLevel = calculateLevel(newXp)
+          
+          await supabase
+            .from('users')
+            .update({ 
+              xp: newXp,
+              level: newLevel
+            })
+            .eq('id', userId)
+
+          // Evaluate Badges Synchrously
+          const { checkAndAwardBadges } = await import('@/lib/utils/badges')
+          earnedBadges = await checkAndAwardBadges(supabase, userId, {
+            xp: newXp,
+            level: newLevel,
+            currentStreak: userData.current_streak || 0,
             quizScore: serverScore,
             isFirstQuiz: count === 1
           })
-        });
-        
-        if (!gamificationRes.ok) {
-          console.error('Gamification backend failed:', await gamificationRes.text());
         }
       } catch (err) {
-        console.error('Failed to query quiz count for gamification:', err)
+        console.error('Failed synchronous gamification logic for quiz:', err)
       }
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, earnedBadges })
   } catch (error: any) {
     console.error('API /api/quizzes/submit error:', error)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })

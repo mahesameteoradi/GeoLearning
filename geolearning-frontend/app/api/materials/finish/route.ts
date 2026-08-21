@@ -48,6 +48,7 @@ export async function POST(req: Request) {
       .single()
 
     const xpAmount = materialData?.xp_reward ?? 15
+    let earnedBadges: any[] = []
     
     if (xpAmount > 0) {
       await supabase.from('xp_logs').insert({
@@ -60,23 +61,32 @@ export async function POST(req: Request) {
       // Update User XP
       const { data: userData } = await supabase
         .from('users')
-        .select('xp')
+        .select('xp, current_streak')
         .eq('id', userId)
         .single()
 
       if (userData) {
         const newXp = userData.xp + xpAmount
+        const newLevel = calculateLevel(newXp)
         await supabase
           .from('users')
           .update({ 
             xp: newXp,
-            level: calculateLevel(newXp)
+            level: newLevel
           })
           .eq('id', userId)
+
+        // Evaluate Badges Synchrously
+        const { checkAndAwardBadges } = await import('@/lib/utils/badges')
+        earnedBadges = await checkAndAwardBadges(supabase, userId, {
+          xp: newXp,
+          level: newLevel,
+          currentStreak: userData.current_streak || 0
+        })
       }
     }
 
-    return NextResponse.json({ success: true, xpEarned: xpAmount })
+    return NextResponse.json({ success: true, xpEarned: xpAmount, earnedBadges })
   } catch (error: any) {
     console.error('API /api/materials/finish error:', error)
     return NextResponse.json({ success: false, error: error.message }, { status: 500 })

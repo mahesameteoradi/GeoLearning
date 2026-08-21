@@ -205,12 +205,14 @@ export function QuizDetailModal({ quizId, onClose, onEdit, onDelete, onTogglePub
                     }
                     
                     const questions = quiz.questions || [];
+                    let foundMatches = 0;
+                    
                     questions.forEach((q: any) => {
                       const studentAns = ansObj[q.id];
                       if (!studentAns) {
-                        wrongCount++;
                         return;
                       }
+                      foundMatches++;
                       if (q.type === 'MAP_PINPOINT') {
                          try {
                            const parsed = typeof studentAns === 'string' ? JSON.parse(studentAns) : studentAns;
@@ -222,6 +224,15 @@ export function QuizDetailModal({ quizId, onClose, onEdit, onDelete, onTogglePub
                          else wrongCount++;
                       }
                     });
+
+                    // Fallback to score estimation if questions were modified (IDs changed)
+                    if (foundMatches === 0 && questions.length > 0) {
+                      const percentage = bestAttempt.score / 100;
+                      correctCount = Math.round(percentage * questions.length);
+                      wrongCount = questions.length - correctCount;
+                    } else if (foundMatches < questions.length) {
+                       wrongCount += (questions.length - foundMatches);
+                    }
 
                     return {
                       user: bestAttempt.user,

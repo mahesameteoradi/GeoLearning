@@ -23,6 +23,7 @@ import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { ClassStudentsPanel } from '@/components/teacher/ClassStudentsPanel'
 import { Trophy, Map as MapIcon, MapPin } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { motion, AnimatePresence } from 'framer-motion'
 
 const PdfViewer = dynamic(() => import('@/components/ui/PdfViewer'), { ssr: false })
 
@@ -893,28 +894,38 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                       
                       {isExpanded && (
                         <div className="space-y-2 border-t border-slate-100 bg-slate-50/50 p-4">
+                          <AnimatePresence mode="popLayout">
                           {modItems.length > 0 ? (
                             modItems.map((item, idx) => (
-                              <CourseItemCard 
-                                key={item.itemType + item.id} 
-                                item={item} 
-                                index={idx}
-                                total={modItems.length}
-                                onMove={handleMove}
-                                onDelete={handleDelete} 
-                                onViewMap={setViewingMap}
-                                onEditQuiz={setEditingQuiz}
-                                onEditMaterial={setEditingMaterial}
-                                onViewFile={(url, title) => setViewingFile({ url, title })}
-                                onViewQuiz={setSelectedDetailQuiz}
-                                onTogglePublishItem={handleTogglePublishItem}
-                              />
+                              <motion.div 
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.2 }}
+                                key={item.itemType + item.id}
+                              >
+                                <CourseItemCard 
+                                  item={item} 
+                                  index={idx}
+                                  total={modItems.length}
+                                  onMove={handleMove}
+                                  onDelete={handleDelete} 
+                                  onViewMap={setViewingMap}
+                                  onEditQuiz={setEditingQuiz}
+                                  onEditMaterial={setEditingMaterial}
+                                  onViewFile={(url, title) => setViewingFile({ url, title })}
+                                  onViewQuiz={setSelectedDetailQuiz}
+                                  onTogglePublishItem={handleTogglePublishItem}
+                                />
+                              </motion.div>
                             ))
                           ) : (
-                            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
+                            <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
                               <p className="text-sm font-medium text-slate-500">Belum ada materi atau kuis di bab ini.</p>
-                            </div>
+                            </motion.div>
                           )}
+                          </AnimatePresence>
                         </div>
                       )}
                     </div>
