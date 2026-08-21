@@ -139,8 +139,8 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
   return (
     <div
       className={cn(
-        'flex overflow-x-auto pb-4 sm:pb-0 snap-x snap-mandatory hide-scrollbar',
-        'sm:grid sm:overflow-visible sm:snap-none',
+        'flex overflow-x-auto overflow-y-hidden pb-4 sm:pb-0 touch-pan-x',
+        'sm:grid sm:overflow-visible',
         'gap-4 sm:gap-4',
         compact ? 'sm:grid-cols-6' : 'sm:grid-cols-4 md:grid-cols-5',
         className
@@ -156,7 +156,7 @@ export function BadgeGrid({ earned, equippedId, className, compact = false }: Ba
             key={badge.id}
             title={isEarned ? `${badge.display_name}: ${badge.description}` : `Terkunci — ${badge.display_name}: Syarat: ${badge.description}`}
             className={cn(
-              'group relative flex flex-col items-center gap-2 transition-all duration-300 flex-shrink-0 snap-start',
+              'group relative flex flex-col items-center gap-2 transition-all duration-300 flex-shrink-0',
               compact ? 'w-16 sm:w-auto' : 'w-20 sm:w-auto',
               isEarned ? 'cursor-pointer hover:scale-110 hover:-translate-y-1 hover:z-10' : 'cursor-default'
             )}
