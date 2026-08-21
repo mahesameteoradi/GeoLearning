@@ -4,7 +4,8 @@ import { useEffect, useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowLeft, BookOpen, Clock, Loader2, Sparkles, CheckCircle, MapPin, Maximize } from 'lucide-react'
+import { ArrowLeft, BookOpen, Clock, Loader2, Sparkles, CheckCircle, MapPin, Maximize, ChevronLeft, ChevronRight, FileText, PlayCircle } from 'lucide-react'
+import PdfViewer from '@/components/ui/PdfViewer'
 import { triggerConfetti } from '@/lib/utils/confetti'
 import { cn } from '@/lib/utils/cn'
 import dynamic from 'next/dynamic'
@@ -264,8 +265,8 @@ export default function MaterialReaderPage() {
                     } else if (embedUrl.includes('drive.google.com/file/d/')) {
                       const fileId = embedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
                       if (fileId) embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-                    } else if (isPdf || isOfficeDoc) {
-                      // Gunakan Google Docs Viewer untuk PDF dan Office di mobile/desktop (fallback aman)
+                    } else if (isOfficeDoc) {
+                      // Gunakan Google Docs Viewer hanya untuk file Office
                       embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(embedUrl)}&embedded=true`;
                     }
 
@@ -287,6 +288,12 @@ export default function MaterialReaderPage() {
                           allowFullScreen
                         />
                       );
+                    } else if (isPdf) {
+                      return (
+                        <div className="w-full h-[500px] md:h-[700px] transition-all duration-300" style={isFullscreen ? { minHeight: '100vh', height: '100vh' } : undefined} onClick={() => setHasOpenedLink(true)}>
+                          <PdfViewer url={embedUrl} />
+                        </div>
+                      )
                     } else {
                       return (
                         <iframe 

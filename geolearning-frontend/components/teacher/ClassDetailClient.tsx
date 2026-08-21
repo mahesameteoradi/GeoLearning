@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils/cn'
 import { ClassLeaderboard } from '@/components/classes/ClassLeaderboard'
 import { ClassStudentsPanel } from '@/components/teacher/ClassStudentsPanel'
 import { Trophy, Map as MapIcon, MapPin } from 'lucide-react'
+import PdfViewer from '@/components/ui/PdfViewer'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1062,7 +1063,14 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                 if (['mp4', 'webm', 'ogg'].includes(ext)) {
                   return <video src={url} controls className="max-w-full max-h-full rounded-xl shadow-sm" />;
                 }
-                if (['doc', 'docx', 'ppt', 'pptx', 'pdf', 'xls', 'xlsx'].includes(ext)) {
+                if (['pdf'].includes(ext)) {
+                  return (
+                    <div className="w-full h-full">
+                      <PdfViewer url={url} />
+                    </div>
+                  );
+                }
+                if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) {
                   const gviewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
                   return (
                     <div className="w-full h-full flex flex-col">

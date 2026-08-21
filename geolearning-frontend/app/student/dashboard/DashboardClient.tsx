@@ -611,7 +611,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
   const greeting = getGreeting()
 
   return (
-    <div className="min-h-full p-3 md:p-5 lg:p-7 relative overflow-x-hidden">
+    <div className="min-h-full p-3 md:p-5 lg:p-7 relative">
       <OnboardingTour tourKey="dashboard_student" steps={dashboardStudentSteps} />
 
       {/* Interactive Cursor Glow is handled by InteractiveBackground component in the layout/page now, so it is removed from here to prevent duplication */}
