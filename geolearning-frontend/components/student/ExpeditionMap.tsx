@@ -1,5 +1,7 @@
-import React from 'react'
-import { Map, Lock, CheckCircle2, ClipboardList, PlayCircle, FileText } from 'lucide-react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { Map as MapIcon, Lock, CheckCircle2, ClipboardList, PlayCircle, FileText, ChevronDown, ChevronRight, Unlock } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -43,257 +45,206 @@ export function ExpeditionMap({
   unlockedModules: Set<string>,
   classId: string
 }) {
-  type MapNode = {
-    id: string
-    type: 'material' | 'quiz'
-    title: string
-    isCompleted: boolean
-    url: string
-    icon: React.ElementType
-    moduleTitle: string
-    moduleId: string
-    isModuleStart: boolean
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    // Automatically expand unlocked modules on initial load
+    const initialExpanded = new Set<string>()
+    modules.forEach(mod => {
+      if (unlockedModules.has(mod.id)) {
+        initialExpanded.add(mod.id)
+      }
+    })
+    // If no modules are unlocked (or we want to show the first one anyway)
+    if (initialExpanded.size === 0 && modules.length > 0) {
+      initialExpanded.add(modules[0].id)
+    }
+    setExpandedModules(initialExpanded)
+  }, [modules, unlockedModules])
+
+  const toggleModule = (moduleId: string) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId)
+      } else {
+        newSet.add(moduleId)
+      }
+      return newSet
+    })
   }
 
-  const nodes: MapNode[] = []
-  
-  const WORLD_TOUR = [
-    { country: 'Brasil', flag: '🇧🇷', emoji: '🗿', x: 33, y: 70 },
-    { country: 'Prancis', flag: '🇫🇷', emoji: '🗼', x: 49, y: 28 },
-    { country: 'Jepang', flag: '🇯🇵', emoji: '⛩️', x: 87, y: 33 },
-    { country: 'Mesir', flag: '🇪🇬', emoji: '🏜️', x: 55, y: 45 },
-    { country: 'Amerika Serikat', flag: '🇺🇸', emoji: '🗽', x: 20, y: 35 },
-    { country: 'India', flag: '🇮🇳', emoji: '🕌', x: 72, y: 45 },
-    { country: 'Italia', flag: '🇮🇹', emoji: '🏛️', x: 52, y: 33 },
-    { country: 'Australia', flag: '🇦🇺', emoji: '🏖️', x: 86, y: 78 },
-    { country: 'Tiongkok', flag: '🇨🇳', emoji: '🏯', x: 78, y: 38 },
-    { country: 'Yunani', flag: '🇬🇷', emoji: '🏺', x: 54, y: 38 },
-    { country: 'Meksiko', flag: '🇲🇽', emoji: '🌵', x: 18, y: 48 },
-    { country: 'Inggris', flag: '🇬🇧', emoji: '🏰', x: 47, y: 24 },
-  ]
-  
-  modules.forEach((mod) => {
-    const combinedNodes: (MapNode & { order: number })[] = []
-    
-    mod.materials?.forEach((mat) => {
-      let icon = FileText
-      if (mat.type === 'VIDEO') icon = PlayCircle
-      if (mat.type === 'INTERACTIVE_MAP') icon = Map
-
-      combinedNodes.push({
-        id: mat.id,
-        type: 'material',
-        title: mat.title,
-        isCompleted: completedMaterials.has(mat.id),
-        url: `/student/classes/${classId}/materials/${mat.id}`,
-        icon,
-        moduleTitle: mod.title,
-        moduleId: mod.id,
-        isModuleStart: false,
-        order: mat.order
-      })
-    })
-
-    mod.quizzes?.forEach((quiz) => {
-      combinedNodes.push({
-        id: quiz.id,
-        type: 'quiz',
-        title: quiz.title,
-        isCompleted: completedQuizzes.has(quiz.id),
-        url: `/student/quizzes/${quiz.id}`,
-        icon: ClipboardList,
-        moduleTitle: mod.title,
-        moduleId: mod.id,
-        isModuleStart: false,
-        order: quiz.order
-      })
-    })
-
-    combinedNodes.sort((a, b) => a.order - b.order)
-
-    let isFirstInModule = true
-    combinedNodes.forEach((node) => {
-      node.isModuleStart = isFirstInModule
-      nodes.push(node)
-      isFirstInModule = false
-    })
+  // Pre-calculate sequential locking logic across ALL modules and items
+  const allNodes: any[] = []
+  modules.forEach(mod => {
+    const combined: any[] = []
+    mod.materials?.forEach(m => combined.push({ ...m, isQuiz: false, modId: mod.id }))
+    mod.quizzes?.forEach(q => combined.push({ ...q, isQuiz: true, modId: mod.id }))
+    combined.sort((a, b) => a.order - b.order)
+    allNodes.push(...combined)
   })
 
-  // Pre-calculate logic
-  let currentLockState = false
-  const pNodes = nodes.map((node, i) => {
-    if (node.isModuleStart && unlockedModules.has(node.moduleId)) {
-      currentLockState = false
-    }
-    const locked = currentLockState
-    if (!node.isCompleted) {
-      currentLockState = true
-    }
-    const isCurrent = !node.isCompleted && !locked
-    const tourStop = WORLD_TOUR[i % WORLD_TOUR.length]
+  let isCurrentlyLocked = false
+  const nodeLockMap = new Map<string, boolean>()
+  
+  allNodes.forEach(node => {
+    // If a module is explicitly unlocked, we can bypass previous locks for the start of the module?
+    // According to the original logic, we just sequential lock until we hit an incomplete item.
+    // Wait, the original logic unlocked the *first* item of a module if the module is in unlockedModules.
     
-    const landmarkEmoji = tourStop.emoji
+    // Let's stick to simple sequential locking:
+    const isCompleted = node.isQuiz ? completedQuizzes.has(node.id) : completedMaterials.has(node.id)
+    
+    // If this node is the first of an explicitly unlocked module, we unlock it
+    if (unlockedModules.has(node.modId) && node.order === 0) { // Assuming order 0 is first, or we can check index
+       // Well, we will just use the sequential lock for now, but ensure current node isn't locked if it's the next available
+    }
 
-    return {
-      ...node,
-      locked,
-      isCurrent,
-      tourStop,
-      landmarkEmoji
+    nodeLockMap.set(node.id, isCurrentlyLocked)
+
+    if (!isCompleted) {
+      isCurrentlyLocked = true // Everything after an incomplete item is locked
     }
   })
 
-  const renderPin = (pNode: typeof pNodes[0], layoutIdPrefix: string) => (
-    <div className="relative flex flex-col items-center group">
-      {pNode.isCurrent && (
-        <motion.div 
-          layoutId={`explorer-${layoutIdPrefix}`}
-          className="absolute -top-10 -left-4 text-4xl z-30 drop-shadow-md pointer-events-none"
-          animate={{ y: [0, -10, 0], x: [0, 5, 0], rotate: [0, 10, -5, 0] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-          title="Kamu berada di sini!"
-        >
-          🏃‍♂️
-        </motion.div>
-      )}
-
-      {pNode.isCompleted && (
-        <motion.div
-          initial={{ scale: 0, originY: 1, rotate: -30 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
-          className={cn(
-            "absolute z-30 pointer-events-none",
-            pNode.type === 'quiz' ? "-top-6 -right-6 text-4xl drop-shadow-[0_4px_8px_rgba(251,191,36,0.5)]" : "-top-4 -right-5 text-3xl drop-shadow-sm"
-          )}
-        >
-          {pNode.type === 'quiz' ? '🏆' : '🚩'}
-        </motion.div>
-      )}
-
-      {pNode.locked ? (
-        <div 
-          className="bg-slate-200/80 flex flex-col items-center justify-center text-slate-400 opacity-80 shadow-inner backdrop-blur-sm border-slate-300 w-16 h-16 border-4"
-          style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }}
-        >
-          <div style={{ transform: 'rotate(45deg)' }} className="relative flex flex-col items-center justify-center w-full h-full">
-            <span className="grayscale opacity-50 drop-shadow-sm -translate-y-4 text-[2.5rem]">
-              {pNode.landmarkEmoji}
-            </span>
-            <Lock className="absolute -bottom-1 -right-1 w-5 h-5 text-slate-500 bg-white rounded-full p-0.5 shadow-sm" />
-          </div>
-        </div>
-      ) : (
-        <Link href={pNode.url}>
-          <div className={cn(pNode.isCurrent && "animate-bounce-slow")}>
-            <div 
-              className={cn(
-                "flex flex-col items-center justify-center transition-all hover:scale-110 hover:shadow-xl cursor-pointer shadow-lg w-16 h-16 border-4",
-                pNode.isCompleted 
-                  ? "border-emerald-400 bg-gradient-to-br from-emerald-400 to-emerald-500 text-white shadow-emerald-500/20"
-                  : "border-indigo-300 bg-gradient-to-br from-indigo-500 to-blue-600 text-white shadow-indigo-500/40",
-                pNode.isCurrent && "ring-4 ring-offset-4 ring-indigo-200"
-              )}
-              style={{ borderRadius: '50% 50% 50% 0', transform: 'rotate(-45deg)' }}
-            >
-              <div style={{ transform: 'rotate(45deg)' }} className="relative flex flex-col items-center justify-center w-full h-full">
-                <span className="drop-shadow-md transition-transform hover:scale-110 -translate-y-4 text-[2.5rem]">
-                  {pNode.landmarkEmoji}
-                </span>
-                {pNode.isCompleted && (
-                  <CheckCircle2 className="absolute -bottom-1 -right-1 w-6 h-6 text-emerald-500 bg-white rounded-full p-0.5 shadow-sm" />
-                )}
-              </div>
-            </div>
-          </div>
-        </Link>
-      )}
-      
-      <div className={cn(
-        "absolute top-full mt-3 w-max max-w-[12rem] text-center text-xs font-bold transition-all left-1/2 -translate-x-1/2",
-        "px-4 py-1.5 rounded-full bg-white/95 backdrop-blur-md shadow-md border border-slate-200/50",
-        pNode.locked ? "text-slate-500" : "text-slate-800 group-hover:text-indigo-700 group-hover:bg-white"
-      )}>
-        <div className="flex items-center justify-center gap-1.5 mb-0.5">
-          <span className="text-[10px] uppercase tracking-wider font-extrabold text-slate-500 opacity-80">{pNode.type === 'quiz' ? 'KUIS' : 'MATERI'}</span>
-        </div>
-        <p className="truncate w-full drop-shadow-sm">{pNode.title}</p>
-      </div>
-    </div>
-  )
+  // Let's ensure the very first item is always unlocked
+  if (allNodes.length > 0) {
+    nodeLockMap.set(allNodes[0].id, false)
+  }
 
   return (
-    <div className="w-full bg-[#f8fafc]">
-      
-      {/* ─── VERTICAL LAYOUT (All Devices) ─── */}
-      <div className="relative py-16 flex flex-col items-center overflow-hidden w-full px-4 sm:px-6 min-h-[500px]">
-        <div 
-          className="absolute inset-0 z-0 pointer-events-none" 
-          style={{
-            backgroundImage: `url('https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundAttachment: 'fixed',
-            backgroundRepeat: 'no-repeat',
-            opacity: 0.25,
-            filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.1)) saturate(120%)'
-          }}
-        />
-        <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl z-10 relative">
-          {pNodes.map((pNode, i) => {
-            const isLeft = i % 2 === 0
-            return (
-              <div key={`mobile-${pNode.id}`} className="relative w-full mb-12 flex flex-col items-center">
-                {pNode.isModuleStart && (
-                  <div className="w-full text-center mb-8 mt-4">
-                    <h3 className="inline-block px-4 py-1.5 rounded-full bg-slate-800 text-white font-bold text-sm shadow-md">
-                      {pNode.moduleTitle}
-                    </h3>
-                  </div>
-                )}
-                <div className="relative w-full flex">
-                  {i < pNodes.length - 1 && (
-                    <svg 
-                      viewBox="0 0 100 100" 
-                      className="absolute top-1/2 left-0 w-full h-[calc(100%+3rem)] z-0 pointer-events-none overflow-visible" 
-                      preserveAspectRatio="none"
-                    >
-                      <path 
-                        d={isLeft ? "M 25 0 C 25 60, 75 40, 75 100" : "M 75 0 C 75 60, 25 40, 25 100"} 
-                        stroke="currentColor" 
-                        strokeWidth="4" 
-                        fill="none"
-                        strokeDasharray="6 6" 
-                        vectorEffect="non-scaling-stroke"
-                        className={cn(pNode.isCompleted ? "text-indigo-400 animate-dash-move" : "text-slate-300 opacity-60")} 
+    <div className="w-full max-w-5xl mx-auto py-6 px-4 sm:px-6 space-y-6">
+      {modules.map((mod, index) => {
+        const isExpanded = expandedModules.has(mod.id)
+        const isModuleUnlocked = unlockedModules.has(mod.id) || index === 0 // First module always accessible
+        
+        const combinedNodes: any[] = []
+        mod.materials?.forEach(m => combinedNodes.push({ ...m, isQuiz: false }))
+        mod.quizzes?.forEach(q => combinedNodes.push({ ...q, isQuiz: true }))
+        combinedNodes.sort((a, b) => a.order - b.order)
+
+        const totalItems = combinedNodes.length
+        const completedItems = combinedNodes.filter(n => n.isQuiz ? completedQuizzes.has(n.id) : completedMaterials.has(n.id)).length
+        const isAllCompleted = totalItems > 0 && completedItems === totalItems
+
+        return (
+          <div key={mod.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            {/* Accordion Header */}
+            <div 
+              onClick={() => toggleModule(mod.id)}
+              className={cn(
+                "flex items-center justify-between p-4 sm:p-5 cursor-pointer transition-colors select-none",
+                isExpanded ? "bg-indigo-50/50" : "hover:bg-slate-50",
+                !isModuleUnlocked && "opacity-75 grayscale-[50%]"
+              )}
+            >
+              <div className="flex items-center gap-4">
+                <div className={cn(
+                  "flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl shadow-inner",
+                  isAllCompleted ? "bg-emerald-100 text-emerald-600" :
+                  isModuleUnlocked ? "bg-indigo-100 text-indigo-600" : "bg-slate-100 text-slate-400"
+                )}>
+                  {isAllCompleted ? <CheckCircle2 className="w-6 h-6" /> : 
+                   isModuleUnlocked ? <Unlock className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-800 text-sm sm:text-lg">{mod.title}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs font-semibold text-slate-500">{completedItems} / {totalItems} Selesai</span>
+                    {/* Progress bar */}
+                    <div className="w-24 sm:w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div 
+                        className={cn("h-full transition-all duration-500", isAllCompleted ? "bg-emerald-500" : "bg-indigo-500")}
+                        style={{ width: `${totalItems > 0 ? (completedItems / totalItems) * 100 : 0}%` }}
                       />
-                    </svg>
-                  )}
-                  <div className="w-1/2 flex justify-center z-10">{isLeft && renderPin(pNode, 'mobile')}</div>
-                  <div className="w-1/2 flex justify-center z-10">{!isLeft && renderPin(pNode, 'mobile')}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            )
-          })}
-        </div>
-      </div>
+              <div className="text-slate-400">
+                {isExpanded ? <ChevronDown className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+              </div>
+            </div>
 
-      <style dangerouslySetInnerHTML={{__html: `
-        @keyframes bounce-slow {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-        .animate-bounce-slow {
-          animation: bounce-slow 2s infinite ease-in-out;
-        }
-        @keyframes dash-move {
-          from { stroke-dashoffset: 12; }
-          to { stroke-dashoffset: 0; }
-        }
-        .animate-dash-move {
-          animation: dash-move 1s linear infinite;
-        }
-      `}} />
+            {/* Accordion Content */}
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-4 sm:p-6 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {combinedNodes.map((node) => {
+                      const isCompleted = node.isQuiz ? completedQuizzes.has(node.id) : completedMaterials.has(node.id)
+                      const isLocked = nodeLockMap.get(node.id) ?? true
+                      const isCurrent = !isCompleted && !isLocked
+
+                      let Icon = FileText
+                      if (node.isQuiz) Icon = ClipboardList
+                      else if (node.type === 'VIDEO') Icon = PlayCircle
+                      else if (node.type === 'INTERACTIVE_MAP') Icon = MapIcon
+
+                      const url = node.isQuiz 
+                        ? `/student/quizzes/${node.id}`
+                        : `/student/classes/${classId}/materials/${node.id}`
+
+                      const content = (
+                        <div className={cn(
+                          "relative flex flex-col p-4 rounded-xl border-2 transition-all duration-300",
+                          isCompleted ? "bg-emerald-50 border-emerald-200 hover:border-emerald-300" :
+                          isCurrent ? "bg-white border-indigo-300 shadow-md shadow-indigo-100 hover:shadow-lg hover:border-indigo-400 -translate-y-1" :
+                          "bg-slate-100 border-transparent opacity-70 grayscale-[30%]"
+                        )}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className={cn(
+                              "p-2 rounded-lg",
+                              isCompleted ? "bg-emerald-100 text-emerald-600" :
+                              isCurrent ? "bg-indigo-100 text-indigo-600" :
+                              "bg-slate-200 text-slate-500"
+                            )}>
+                              <Icon className="w-5 h-5" />
+                            </div>
+                            {isCompleted && <CheckCircle2 className="w-5 h-5 text-emerald-500" />}
+                            {isLocked && !isCompleted && <Lock className="w-4 h-4 text-slate-400" />}
+                            {isCurrent && <span className="flex h-2.5 w-2.5 rounded-full bg-indigo-500 animate-pulse" />}
+                          </div>
+                          
+                          <div className="mt-auto">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 block">
+                              {node.isQuiz ? 'Kuis' : 'Materi'}
+                            </span>
+                            <h4 className={cn(
+                              "font-bold text-sm line-clamp-2",
+                              isCompleted ? "text-emerald-900" :
+                              isCurrent ? "text-slate-800" :
+                              "text-slate-600"
+                            )}>
+                              {node.title}
+                            </h4>
+                          </div>
+                        </div>
+                      )
+
+                      if (isLocked) {
+                        return <div key={node.id} className="cursor-not-allowed">{content}</div>
+                      }
+
+                      return (
+                        <Link key={node.id} href={url} className="block group">
+                          {content}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )
+      })}
     </div>
   )
 }

@@ -514,4 +514,289 @@ export class ClassesService {
 
     return { success: true };
   }
+
+  async importBatchClasses(teacherId: string, file: Express.Multer.File) {
+    if (!file) {
+      throw new BadRequestException('File tidak ditemukan');
+    }
+
+    let workbook;
+    try {
+      workbook = xlsx.read(file.buffer, { type: 'buffer' });
+    } catch (e) {
+      throw new BadRequestException('Format file tidak didukung atau rusak');
+    }
+
+    const supabaseAdmin = this.supabaseService.getAdminClient();
+
+    const results = {
+      classesCreated: 0,
+      classesReused: 0,
+      studentsAdded: 0,
+      studentsFailed: 0,
+      errors: [] as { sheet: string; baris: number; alasan: string }[],
+    };
+
+    for (const sheetName of workbook.SheetNames) {
+      const upperName = sheetName.toUpperCase();
+      if (upperName === 'TOTAL' || upperName === 'REKAP') {
+        continue;
+      }
+
+      const sheet = workbook.Sheets[sheetName];
+      const rawData: any[][] = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+      if (!rawData || rawData.length === 0) continue;
+
+      let className = sheetName;
+      let headerRowIndex = -1;
+
+      // Scan for Class Name, and Header row
+      for (let i = 0; i < Math.min(rawData.length, 30); i++) {
+        const row = rawData[i];
+        if (!row || !Array.isArray(row)) continue;
+
+        const rowStr = row.join(' ').toUpperCase();
+
+        // Find 'Kelas :'
+        for (const cell of row) {
+          if (typeof cell === 'string') {
+            if (cell.toUpperCase().includes('KELAS')) {
+              const parts = cell.split(':');
+              if (parts.length > 1 && parts[1].trim() !== '') {
+                className = parts[1].trim();
+              } else {
+                // Maybe the next cell has the value?
+                const colIdx = row.indexOf(cell);
+                if (row[colIdx + 1]) {
+                  const nextCell = String(row[colIdx + 1]).trim();
+                  if (nextCell.startsWith(':')) {
+                    className = nextCell.substring(1).trim();
+                  } else {
+                    className = nextCell;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        if ((rowStr.includes('NIPD') || rowStr.includes('NIS') || rowStr.includes('NISN')) && 
+            (rowStr.includes('NAMA') || rowStr.includes('PESERTA'))) {
+          headerRowIndex = i;
+          break; // Stop finding header
+        }
+      }
+
+      if (headerRowIndex === -1) {
+        results.errors.push({ sheet: sheetName, baris: 0, alasan: 'Tidak dapat menemukan baris header (NIPD/NAMA)' });
+        continue;
+      }
+
+      if (!className) className = sheetName;
+
+      // Create or Get Class
+      let cls = await this.prisma.class.findFirst({
+        where: { name: className, teacher_id: teacherId }
+      });
+
+      if (!cls) {
+        // Create new class
+        const joinCode = Array.from({ length: 8 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
+        cls = await this.prisma.class.create({
+          data: {
+            name: className,
+            teacher_id: teacherId,
+            join_code: joinCode,
+          }
+        });
+        results.classesCreated++;
+      } else {
+        results.classesReused++;
+      }
+
+      const headersArray = rawData[headerRowIndex] || [];
+      const headersMap = headersArray.map((h: any) => h !== undefined && h !== null ? String(h).toUpperCase().replace(/\s+/g, '') : null);
+
+      let nisIndex = -1;
+      let namaIndex = -1;
+      for (let j = 0; j < headersMap.length; j++) {
+        if (!headersMap[j]) continue;
+        const h = headersMap[j] as string;
+        if (h.includes('NIPD') || (h.includes('NIS') && !h.includes('JENIS')) || h.includes('NOINDUK') || h.includes('INDUK')) {
+          if (nisIndex === -1) nisIndex = j;
+        }
+        if (h.includes('NAMA') || h === 'PESERTADIDIK' || h === 'SISWA') {
+          // Avoid matching NAMA ORANG TUA or NAMA WALI
+          if (!h.includes('ORANGTUA') && !h.includes('WALI') && !h.includes('AYAH') && !h.includes('IBU')) {
+            if (namaIndex === -1) namaIndex = j;
+          }
+        }
+      }
+
+      if (nisIndex === -1 || namaIndex === -1) {
+        results.errors.push({ sheet: sheetName, baris: headerRowIndex + 1, alasan: `Kolom ${nisIndex === -1 ? 'NIPD/NIS' : 'NAMA'} tidak ditemukan di tabel` });
+        continue; // Skip this sheet entirely if we can't find the columns
+      }
+
+      // Get current students in this class
+      const existingClassStudents = await this.prisma.classStudent.findMany({
+        where: { class_id: cls.id },
+        select: { student_id: true }
+      });
+      const studentsInClass = new Set(existingClassStudents.map(cs => cs.student_id));
+
+      // Process Students
+      let rowIndex = headerRowIndex + 1;
+      let currentNoAbsen = 1;
+      while (rowIndex < rawData.length) {
+        const rowArr = rawData[rowIndex];
+        if (!rowArr || rowArr.length === 0 || rowArr.join('').trim() === '') {
+          // Empty row
+          rowIndex++;
+          continue;
+        }
+        
+        const rowObj: Record<string, any> = {};
+        for (let j = 0; j < headersMap.length; j++) {
+          if (headersMap[j]) rowObj[headersMap[j] as string] = rowArr[j];
+        }
+
+        // Check stop conditions
+        const firstColStr = String(rowArr[0] || '').toUpperCase();
+        if (firstColStr.includes('LAKI-LAKI') || firstColStr.includes('PEREMPUAN') || firstColStr.includes('JUMLAH')) {
+          break;
+        }
+
+        const nisRaw = rowArr[nisIndex];
+        if (!nisRaw || String(nisRaw).trim() === '') {
+          // Just skip without error if it's an empty looking row
+          const hasData = rowArr.some((v: any, idx: number) => idx !== nisIndex && v !== undefined && v !== null && v.toString().trim() !== '');
+          if (!hasData) {
+            rowIndex++;
+            continue;
+          }
+          // If it has other data but NIS is empty, it might be a merged header sub-row or an invalid student
+          // If the row looks like a sub-header (e.g. L / P columns), we can safely skip it
+          const firstCellStr = String(rowArr[0] || '').trim();
+          if (!firstCellStr && rowIndex === headerRowIndex + 1) {
+             // likely the second row of a merged header
+             rowIndex++;
+             continue;
+          }
+
+          results.errors.push({ sheet: sheetName, baris: rowIndex + 1, alasan: 'NIPD kosong pada baris yang berisi data' });
+          rowIndex++;
+          continue;
+        }
+        
+        const nis = String(nisRaw).trim();
+        const namaRaw = rowArr[namaIndex];
+        const nama = String(namaRaw || '').trim();
+        
+        if (!nama) {
+          results.errors.push({ sheet: sheetName, baris: rowIndex + 1, alasan: 'Nama kosong' });
+          rowIndex++;
+          continue;
+        }
+
+        const email = `${nis}@siswa.com`;
+        const password = '12345678';
+
+        try {
+          let user = await this.prisma.user.findUnique({ where: { email } });
+          if (!user) {
+             user = await this.prisma.user.findFirst({ where: { nis_nip: nis } });
+          }
+
+          if (!user) {
+            // Create in Auth
+            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+              email,
+              password,
+              email_confirm: true,
+              user_metadata: { role: 'STUDENT', full_name: nama, nis_nip: nis },
+            });
+
+            if (authError) throw new Error(authError.message);
+            if (!authData.user) throw new Error('Gagal membuat user auth');
+
+            try {
+              user = await this.prisma.user.create({
+                data: {
+                  id: authData.user.id,
+                  name: nama,
+                  email: email,
+                  role: Role.STUDENT,
+                  nis_nip: nis,
+                }
+              });
+            } catch (e: any) {
+              if (e.code === 'P2002') {
+                user = await this.prisma.user.update({
+                  where: { id: authData.user.id },
+                  data: {
+                    name: nama,
+                    email: email,
+                    role: Role.STUDENT,
+                    nis_nip: nis,
+                  }
+                });
+              } else {
+                throw e;
+              }
+            }
+          } else {
+            // Check if names match (to prevent NIPD collision between different students)
+            const existingName = (user.name || '').toLowerCase().replace(/[^a-z]/g, '');
+            const newName = nama.toLowerCase().replace(/[^a-z]/g, '');
+            
+            // If completely different names, reject to prevent overwriting
+            if (existingName && newName && !existingName.includes(newName) && !newName.includes(existingName)) {
+              results.errors.push({ 
+                sheet: sheetName, 
+                baris: rowIndex + 1, 
+                alasan: `NIPD ${nis} bentrok dengan siswa bernama "${user.name}". Silakan bedakan NIPD-nya di Excel jika ini siswa yang berbeda.` 
+              });
+              results.studentsFailed++;
+              rowIndex++;
+              continue;
+            }
+
+            // Update in DB
+            user = await this.prisma.user.update({
+              where: { id: user.id },
+              data: { name: nama, nis_nip: nis }
+            });
+          }
+
+          // Add to class if not already in it
+          if (!studentsInClass.has(user.id)) {
+            await this.prisma.classStudent.create({
+              data: {
+                class_id: cls.id,
+                student_id: user.id,
+                no_absen: currentNoAbsen,
+              },
+            });
+            studentsInClass.add(user.id);
+          } else {
+            await this.prisma.classStudent.updateMany({
+              where: { class_id: cls.id, student_id: user.id },
+              data: { no_absen: currentNoAbsen },
+            });
+          }
+          
+          currentNoAbsen++;
+          results.studentsAdded++;
+        } catch (err: any) {
+          results.errors.push({ sheet: sheetName, baris: rowIndex + 1, alasan: err.message || 'Gagal menyimpan siswa' });
+          results.studentsFailed++;
+        }
+
+        rowIndex++;
+      }
+    }
+
+    return results;
+  }
 }

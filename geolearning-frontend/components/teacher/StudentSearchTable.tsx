@@ -76,9 +76,9 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
   const hasClassData = students.some((s) => (s.enrolledClasses?.length ?? 0) > 0)
 
   return (
-    <div className="flex gap-4">
+    <div className="flex flex-col xl:flex-row gap-4">
       {/* Table area */}
-      <div className={cn('flex-1 min-w-0 transition-all', selectedStudent ? 'max-w-[calc(100%-300px)]' : '')}>
+      <div className={cn('flex-1 min-w-0 transition-all', selectedStudent ? 'xl:max-w-[calc(100%-300px)]' : '')}>
         {/* Search */}
         <div className="mb-4 relative">
           <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -221,7 +221,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
 
       {/* Detail Drawer */}
       {selectedStudent && (
-        <div className="w-72 flex-shrink-0 animate-slide-in">
+        <div className="w-full xl:w-72 flex-shrink-0 animate-slide-in">
           <div className="sticky top-0 rounded-2xl border border-slate-200 bg-white p-5 transition-shadow hover:shadow-lg">
             {/* Header */}
             <div className="mb-4 flex items-start justify-between">

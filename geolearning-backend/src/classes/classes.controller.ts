@@ -34,6 +34,21 @@ export class ClassesController {
     return this.classesService.importStudents(classId, file);
   }
 
+  @Post('import-batch')
+  @UseInterceptors(FileInterceptor('file'))
+  async importBatchClasses(
+    @Body('teacherId') teacherId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File tidak ditemukan');
+    }
+    if (!teacherId) {
+      throw new BadRequestException('teacherId wajib diisi');
+    }
+    return this.classesService.importBatchClasses(teacherId, file);
+  }
+
   @Post(':classId/students')
   async addStudent(
     @Param('classId') classId: string,

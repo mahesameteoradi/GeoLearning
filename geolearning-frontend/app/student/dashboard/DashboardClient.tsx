@@ -121,7 +121,7 @@ export function DashboardSkeleton() {
           {/* Badges skeleton */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
             <Skeleton className="h-3 w-16 mb-3" />
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-7 xl:grid-cols-10">
               {[...Array(14)].map((_, i) => (
                 <Skeleton key={i} className="h-14 w-full rounded-xl" />
               ))}
