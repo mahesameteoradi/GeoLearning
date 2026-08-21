@@ -279,7 +279,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(filePath, file)
+      .upload(filePath, file, { cacheControl: '31536000', upsert: false })
 
     if (uploadError) {
       toast.error('Gagal mengunggah foto')

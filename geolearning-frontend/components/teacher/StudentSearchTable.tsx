@@ -5,11 +5,13 @@ import { Search, Flame, ChevronDown, ChevronUp, X, BookOpen, Shield, Medal } fro
 import { calculateLevel, xpForLevel, getLevelMeaning } from '@/lib/utils/level'
 import { cn } from '@/lib/utils/cn'
 import { ALL_BADGES, BadgeIcon, BadgeShieldContainer } from '@/components/ui/BadgeGrid'
+import Link from 'next/link'
 
 interface Student {
   id: string
   name: string
   email: string
+  nis_nip?: string | null
   xp: number
   level: number
   current_streak: number
@@ -150,7 +152,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                           </div>
                           <div>
                             <p className="font-medium text-slate-800 truncate max-w-[150px]">{s.name}</p>
-                            <p className="text-[10px] text-slate-600 truncate max-w-[150px]">{s.email}</p>
+                            <p className="text-[10px] text-slate-600 truncate max-w-[150px]">{s.nis_nip || s.email || '-'}</p>
                           </div>
                         </div>
                       </td>
@@ -242,7 +244,7 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                 )}
               </div>
               <h3 className="font-bold text-slate-800">{selectedStudent.name}</h3>
-              <p className="mt-0.5 text-xs text-slate-500">{selectedStudent.email}</p>
+              <p className="mt-0.5 text-xs text-slate-500">{selectedStudent.nis_nip || selectedStudent.email}</p>
               
               {(() => {
                 const dynamicLevel = calculateLevel(selectedStudent.xp || 0)
@@ -254,6 +256,13 @@ export function StudentSearchTable({ students }: StudentSearchTableProps) {
                   </div>
                 )
               })()}
+
+              <Link
+                href={`/teacher/analytics/student/${selectedStudent.id}`}
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30 active:translate-y-0 active:shadow-sm"
+              >
+                Lihat Analisis Detail
+              </Link>
             </div>
 
             {/* Enrolled Classes */}

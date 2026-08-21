@@ -206,7 +206,7 @@ function QuestionCard({
 
     const { error: uploadError } = await supabase.storage
       .from('class-materials')
-      .upload(path, file, { cacheControl: '3600', upsert: false })
+      .upload(path, file, { cacheControl: '31536000', upsert: false })
 
     if (uploadError) {
       toast.error(`Gagal mengunggah gambar: ${uploadError.message}`)

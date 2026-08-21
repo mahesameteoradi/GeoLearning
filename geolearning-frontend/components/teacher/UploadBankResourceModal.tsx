@@ -60,7 +60,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
         const path = 'bank-materials/' + Date.now() + '_' + Math.random().toString(36).substring(2, 8) + '.' + ext
         setUploadProgress(20)
         const { error: uploadErr } = await supabase.storage.from('materials').upload(path, file, { 
-          cacheControl: '3600', upsert: false 
+          cacheControl: '31536000', upsert: false 
         })
         if (uploadErr) throw new Error(uploadErr.message)
         const { data: { publicUrl } } = supabase.storage.from('materials').getPublicUrl(path)

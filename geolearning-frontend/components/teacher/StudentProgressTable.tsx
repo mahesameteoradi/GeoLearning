@@ -5,10 +5,12 @@ import { Flame } from 'lucide-react'
 interface StudentRow {
   id: string
   name: string
-  email: string
+  class_name?: string
   xp: number
   current_streak: number
   avatar_url?: string | null
+  nis_nip?: string | null
+  email?: string
 }
 
 interface StudentProgressTableProps {
@@ -41,6 +43,9 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                 Streak
               </th>
               <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Kelas
+              </th>
+              <th className="px-5 py-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
                 Total XP
               </th>
             </tr>
@@ -48,7 +53,7 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
           <tbody className="divide-y divide-slate-100">
             {sorted.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-12 text-center">
+                <td colSpan={7} className="px-5 py-12 text-center">
                   <div className="flex flex-col items-center justify-center text-slate-400">
                     <Flame className="h-8 w-8 mb-3 opacity-20" />
                     <p className="text-sm font-semibold text-slate-500">Belum ada progres siswa</p>
@@ -80,7 +85,7 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                       </div>
                       <div>
                         <p className="font-medium text-slate-800">{student.name}</p>
-                        <p className="text-[10px] text-slate-500">{student.email}</p>
+                        <p className="text-[10px] text-slate-500">{student.nis_nip || student.email || '-'}</p>
                       </div>
                     </div>
                   </td>
@@ -128,6 +133,11 @@ export function StudentProgressTable({ students, className }: StudentProgressTab
                         {student.current_streak}d
                       </span>
                     </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="inline-flex rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-600">
+                      {student.class_name || '-'}
+                    </span>
                   </td>
                   <td className="px-5 py-4 text-sm font-bold text-amber-600">
                     {student.xp.toLocaleString()}

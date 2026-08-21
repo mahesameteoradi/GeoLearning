@@ -41,7 +41,7 @@ export default async function TeacherStudentsPage() {
 
   const { data: rawStudents, error: studentsError } = studentIds.length > 0 ? await supabase
     .from('users')
-    .select('id, name, email, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
+    .select('id, name, email, nis_nip, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
     .eq('role', 'STUDENT')
     .in('id', studentIds)
     .order('xp', { ascending: false })

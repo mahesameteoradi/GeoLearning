@@ -1,7 +1,8 @@
-import { DashboardClient } from './DashboardClient'
+import { DashboardClient, DashboardSkeleton } from './DashboardClient'
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { Suspense } from 'react'
 
 export const metadata: Metadata = {
   title: 'GeoLearning — Student Dashboard',
@@ -10,14 +11,8 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-export default async function StudentDashboardPage() {
+async function StudentDashboardData({ user }: { user: any }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  
-  if (!user) {
-    redirect('/login')
-  }
-
   try {
     const [profileRes, attemptsRes, notifsRes, enrolledRes, interventionsRes, materialRes, projectRes, allQuizAttemptsRes, allMaterialCompletionsRes, allProjectSubmissionsRes] = await Promise.all([
       supabase
@@ -233,4 +228,19 @@ export default async function StudentDashboardPage() {
     console.error('Failed to fetch dashboard data:', error)
     return <DashboardClient initialError="Gagal memuat data dashboard. Coba refresh halaman." />
   }
+}
+
+export default async function StudentDashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login')
+  }
+
+  return (
+    <Suspense fallback={<DashboardSkeleton />}>
+      <StudentDashboardData user={user} />
+    </Suspense>
+  )
 }

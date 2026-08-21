@@ -350,7 +350,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const path = `${classId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`
         setUploadProgress(20)
         const { error: uploadErr } = await supabase.storage.from('class-materials').upload(path, file, { 
-          cacheControl: '3600', 
+          cacheControl: '31536000', 
           upsert: false,
           contentType: file.type
         })

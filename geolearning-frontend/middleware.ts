@@ -32,13 +32,16 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // Refresh session — MUST call getUser(), not getSession()
+  // Refresh session — use getSession for faster middleware routing,
+  // let the actual pages do getUser() for strict validation.
+  let session = null
   let user = null
   try {
-    const { data } = await supabase.auth.getUser()
-    user = data.user
+    const { data } = await supabase.auth.getSession()
+    session = data.session
+    user = session?.user || null
   } catch (err) {
-    console.error('[proxy] supabase.auth.getUser() threw:', err)
+    console.error('[proxy] supabase.auth.getSession() threw:', err)
     // On error, allow the request through rather than causing a redirect loop
     return NextResponse.next()
   }
@@ -49,7 +52,8 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/login' || pathname === '/register' || pathname.startsWith('/auth')) {
     // If already logged in, redirect away from auth pages to appropriate dashboard
     if (user && (pathname === '/login' || pathname === '/register')) {
-      let role = 'STUDENT'
+      let role = user.user_metadata?.role || 'STUDENT'
+      
       try {
         const { data: profile } = await supabase
           .from('users')
@@ -58,7 +62,7 @@ export async function middleware(request: NextRequest) {
           .single()
         if (profile?.role) role = profile.role
       } catch {
-        // Ignore errors — fall back to student dashboard
+        // Ignore errors
       }
 
       const url = request.nextUrl.clone()
@@ -81,7 +85,7 @@ export async function middleware(request: NextRequest) {
       return supabaseResponse
     }
 
-    let role = 'STUDENT'
+    let role = user.user_metadata?.role || 'STUDENT'
     try {
       const { data: profile } = await supabase
         .from('users')

@@ -88,7 +88,7 @@ function Skeleton({ className }: { className?: string }) {
   )
 }
 
-function DashboardSkeleton() {
+export function DashboardSkeleton() {
   return (
     <div className="min-h-full p-3 md:p-5 lg:p-7 space-y-5">
       {/* Hero Header skeleton */}

@@ -14,7 +14,7 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
       id, name, description, join_code, gamification_mode,
       modules(id),
       class_students(
-        student:users!class_students_student_id_fkey(id, name, email, xp, current_streak, avatar_url)
+        student:users!class_students_student_id_fkey(id, name, email, nis_nip, xp, current_streak, avatar_url)
       )
     `)
     .eq('teacher_id', user.id)
@@ -27,7 +27,12 @@ export async function TeacherDashboardStats({ user, profile }: { user: any, prof
         for (const cs of cls.class_students) {
           const student = Array.isArray(cs.student) ? cs.student[0] : cs.student
           if (student && !uniqueStudentsMap.has(student.id)) {
-            uniqueStudentsMap.set(student.id, student)
+            uniqueStudentsMap.set(student.id, { ...student, class_name: cls.name })
+          } else if (student && uniqueStudentsMap.has(student.id)) {
+            const existing = uniqueStudentsMap.get(student.id)
+            if (!existing.class_name.includes(cls.name)) {
+              existing.class_name += `, ${cls.name}`
+            }
           }
         }
       }
