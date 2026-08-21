@@ -82,8 +82,10 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
 
       if (saveErr) throw new Error(saveErr.message)
 
+      toast.dismiss(tid)
       setSubmitResult({ type: 'success', message: 'Materi berhasil diunggah dan disimpan ke Bank Materi!' })
     } catch (err: any) {
+      toast.dismiss(tid)
       setSubmitResult({ type: 'error', message: err.message || 'Gagal mengunggah materi.' })
     } finally {
       setUploading(false)

@@ -224,7 +224,10 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
         <UploadBankResourceModal 
           teacherId={teacherId} 
           onClose={() => setShowUploadModal(false)} 
-          onSuccess={fetchResources} 
+          onSuccess={() => {
+            fetchResources()
+            setShowUploadModal(false)
+          }} 
         />
       )}
 
