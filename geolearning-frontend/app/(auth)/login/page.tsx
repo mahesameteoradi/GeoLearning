@@ -18,8 +18,6 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isForgotPassword, setIsForgotPassword] = useState(false)
-  const [resetSent, setResetSent] = useState(false)
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -89,41 +87,6 @@ export default function LoginPage() {
     }
   }
 
-  async function handleForgotPassword(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-    
-    let resetEmail = identifier.trim()
-    if (!resetEmail) {
-      setError('Masukkan Email atau Username Anda')
-      setLoading(false)
-      return
-    }
-    
-    if (!resetEmail.includes('@')) {
-      resetEmail = `${resetEmail}@siswa.com`
-    }
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/update-password`,
-      })
-
-      if (error) {
-        setError('Gagal mengirim tautan. Pastikan email terdaftar.')
-      } else {
-        setResetSent(true)
-      }
-    } catch (err: any) {
-      console.error('Forgot Password Error:', err)
-      setError(err.message === 'Failed to fetch'
-        ? 'Gagal terhubung ke server. Periksa koneksi internet atau matikan AdBlock.'
-        : err.message || 'Terjadi kesalahan saat mereset kata sandi.')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <motion.div 
@@ -211,16 +174,12 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* Header */}
           <div className="mb-10 text-center md:text-left">
             <h2 className="text-3xl font-extrabold tracking-tight text-slate-800 mb-2">
-              {isForgotPassword ? 'Lupa Kata Sandi?' : 'Selamat Datang! 👋'}
+              Selamat Datang! 👋
             </h2>
             <p className="text-slate-500 font-medium">
-              {isForgotPassword 
-                ? (resetSent ? 'Cek kotak masuk email Anda' : 'Masukkan identitas untuk mereset kata sandi')
-                : 'Silakan masuk untuk melanjutkan.'
-              }
+              Silakan masuk untuk melanjutkan.
             </p>
           </div>
 
@@ -230,7 +189,7 @@ export default function LoginPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            onSubmit={isForgotPassword ? handleForgotPassword : handleLogin} 
+            onSubmit={handleLogin} 
             className="space-y-5" 
             suppressHydrationWarning
           >
@@ -252,42 +211,33 @@ export default function LoginPage() {
             </div>
 
             {/* Password */}
-            <AnimatePresence mode="wait">
-              {!isForgotPassword && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
+            <div suppressHydrationWarning>
+              <label htmlFor="login-password" className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500 mt-5">
+                Kata Sandi
+              </label>
+              <div className="relative group" suppressHydrationWarning>
+                <input
+                  id="login-password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
                   suppressHydrationWarning
+                  className="w-full rounded-xl border-2 border-slate-100 bg-slate-50/50 px-4 py-3.5 pr-12 text-sm text-slate-800 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium"
+                />
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                  aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                 >
-                  <label htmlFor="login-password" className="mb-2 block text-xs font-bold uppercase tracking-wider text-slate-500 mt-5">
-                    Kata Sandi
-                  </label>
-                  <div className="relative group" suppressHydrationWarning>
-                    <input
-                      id="login-password"
-                      type={showPassword ? 'text' : 'password'}
-                      required={!isForgotPassword}
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      suppressHydrationWarning
-                      className="w-full rounded-xl border-2 border-slate-100 bg-slate-50/50 px-4 py-3.5 pr-12 text-sm text-slate-800 focus:border-blue-500 focus:bg-white outline-none transition-all placeholder:text-slate-400 font-medium"
-                    />
-                    <button
-                      type="button"
-                      tabIndex={-1}
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                      aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
 
             {/* Alert Messages */}
             <AnimatePresence>
@@ -299,16 +249,6 @@ export default function LoginPage() {
                   className="rounded-xl px-4 py-3 bg-red-50 border border-red-100 mt-4"
                 >
                   <p className="text-xs text-red-600 font-medium">❌ {error}</p>
-                </motion.div>
-              )}
-              {resetSent && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10, height: 0 }}
-                  animate={{ opacity: 1, y: 0, height: 'auto' }}
-                  exit={{ opacity: 0, y: -10, height: 0 }}
-                  className="rounded-xl px-4 py-3 bg-green-50 border border-green-100 mt-4"
-                >
-                  <p className="text-xs text-green-700 font-medium">✅ Tautan reset telah dikirim! Silakan periksa email Anda.</p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -327,26 +267,22 @@ export default function LoginPage() {
                 
                 <span className="relative z-10 flex items-center gap-2">
                   {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {loading ? 'Memproses...' : isForgotPassword ? 'Kirim Tautan' : 'Masuk ke Platform'}
+                  {loading ? 'Memproses...' : 'Masuk ke Platform'}
                 </span>
               </motion.button>
             </div>
           </motion.form>
 
-          {/* Toggle Forgot Password */}
+          {/* Info lupa kata sandi */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="mt-6 text-center md:text-left"
+            className="mt-6 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3"
           >
-            <button
-              type="button"
-              onClick={() => { setIsForgotPassword(!isForgotPassword); setError(null); setResetSent(false); }}
-              className="text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
-            >
-              {isForgotPassword ? '← Kembali ke halaman masuk' : 'Lupa kata sandi?'}
-            </button>
+            <p className="text-xs text-amber-700 font-medium">
+              🔑 Lupa kata sandi? Hubungi guru Anda untuk mereset akun Anda.
+            </p>
           </motion.div>
 
           {/* Bottom Footer Area */}

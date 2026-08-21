@@ -38,13 +38,24 @@ export function EditSiswaModal({ classId, student, onClose, onSuccess }: EditSis
       const supabase = createClient()
       const { data: sessionData } = await supabase.auth.getSession()
       
+      // Only include password in the payload if the teacher actually typed one
+      const payload: any = {
+        no_absen: formData.no_absen,
+        nis_nip: formData.nis_nip,
+        name: formData.name,
+        email: formData.email,
+      }
+      if (formData.password.trim()) {
+        payload.password = formData.password.trim()
+      }
+
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/kelas/${classId}/students/${student.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(sessionData.session?.access_token && { 'Authorization': `Bearer ${sessionData.session.access_token}` })
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       })
 
       if (!res.ok) {
@@ -123,14 +134,21 @@ export function EditSiswaModal({ classId, student, onClose, onSuccess }: EditSis
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-700">Kata Sandi Baru (Opsional)</label>
+          {/* Password Reset Section — separate from main edit */}
+          <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/60 p-4">
+            <p className="mb-2.5 text-xs font-bold text-amber-700 flex items-center gap-1.5">
+              🔑 Reset Kata Sandi (Opsional)
+            </p>
+            <p className="mb-3 text-[11px] text-amber-600/90 leading-relaxed">
+              Isi hanya jika siswa lupa kata sandi. Kosongkan jika tidak perlu direset.
+            </p>
             <input
               type="password"
               value={formData.password}
               onChange={e => setFormData({ ...formData, password: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-500"
-              placeholder="Kosongkan jika tidak ingin mengubah sandi"
+              className="w-full rounded-xl border border-amber-200 bg-white px-3 py-2 text-sm outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20"
+              placeholder="Kata sandi baru (min. 6 karakter)"
+              minLength={formData.password ? 6 : undefined}
             />
           </div>
 
