@@ -654,10 +654,22 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
     })
     if (!isConfirmed) return
     setIsUpdatingModule(true)
-    const { error } = await supabase.from('modules').delete().eq('id', modId)
-    setIsUpdatingModule(false)
-    if (error) { toast.error('Gagal menghapus bab') } 
-    else { toast.success('Bab berhasil dihapus'); window.location.reload() }
+    
+    try {
+      const res = await fetch('/api/teacher/course-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: modId, type: 'module' })
+      })
+      const result = await res.json()
+      if (!result.success) throw new Error('Gagal menghapus bab')
+      toast.success('Bab berhasil dihapus')
+      window.location.reload()
+    } catch (error) {
+      toast.error('Gagal menghapus bab')
+    } finally {
+      setIsUpdatingModule(false)
+    }
   }
 
   async function handleSaveNewModule() {

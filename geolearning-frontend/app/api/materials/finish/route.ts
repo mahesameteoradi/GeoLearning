@@ -32,7 +32,11 @@ export async function POST(req: Request) {
         material_id: materialId,
       })
 
-    if (completionError && completionError.code !== '23505') {
+    if (completionError) {
+      if (completionError.code === '23505') {
+        // Unique constraint violation (23505) means a concurrent request already inserted it
+        return NextResponse.json({ success: true, message: 'Already completed (concurrent)' })
+      }
       return NextResponse.json({ success: false, error: completionError }, { status: 400 })
     }
 

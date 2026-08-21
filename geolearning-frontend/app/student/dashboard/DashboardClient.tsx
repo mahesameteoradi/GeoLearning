@@ -416,7 +416,8 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           quiz: quizXp,
           material: materialXp,
           project: projectXp,
-          lainnya: lainnyaXp
+          lainnya: lainnyaXp,
+          quizCount: bestQuizXp.size
         }
 
         setXpBreakdown(formattedBreakdown)
@@ -664,7 +665,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           { label: 'Total XP', value: profile.xp.toLocaleString(), icon: Zap, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100', gradient: 'from-amber-500/5 to-transparent', subtitle: 'Keep going!' },
           { label: 'Level', value: level, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', gradient: 'from-blue-500/5 to-transparent', subtitle: `Max: ${xpForLevel(level + 1).toLocaleString()} XP` },
           { label: 'Streak', value: `${profile.current_streak}d`, icon: Flame, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100', gradient: 'from-orange-500/5 to-transparent', subtitle: `Best: ${profile.longest_streak}d` },
-          { label: 'Kuis Selesai', value: attempts.length, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', gradient: 'from-green-500/5 to-transparent', subtitle: 'Great work!' },
+          { label: 'Kuis Selesai', value: xpBreakdown.quizCount || 0, icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100', gradient: 'from-green-500/5 to-transparent', subtitle: 'Great work!' },
         ].map(({ label, value, icon: Icon, color, bg, border, gradient, subtitle }) => (
           <div key={label} className={`group relative overflow-hidden rounded-2xl border ${border} bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-1`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
@@ -707,18 +708,22 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
               📊 Distribusi XP
             </h2>
             <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
                 <div className="flex flex-col gap-1 rounded-xl bg-amber-50 p-3">
-                  <span className="text-xs font-semibold text-amber-700">Dari Kuis</span>
-                  <span className="text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-amber-700">Dari Kuis</span>
+                  <span className="text-lg sm:text-xl font-black text-amber-600">{xpBreakdown.quiz?.toLocaleString() || 0} XP</span>
                 </div>
                 <div className="flex flex-col gap-1 rounded-xl bg-blue-50 p-3">
-                  <span className="text-xs font-semibold text-blue-700">Dari Materi</span>
-                  <span className="text-xl font-black text-blue-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-blue-700">Dari Materi</span>
+                  <span className="text-lg sm:text-xl font-black text-blue-600">{xpBreakdown.material?.toLocaleString() || 0} XP</span>
                 </div>
                 <div className="flex flex-col gap-1 rounded-xl bg-green-50 p-3">
-                  <span className="text-xs font-semibold text-green-700">Dari Proyek</span>
-                  <span className="text-xl font-black text-green-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-green-700">Dari Proyek</span>
+                  <span className="text-lg sm:text-xl font-black text-green-600">{xpBreakdown.project?.toLocaleString() || 0} XP</span>
+                </div>
+                <div className="flex flex-col gap-1 rounded-xl bg-purple-50 p-3">
+                  <span className="text-[10px] sm:text-xs font-semibold text-purple-700">Bonus Guru</span>
+                  <span className="text-lg sm:text-xl font-black text-purple-600">{xpBreakdown.lainnya?.toLocaleString() || 0} XP</span>
                 </div>
               </div>
             </div>

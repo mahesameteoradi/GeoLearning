@@ -305,11 +305,22 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
     })
     if (!isConfirmed) return
     setIsUpdatingModule(true)
-    const supabase = createClient()
-    const { error } = await supabase.from('modules').delete().eq('id', modId)
-    setIsUpdatingModule(false)
-    if (error) { toast.error('Gagal menghapus bab') } 
-    else { toast.success('Bab berhasil dihapus'); window.location.reload() }
+    
+    try {
+      const res = await fetch('/api/teacher/course-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: modId, type: 'module' })
+      })
+      const result = await res.json()
+      if (!result.success) throw new Error('Gagal menghapus bab')
+      toast.success('Bab berhasil dihapus')
+      window.location.reload()
+    } catch (error) {
+      toast.error('Gagal menghapus bab')
+    } finally {
+      setIsUpdatingModule(false)
+    }
   }
 
   async function handleSaveNewModule() {
@@ -694,18 +705,25 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
     })
     if (!isConfirmed) return
     const supabase = createClient()
-    if (type === 'quiz') {
-      const { error } = await supabase.from('quizzes').delete().eq('id', id)
-      if (!error) { setItems(prev => prev.filter(m => m.id !== id)); toast.success('Kuis dihapus') }
-      else toast.error('Gagal menghapus kuis')
-    } else {
-      if (storageUrl?.includes('supabase')) {
-        const pathMatch = storageUrl.match(/class-materials\/(.+)$/)
-        if (pathMatch) await supabase.storage.from('class-materials').remove([pathMatch[1]])
-      }
-      const { error } = await supabase.from('materials').delete().eq('id', id)
-      if (!error) { setItems(prev => prev.filter(m => m.id !== id)); toast.success('Materi dihapus') }
-      else toast.error('Gagal menghapus materi')
+    
+    // Attempt storage deletion if applicable
+    if (type !== 'quiz' && storageUrl?.includes('supabase')) {
+      const pathMatch = storageUrl.match(/class-materials\/(.+)$/)
+      if (pathMatch) await supabase.storage.from('class-materials').remove([pathMatch[1]])
+    }
+
+    try {
+      const res = await fetch('/api/teacher/course-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, type })
+      })
+      const result = await res.json()
+      if (!result.success) throw new Error('Gagal menghapus')
+      setItems(prev => prev.filter(m => m.id !== id))
+      toast.success(`${type === 'quiz' ? 'Kuis' : 'Materi'} dihapus`)
+    } catch (error) {
+      toast.error(`Gagal menghapus ${type === 'quiz' ? 'kuis' : 'materi'}`)
     }
   }
 
