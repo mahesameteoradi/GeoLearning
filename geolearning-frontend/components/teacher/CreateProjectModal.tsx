@@ -50,8 +50,6 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
 
     setSaving(true)
     try {
-      const steamIntegration = form.use_steam ? form.steam : null
-
       const { error } = await supabase.from('project_assignments').insert({
         id: crypto.randomUUID(),
         title: form.title.trim(),
@@ -61,7 +59,7 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
         deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
         is_published: form.is_published,
         is_group_project: form.is_group_project,
-        steam_integration: steamIntegration,
+        steam_integration: null,
         updated_at: new Date().toISOString(),
       }).select().single()
       if (error) throw error
@@ -179,96 +177,7 @@ export function CreateProjectModal({ classes, onClose, onSaved }: CreateProjectM
             </div>
           </div>
 
-          {/* STEAM Integration Section */}
-          <div className="rounded-xl border border-blue-100 bg-blue-50/50 overflow-hidden">
-            <div className="p-4 flex items-center justify-between border-b border-blue-100/50 bg-blue-50">
-              <div>
-                <h3 className="text-sm font-bold text-blue-900 flex items-center gap-2">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-600 text-white text-[10px]">STM</span>
-                  Integrasi STEAM
-                </h3>
-                <p className="text-xs text-blue-600 mt-1">Tambahkan elemen Science, Tech, Engineering, Art, Math</p>
-              </div>
-              <label className="flex cursor-pointer items-center gap-3">
-                <div className={cn('relative h-5 w-9 rounded-full transition-colors', form.use_steam ? 'bg-blue-600' : 'bg-slate-300')}>
-                  <div className={cn('absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform', form.use_steam ? 'translate-x-4' : 'translate-x-0.5')} />
-                </div>
-                <input type="checkbox" className="sr-only" checked={form.use_steam} onChange={e => setForm({ ...form, use_steam: e.target.checked })} />
-              </label>
-            </div>
 
-            {form.use_steam && (
-              <div className="p-4 space-y-4 animate-in slide-in-from-top-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Science */}
-                  <div>
-                    <label className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 uppercase">
-                      <FlaskConical className="h-3.5 w-3.5" /> Science (Sains)
-                    </label>
-                    <textarea
-                      value={form.steam.science}
-                      onChange={e => setForm({ ...form, steam: { ...form.steam, science: e.target.value } })}
-                      rows={2}
-                      className="w-full resize-none rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-emerald-500 focus:outline-none placeholder:text-slate-400"
-                      placeholder="Contoh: Menganalisis fenomena cuaca..."
-                    />
-                  </div>
-                  {/* Technology */}
-                  <div>
-                    <label className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-blue-600 uppercase">
-                      <Cpu className="h-3.5 w-3.5" /> Technology (Teknologi)
-                    </label>
-                    <textarea
-                      value={form.steam.technology}
-                      onChange={e => setForm({ ...form, steam: { ...form.steam, technology: e.target.value } })}
-                      rows={2}
-                      className="w-full resize-none rounded-xl border border-blue-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-blue-500 focus:outline-none placeholder:text-slate-400"
-                      placeholder="Contoh: Menggunakan Google Earth..."
-                    />
-                  </div>
-                  {/* Engineering */}
-                  <div>
-                    <label className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-amber-600 uppercase">
-                      <Wrench className="h-3.5 w-3.5" /> Engineering (Teknik)
-                    </label>
-                    <textarea
-                      value={form.steam.engineering}
-                      onChange={e => setForm({ ...form, steam: { ...form.steam, engineering: e.target.value } })}
-                      rows={2}
-                      className="w-full resize-none rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-amber-500 focus:outline-none placeholder:text-slate-400"
-                      placeholder="Contoh: Merancang maket penanggulangan banjir..."
-                    />
-                  </div>
-                  {/* Art */}
-                  <div>
-                    <label className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-rose-600 uppercase">
-                      <Palette className="h-3.5 w-3.5" /> Art (Seni)
-                    </label>
-                    <textarea
-                      value={form.steam.art}
-                      onChange={e => setForm({ ...form, steam: { ...form.steam, art: e.target.value } })}
-                      rows={2}
-                      className="w-full resize-none rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-rose-500 focus:outline-none placeholder:text-slate-400"
-                      placeholder="Contoh: Membuat infografis visual..."
-                    />
-                  </div>
-                  {/* Mathematics */}
-                  <div className="md:col-span-2">
-                    <label className="mb-1 flex items-center gap-1.5 text-[11px] font-bold text-purple-600 uppercase">
-                      <Calculator className="h-3.5 w-3.5" /> Mathematics (Matematika)
-                    </label>
-                    <textarea
-                      value={form.steam.mathematics}
-                      onChange={e => setForm({ ...form, steam: { ...form.steam, mathematics: e.target.value } })}
-                      rows={2}
-                      className="w-full resize-none rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs text-slate-800 focus:border-purple-500 focus:outline-none placeholder:text-slate-400"
-                      placeholder="Contoh: Menghitung skala peta..."
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>

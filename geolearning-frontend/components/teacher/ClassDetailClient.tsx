@@ -161,35 +161,37 @@ function CourseItemCard({
   }
 
   return (
-    <div className={cn('group flex items-start gap-4 rounded-3xl border border-slate-200/80 p-4 transition-all duration-300 bg-white hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 hover:border-indigo-300/50')}>
-      <div className="flex flex-col items-center justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button disabled={index === 0} onClick={() => onMove(item.id, item.itemType, 'up')} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
-        <button disabled={index === total - 1} onClick={() => onMove(item.id, item.itemType, 'down')} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
-      </div>
+    <div className={cn('group flex flex-col lg:flex-row lg:items-center items-start gap-3 lg:gap-4 rounded-3xl border border-slate-200/80 p-4 transition-all duration-300 bg-white hover:shadow-xl hover:shadow-indigo-900/5 hover:-translate-y-1 hover:border-indigo-300/50')}>
+      <div className="flex items-start lg:items-center gap-3 lg:gap-4 w-full">
+        <div className="flex flex-col items-center justify-center gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1 lg:mt-0">
+          <button disabled={index === 0} onClick={() => onMove(item.id, item.itemType, 'up')} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-30"><ArrowUp className="w-4 h-4" /></button>
+          <button disabled={index === total - 1} onClick={() => onMove(item.id, item.itemType, 'down')} className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded disabled:opacity-30"><ArrowDown className="w-4 h-4" /></button>
+        </div>
 
-      <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border', meta.bg, meta.border)}>
-        <Icon className={cn('h-5 w-5', meta.color)} />
-      </div>
-      
-      <div className="flex-1 min-w-0 py-1">
-        <div className="flex items-center gap-2 mb-1.5">
-          <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{item.title}</h3>
-          <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm', meta.bg, meta.color)}>{meta.label}</span>
-          {!item.is_published && (
-            <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm bg-slate-100 text-slate-500">Draft</span>
+        <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border', meta.bg, meta.border)}>
+          <Icon className={cn('h-5 w-5', meta.color)} />
+        </div>
+        
+        <div className="flex-1 min-w-0 py-1">
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
+            <h3 className="text-sm font-bold text-slate-900 truncate group-hover:text-indigo-600 transition-colors max-w-full">{item.title}</h3>
+            <span className={cn('rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm whitespace-nowrap', meta.bg, meta.color)}>{meta.label}</span>
+            {!item.is_published && (
+              <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold shadow-sm bg-slate-100 text-slate-500 whitespace-nowrap">Draft</span>
+            )}
+          </div>
+          {item.content_text && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{item.content_text}</p>}
+          {!isMaterial && (
+            <div className="flex flex-wrap items-center gap-3 mt-1 text-[11px] font-semibold text-slate-500">
+              <span className="flex items-center gap-1 whitespace-nowrap"><Clock className="h-3 w-3" /> {item.time_limit || '∞'} detik</span>
+              <span className="flex items-center gap-1 text-amber-500 whitespace-nowrap"><Star className="h-3 w-3" /> {item.xp_reward || 0} XP</span>
+              <span className="flex items-center gap-1 text-emerald-500 whitespace-nowrap"><Trophy className="h-3 w-3" /> {item.passing_score || 0} KKM</span>
+            </div>
           )}
         </div>
-        {item.content_text && <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{item.content_text}</p>}
-        {!isMaterial && (
-          <div className="flex items-center gap-3 mt-1 text-[11px] font-semibold text-slate-500">
-            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {item.time_limit || '∞'} detik</span>
-            <span className="flex items-center gap-1 text-amber-500"><Star className="h-3 w-3" /> {item.xp_reward || 0} XP</span>
-            <span className="flex items-center gap-1 text-emerald-500"><Trophy className="h-3 w-3" /> {item.passing_score || 0} KKM</span>
-          </div>
-        )}
       </div>
 
-      <div className="flex flex-shrink-0 items-center gap-2 py-1 transition-all">
+      <div className="flex flex-wrap flex-shrink-0 items-center gap-2 py-1 transition-all pl-9 lg:pl-0 w-full lg:w-auto">
         {isMaterial && item.type === 'INTERACTIVE_MAP' ? (
           <button onClick={() => onViewMap(item)} className="flex items-center gap-1.5 h-10 px-3 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all shadow-sm text-xs font-bold" title="Lihat Peta">
             <Eye className="h-4 w-4" /> Lihat
@@ -1060,19 +1062,19 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                 if (['mp4', 'webm', 'ogg'].includes(ext)) {
                   return <video src={url} controls className="max-w-full max-h-full rounded-xl shadow-sm" />;
                 }
-                if (['doc', 'docx', 'ppt', 'pptx'].includes(ext)) {
+                if (['doc', 'docx', 'ppt', 'pptx', 'pdf', 'xls', 'xlsx'].includes(ext)) {
                   const gviewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
                   return (
                     <div className="w-full h-full flex flex-col">
                       <div className="bg-amber-50 text-amber-800 text-xs p-2 text-center rounded-t-xl border border-amber-200">
-                        Pratinjau dokumen Office. Jika gagal memuat, silakan klik <b>Buka di Tab Baru</b>.
+                        Pratinjau dokumen. Jika gagal memuat, silakan klik <b>Buka di Tab Baru</b>.
                       </div>
                       <iframe src={gviewUrl} className="w-full flex-1 rounded-b-xl border-0 shadow-inner bg-white" title={viewingFile.title} />
                     </div>
                   );
                 }
                 
-                // Fallback / Native PDF
+                // Fallback
                 return <iframe src={url} className="w-full h-full rounded-2xl border-0 shadow-inner bg-white" title={viewingFile.title} />;
               })()}
             </div>

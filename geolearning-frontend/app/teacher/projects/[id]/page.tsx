@@ -201,11 +201,7 @@ export default function ProjectSubmissionsPage() {
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{project.title}</h1>
               <p className="mt-1.5 text-indigo-100/80 max-w-xl text-sm leading-relaxed">{project.class?.name} • Max {project.xp_reward} XP</p>
-              {project.steam_integration && (
-                <span className="inline-block mt-2 px-2.5 py-1 text-[10px] font-bold text-white bg-blue-500/50 border border-blue-400/50 rounded-full backdrop-blur-sm">
-                  Berbasis STEAM
-                </span>
-              )}
+
             </div>
           </div>
         </div>
@@ -303,46 +299,7 @@ export default function ProjectSubmissionsPage() {
                     </div>
                   ) : gradingSubId === sub.id ? (
                     <div className="flex flex-col gap-3 w-full max-w-2xl bg-slate-50 border border-slate-200 rounded-xl p-4">
-                      {project.steam_integration && (
-                        <div className="mb-2 bg-white rounded-lg border border-blue-100 p-3 shadow-sm">
-                          <h5 className="text-[10px] font-bold text-blue-800 uppercase mb-2 flex items-center gap-1">
-                            <span className="bg-blue-600 text-white rounded-[4px] px-1 text-[8px] leading-tight">STM</span> 
-                            Rubrik Penilaian STEAM
-                          </h5>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                            {project.steam_integration.science && (
-                              <div className="bg-emerald-50 rounded p-1.5 text-[9px] text-emerald-900 leading-tight">
-                                <strong className="text-emerald-700 block mb-0.5">Sains:</strong>
-                                {project.steam_integration.science}
-                              </div>
-                            )}
-                            {project.steam_integration.technology && (
-                              <div className="bg-blue-50 rounded p-1.5 text-[9px] text-blue-900 leading-tight">
-                                <strong className="text-blue-700 block mb-0.5">Teknologi:</strong>
-                                {project.steam_integration.technology}
-                              </div>
-                            )}
-                            {project.steam_integration.engineering && (
-                              <div className="bg-amber-50 rounded p-1.5 text-[9px] text-amber-900 leading-tight">
-                                <strong className="text-amber-700 block mb-0.5">Teknik:</strong>
-                                {project.steam_integration.engineering}
-                              </div>
-                            )}
-                            {project.steam_integration.art && (
-                              <div className="bg-rose-50 rounded p-1.5 text-[9px] text-rose-900 leading-tight">
-                                <strong className="text-rose-700 block mb-0.5">Seni:</strong>
-                                {project.steam_integration.art}
-                              </div>
-                            )}
-                            {project.steam_integration.mathematics && (
-                              <div className="bg-purple-50 rounded p-1.5 text-[9px] text-purple-900 leading-tight">
-                                <strong className="text-purple-700 block mb-0.5">Matematika:</strong>
-                                {project.steam_integration.mathematics}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+
 
                       <div className="flex w-full items-center justify-end gap-2">
                         <span className="text-xs font-semibold text-slate-700">Nilai Akhir:</span>
