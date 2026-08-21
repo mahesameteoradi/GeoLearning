@@ -60,6 +60,12 @@ export class AdminController {
     return this.adminService.updateTeacher(id, body);
   }
 
+  @Post('teachers/bulk-delete')
+  deleteBulkTeachers(@Body() body: { teacherIds: string[] }, @CurrentUser() user: any) {
+    const adminId = user?.id || user?.sub;
+    return this.adminService.deleteBulkTeachers(body.teacherIds, adminId);
+  }
+
   @Delete('teachers/:id')
   deleteTeacher(@Param('id') id: string, @CurrentUser() user: any) {
     const adminId = user?.id || user?.sub;
@@ -69,6 +75,16 @@ export class AdminController {
   @Get('students')
   getStudents() {
     return this.adminService.getStudents();
+  }
+
+  @Post('students/bulk-delete')
+  deleteBulkStudents(@Body() body: { studentIds: string[] }) {
+    return this.adminService.deleteBulkStudents(body.studentIds);
+  }
+
+  @Delete('students/:id')
+  deleteStudent(@Param('id') id: string) {
+    return this.adminService.deleteStudent(id);
   }
 
   @Get('classes')

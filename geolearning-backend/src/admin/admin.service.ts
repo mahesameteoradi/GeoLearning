@@ -183,6 +183,41 @@ export class AdminService {
     return this.prisma.user.delete({ where: { id: teacherId } });
   }
 
+  async deleteBulkTeachers(teacherIds: string[], adminId: string) {
+    if (!teacherIds || teacherIds.length === 0) return { count: 0 };
+    
+    // Find all valid teachers
+    const teachers = await this.prisma.user.findMany({
+      where: { id: { in: teacherIds }, role: Role.TEACHER },
+    });
+    
+    const validIds = teachers.map(t => t.id);
+    if (validIds.length === 0) return { count: 0 };
+
+    // Reassign relations to admin
+    await this.prisma.$transaction(async (tx) => {
+      await tx.class.updateMany({
+        where: { teacher_id: { in: validIds } },
+        data: { teacher_id: adminId },
+      });
+      await tx.intervention.updateMany({
+        where: { teacher_id: { in: validIds } },
+        data: { teacher_id: adminId },
+      });
+    });
+
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // Delete from Supabase Auth
+    await Promise.all(validIds.map(id => supabase.auth.admin.deleteUser(id)));
+
+    // Finally delete from Prisma
+    return this.prisma.user.deleteMany({ where: { id: { in: validIds } } });
+  }
+
+
   async getStudents() {
     return this.prisma.user.findMany({
       where: { role: Role.STUDENT },
@@ -200,6 +235,47 @@ export class AdminService {
         },
       },
     });
+  }
+
+  async deleteStudent(studentId: string) {
+    const student = await this.prisma.user.findUnique({
+      where: { id: studentId },
+    });
+    if (!student || student.role !== Role.STUDENT) {
+      throw new NotFoundException('Siswa tidak ditemukan');
+    }
+
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // Delete from Supabase Auth
+    await supabase.auth.admin.deleteUser(studentId);
+
+    // Delete from Prisma (cascades handle related records)
+    return this.prisma.user.delete({ where: { id: studentId } });
+  }
+
+  async deleteBulkStudents(studentIds: string[]) {
+    if (!studentIds || studentIds.length === 0) return { count: 0 };
+    
+    // Find all valid students
+    const students = await this.prisma.user.findMany({
+      where: { id: { in: studentIds }, role: Role.STUDENT },
+    });
+    
+    const validIds = students.map(s => s.id);
+    if (validIds.length === 0) return { count: 0 };
+
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
+
+    // Delete from Supabase Auth
+    await Promise.all(validIds.map(id => supabase.auth.admin.deleteUser(id)));
+
+    // Delete from Prisma
+    return this.prisma.user.deleteMany({ where: { id: { in: validIds } } });
   }
 
   async getClasses() {

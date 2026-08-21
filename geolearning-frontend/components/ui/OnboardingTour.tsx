@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Joyride, Step, EventData } from 'react-joyride'
 import { useTour } from '@/components/providers/TourProvider'
 import { CustomTooltip } from './CustomTooltip'
+import { createClient } from '@/lib/supabase/client'
 
 interface OnboardingTourProps {
   tourKey: string
@@ -16,31 +17,49 @@ export function OnboardingTour({ tourKey, steps }: OnboardingTourProps) {
 
   // Start the tour automatically if it's the first time
   useEffect(() => {
-    const hasSeen = localStorage.getItem(`tour_${tourKey}`)
-    if (!hasSeen && activeTour === null) {
-      // Small delay to ensure elements are mounted
-      const timer = setTimeout(() => {
-        setRun(true)
-      }, 1000)
-      return () => clearTimeout(timer)
+    const checkAndStartTour = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const storageKey = `tour_${user.id}_${tourKey}`
+      const hasSeen = localStorage.getItem(storageKey)
+      
+      if (!hasSeen && activeTour === null) {
+        // Small delay to ensure elements are mounted
+        const timer = setTimeout(() => {
+          setRun(true)
+        }, 1000)
+        return () => clearTimeout(timer)
+      }
     }
+    checkAndStartTour()
   }, [tourKey, activeTour])
 
   // Start the tour if it's manually triggered
   useEffect(() => {
+    let frameId: number;
     if (activeTour === tourKey) {
-      setRun(true)
+      frameId = requestAnimationFrame(() => setRun(true))
     } else if (activeTour !== null && activeTour !== tourKey) {
-      setRun(false)
+      frameId = requestAnimationFrame(() => setRun(false))
+    }
+    return () => {
+      if (frameId) cancelAnimationFrame(frameId)
     }
   }, [activeTour, tourKey])
 
-  const handleJoyrideCallback = (data: EventData) => {
+  const handleJoyrideCallback = async (data: EventData) => {
     const { status } = data
     if (status === 'finished' || status === 'skipped') {
       setRun(false)
       stopTour()
-      localStorage.setItem(`tour_${tourKey}`, 'true')
+      
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        localStorage.setItem(`tour_${user.id}_${tourKey}`, 'true')
+      }
     }
   }
 

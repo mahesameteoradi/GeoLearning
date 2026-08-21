@@ -75,6 +75,11 @@ export function AdminClient({ user }: { user: any }) {
   const [filterStatus, setFilterStatus] = useState('ALL')
   const [filterClass, setFilterClass] = useState('ALL')
   const [filterTeacher, setFilterTeacher] = useState('ALL')
+  
+  // Bulk selection states
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([])
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([])
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false)
 
   useEffect(() => {
     setSearchQuery('')
@@ -184,6 +189,33 @@ export function AdminClient({ user }: { user: any }) {
     await performAction(`${process.env.NEXT_PUBLIC_API_URL}/admin/teachers/${teacherToDelete.id}`, 'DELETE', 'Akun guru berhasil dihapus!')
     setTeacherToDelete(null)
     setDeletingTeacher(false)
+  }
+
+  async function deleteBulkTeachers() {
+    if (selectedTeachers.length === 0) return
+    setIsDeletingBulk(true)
+    await performAction(`${process.env.NEXT_PUBLIC_API_URL}/admin/teachers/bulk-delete`, 'POST', `${selectedTeachers.length} Akun guru berhasil dihapus!`, { teacherIds: selectedTeachers })
+    setSelectedTeachers([])
+    setIsDeletingBulk(false)
+  }
+
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null)
+  const [deletingStudent, setDeletingStudent] = useState(false)
+
+  async function deleteStudentAccount() {
+    if (!studentToDelete) return
+    setDeletingStudent(true)
+    await performAction(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/${studentToDelete.id}`, 'DELETE', 'Akun siswa berhasil dihapus!')
+    setStudentToDelete(null)
+    setDeletingStudent(false)
+  }
+
+  async function deleteBulkStudents() {
+    if (selectedStudents.length === 0) return
+    setIsDeletingBulk(true)
+    await performAction(`${process.env.NEXT_PUBLIC_API_URL}/admin/students/bulk-delete`, 'POST', `${selectedStudents.length} Akun siswa berhasil dihapus!`, { studentIds: selectedStudents })
+    setSelectedStudents([])
+    setIsDeletingBulk(false)
   }
 
   // --- Excel Import Actions ---
@@ -506,9 +538,33 @@ export function AdminClient({ user }: { user: any }) {
                       </div>
                     </div>
                   <div className="overflow-x-auto">
+                    {selectedTeachers.length > 0 && (
+                      <div className="bg-red-50 px-6 py-3 border-b border-red-100 flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+                        <span className="text-sm font-semibold text-red-700">{selectedTeachers.length} Guru Terpilih</span>
+                        <button 
+                          onClick={deleteBulkTeachers} 
+                          disabled={isDeletingBulk}
+                          className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-70 shadow-sm shadow-red-600/20"
+                        >
+                          {isDeletingBulk ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          Hapus Terpilih
+                        </button>
+                      </div>
+                    )}
                     <table className="w-full text-left text-sm">
                       <thead className="bg-slate-50 text-slate-500">
                         <tr>
+                          <th className="px-6 py-4 w-12">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                              checked={filteredTeachers.length > 0 && selectedTeachers.length === filteredTeachers.length}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedTeachers(filteredTeachers.map(t => t.id))
+                                else setSelectedTeachers([])
+                              }}
+                            />
+                          </th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Informasi Guru</th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Status</th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Tgl Daftar</th>
@@ -517,7 +573,18 @@ export function AdminClient({ user }: { user: any }) {
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredTeachers.length > 0 ? filteredTeachers.map(teacher => (
-                          <tr key={teacher.id} className="transition-colors hover:bg-slate-50/50">
+                          <tr key={teacher.id} className={`transition-colors hover:bg-slate-50/50 ${selectedTeachers.includes(teacher.id) ? 'bg-blue-50/30' : ''}`}>
+                            <td className="px-6 py-4">
+                              <input 
+                                type="checkbox" 
+                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                                checked={selectedTeachers.includes(teacher.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) setSelectedTeachers([...selectedTeachers, teacher.id])
+                                  else setSelectedTeachers(selectedTeachers.filter(id => id !== teacher.id))
+                                }}
+                              />
+                            </td>
                             <td className="px-6 py-4">
                               <div className="font-bold text-slate-800">{teacher.name}</div>
                               <div className="text-slate-500">{teacher.email}</div>
@@ -557,7 +624,7 @@ export function AdminClient({ user }: { user: any }) {
                             </td>
                           </tr>
                         )) : (
-                          <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500 font-medium">Tidak ada guru ditemukan.</td></tr>
+                          <tr><td colSpan={5} className="px-6 py-12 text-center text-slate-500 font-medium">Tidak ada guru ditemukan.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -588,18 +655,54 @@ export function AdminClient({ user }: { user: any }) {
                     </div>
                   </div>
                   <div className="overflow-x-auto">
+                    {selectedStudents.length > 0 && (
+                      <div className="bg-red-50 px-6 py-3 border-b border-red-100 flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+                        <span className="text-sm font-semibold text-red-700">{selectedStudents.length} Siswa Terpilih</span>
+                        <button 
+                          onClick={deleteBulkStudents} 
+                          disabled={isDeletingBulk}
+                          className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-red-700 disabled:opacity-70 shadow-sm shadow-red-600/20"
+                        >
+                          {isDeletingBulk ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                          Hapus Terpilih
+                        </button>
+                      </div>
+                    )}
                     <table className="w-full text-left text-sm">
                       <thead className="bg-slate-50 text-slate-500">
                         <tr>
+                          <th className="px-6 py-4 w-12">
+                            <input 
+                              type="checkbox" 
+                              className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                              checked={filteredStudents.length > 0 && selectedStudents.length === filteredStudents.length}
+                              onChange={(e) => {
+                                if (e.target.checked) setSelectedStudents(filteredStudents.map(s => s.id))
+                                else setSelectedStudents([])
+                              }}
+                            />
+                          </th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Informasi Siswa</th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">NIS</th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Kelas Terdaftar</th>
                           <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs">Tgl Daftar</th>
+                          <th className="px-6 py-4 font-semibold uppercase tracking-wider text-xs text-right">Aksi</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {filteredStudents.length > 0 ? filteredStudents.map(student => (
-                          <tr key={student.id} className="transition-colors hover:bg-slate-50/50">
+                          <tr key={student.id} className={`transition-colors hover:bg-slate-50/50 ${selectedStudents.includes(student.id) ? 'bg-blue-50/30' : ''}`}>
+                            <td className="px-6 py-4">
+                              <input 
+                                type="checkbox" 
+                                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer"
+                                checked={selectedStudents.includes(student.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) setSelectedStudents([...selectedStudents, student.id])
+                                  else setSelectedStudents(selectedStudents.filter(id => id !== student.id))
+                                }}
+                              />
+                            </td>
                             <td className="px-6 py-4">
                               <div className="font-bold text-slate-800">{student.name}</div>
                               <div className="text-slate-500">{student.email}</div>
@@ -621,9 +724,14 @@ export function AdminClient({ user }: { user: any }) {
                             <td className="px-6 py-4 text-slate-500 font-medium">
                               {new Date(student.created_at).toLocaleDateString('id-ID')}
                             </td>
+                            <td className="px-6 py-4 text-right">
+                              <button onClick={() => setStudentToDelete(student)} className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red-50 text-red-600 transition hover:bg-red-100" title="Hapus Siswa">
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </td>
                           </tr>
                         )) : (
-                          <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500 font-medium">Tidak ada siswa ditemukan.</td></tr>
+                          <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 font-medium">Tidak ada siswa ditemukan.</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -878,6 +986,31 @@ export function AdminClient({ user }: { user: any }) {
               </button>
               <button onClick={deleteTeacherAccount} disabled={deletingTeacher} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 font-bold text-white transition hover:bg-red-700 disabled:opacity-70">
                 {deletingTeacher ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Ya, Hapus'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Student Modal */}
+      {studentToDelete && (
+        <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center bg-slate-800/40 p-4 py-8 md:py-12 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <AlertTriangle className="h-8 w-8" />
+              </div>
+              <h3 className="text-xl font-black text-slate-800">Hapus Akun Siswa?</h3>
+              <p className="mt-2 text-sm text-slate-500">
+                Anda yakin ingin menghapus <b>{studentToDelete.name}</b>? Tindakan ini tidak dapat dibatalkan dan seluruh riwayat nilai serta akses masuk akan terhapus.
+              </p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <button onClick={() => setStudentToDelete(null)} className="flex-1 rounded-xl bg-slate-50 py-3 font-bold text-slate-700 transition hover:bg-slate-200">
+                Batal
+              </button>
+              <button onClick={deleteStudentAccount} disabled={deletingStudent} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-red-600 py-3 font-bold text-white transition hover:bg-red-700 disabled:opacity-70">
+                {deletingStudent ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Ya, Hapus'}
               </button>
             </div>
           </div>
