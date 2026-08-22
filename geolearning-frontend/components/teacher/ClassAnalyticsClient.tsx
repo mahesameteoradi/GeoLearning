@@ -12,6 +12,7 @@ import { format } from 'date-fns'
 import { id } from 'date-fns/locale'
 import { calculateLevel } from '@/lib/utils/level'
 import toast from 'react-hot-toast'
+import { LogoLoader } from '@/components/ui/LogoLoader'
 
 interface ClassData {
   id: string
@@ -710,6 +711,7 @@ export function ClassAnalyticsClient({ classes }: { classes: ClassData[] }) {
             </div>
         </>
       )}
+      <LogoLoader isOpen={isExporting} message="Mengekspor Data Nilai..." onCancel={() => setIsExporting(false)} />
     </div>
   )
 }

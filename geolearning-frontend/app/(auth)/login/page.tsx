@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { OnboardingTour } from '@/components/ui/OnboardingTour'
 import { loginPageSteps } from '@/lib/utils/tourSteps'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const supabase = createClient()
@@ -129,9 +130,9 @@ export default function LoginPage() {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 mb-6 shadow-md"
+            className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center p-2 border border-white/20 mb-6 shadow-xl"
           >
-            <Compass className="w-8 h-8 text-white" />
+            <Image src="/logo.png" alt="GeoLearning Logo" width={80} height={80} className="w-full h-full object-contain" />
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
@@ -174,7 +175,10 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <div className="mb-10 text-center md:text-left">
+          <div className="mb-10 flex flex-col items-center md:items-start text-center md:text-left">
+            <div className="mb-6">
+              <Image src="/logo.png" alt="GeoLearning Logo" width={56} height={56} className="object-contain" />
+            </div>
             <h2 className="text-3xl font-extrabold tracking-tight text-slate-800 mb-2">
               Selamat Datang! 👋
             </h2>

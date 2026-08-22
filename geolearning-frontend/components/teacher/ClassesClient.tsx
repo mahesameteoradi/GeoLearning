@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { cn } from '@/lib/utils/cn'
 import { createClient } from '@/lib/supabase/client'
@@ -58,6 +59,7 @@ function CopyableCode({ code }: { code: string }) {
 }
 
 export function ClassesClient({ classes, teacherId, totalStudents, totalModules }: ClassesClientProps) {
+  const router = useRouter()
   const { confirm } = useConfirm()
   const [showModal, setShowModal] = useState(false)
   const [showImportModal, setShowImportModal] = useState(false)
@@ -90,7 +92,7 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
       setIsDeleting(null)
     } else {
       toast.success('Kelas berhasil dihapus')
-      window.location.reload()
+      router.refresh()
     }
   }
 
@@ -115,7 +117,8 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
       setIsBulkDeleting(false)
     } else {
       toast.success(`${selectedClasses.length} Kelas berhasil dihapus`)
-      window.location.reload()
+      setSelectedClasses([])
+      router.refresh()
     }
   }
 

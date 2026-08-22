@@ -642,7 +642,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
     const { error } = await supabase.from('modules').update({ title: editedModuleTitle.trim() }).eq('id', editingModuleId)
     setIsUpdatingModule(false)
     if (error) { toast.error('Gagal memperbarui nama bab') } 
-    else { toast.success('Nama bab diperbarui'); setEditingModuleId(null); window.location.reload() }
+    else { toast.success('Nama bab diperbarui'); setEditingModuleId(null); onSaved() }
   }
 
   async function handleDeleteModule(modId: string) {
@@ -664,7 +664,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
       const result = await res.json()
       if (!result.success) throw new Error('Gagal menghapus bab')
       toast.success('Bab berhasil dihapus')
-      window.location.reload()
+      onSaved()
     } catch (error) {
       toast.error('Gagal menghapus bab')
     } finally {
@@ -839,7 +839,7 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
 
   if (submitResult) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-800/75 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[60] flex items-start overflow-y-auto justify-center p-4 py-8 backdrop-blur-sm" style={{ background: 'rgba(15,23,42,0.75)' }}>
         <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-md p-8 text-center flex flex-col items-center">
           {submitResult.type === 'success' ? (
             <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">

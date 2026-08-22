@@ -253,7 +253,7 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
 
       {/* Viewer Modal omitted here for brevity, keeping same viewer code */}
       {viewingFile && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-800/80 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 bg-slate-800/80 backdrop-blur-sm animate-in fade-in">
           <div className="relative w-full max-w-5xl h-[85vh] bg-slate-50 rounded-2xl overflow-hidden shadow-md flex flex-col animate-in zoom-in-95">
             <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
               <div className="flex items-center gap-3">

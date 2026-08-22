@@ -77,7 +77,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
   return (
     <div className="flex h-[90vh] md:h-[80vh] w-[95vw] md:w-[90vw] max-w-6xl flex-col md:flex-row overflow-hidden bg-white rounded-2xl border border-slate-200 shadow-md">
       {/* Map Area */}
-      <div className="relative bg-slate-50 z-0 h-[50vh] md:h-full md:flex-1 shrink-0">
+      <div className="relative bg-slate-50 z-0 h-[45vh] md:h-full md:flex-1 shrink-0">
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={zoom}
@@ -107,8 +107,8 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
       </div>
 
       {/* Editor Sidebar */}
-      <div className="flex w-full md:w-[350px] flex-col bg-white border-l border-slate-200 shadow-[-10px_0_20px_rgba(0,0,0,0.03)] z-[10]">
-        <div className="flex items-center justify-between border-b border-slate-200 p-4 bg-slate-50/50">
+      <div className="flex w-full md:w-[350px] flex-col bg-white border-l border-slate-200 shadow-[-10px_0_20px_rgba(0,0,0,0.03)] z-[10] min-h-0">
+        <div className="flex items-center justify-between border-b border-slate-200 p-4 bg-slate-50/50 flex-shrink-0">
           <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
             Pengaturan Peta
           </h2>
@@ -117,7 +117,7 @@ export default function InteractiveMapEditorClient({ initialData, existingModule
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="flex-1 overflow-y-auto p-5 space-y-5 overscroll-contain">
           <div>
             <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Judul Peta <span className="text-red-500">*</span></label>
             <input value={mapTitle} onChange={e => setMapTitle(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all font-medium text-slate-800" placeholder="Contoh: Peta Persebaran Flora" />

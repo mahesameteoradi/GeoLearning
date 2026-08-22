@@ -110,7 +110,8 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
           .insert({
             class_id: classId,
             title: newModuleTitle.trim(),
-            order: existingModules.length
+            order: existingModules.length,
+            updated_at: new Date().toISOString()
           })
           .select()
           .single()
@@ -129,7 +130,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
         content_url: resource.file_url,
         content_text: resource.description,
         order: resourceOrder + idx,
-        xp_reward: resource.xp_reward || 15,
+        xp_reward: resource.xp_reward ?? 15,
         is_published: false,
         updated_at: new Date().toISOString()
       }))
@@ -173,8 +174,8 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
   })
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-800/60 p-4 backdrop-blur-sm animate-in fade-in">
-      <div className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2rem] bg-slate-50 shadow-md animate-in zoom-in-95 relative">
+    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center bg-slate-800/60 p-4 py-8 backdrop-blur-sm animate-in fade-in">
+      <div className="flex w-full max-w-5xl flex-col rounded-[2rem] bg-slate-50 shadow-md animate-in zoom-in-95 relative" style={{ minHeight: '80vh' }}>
         
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-white px-8 py-6">
@@ -239,7 +240,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
         </div>
 
         {/* Content Area */}
-        <div className="flex flex-1 flex-col overflow-hidden bg-slate-50 pb-20">
+        <div className="flex flex-1 flex-col overflow-y-auto bg-slate-50 pb-24">
           
           <div className="border-b border-slate-200 bg-white px-8 py-4 flex-shrink-0">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -266,7 +267,7 @@ export function ResourceBankModal({ classId, targetModuleId: initialModuleId, ex
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-8">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8">
             {loading ? (
               <div className="flex h-full flex-col items-center justify-center">
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600" />

@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
 import { Role } from '@prisma/client';
 import * as xlsx from 'xlsx';
+import { calculateLevel } from '../gamification/constants/level-thresholds';
 
 @Injectable()
 export class ClassesService {
@@ -11,7 +12,7 @@ export class ClassesService {
     private readonly supabaseService: SupabaseService,
   ) {}
 
-  async importStudents(classId: string, file: Express.Multer.File) {
+  async importStudents(classId: string, file: Express.Multer.File, req?: any) {
     if (!file) {
       throw new BadRequestException('File tidak ditemukan');
     }
@@ -96,6 +97,9 @@ export class ClassesService {
     const allEmails: string[] = [];
     const allNis: string[] = [];
     for (const row of data) {
+      if (req?.aborted || req?.socket?.destroyed) {
+        throw new Error('Request aborted by client');
+      }
       const nis = row['NIPD'] || row['NIS'] || row['NISN'];
       const email = row['EMAIL'] || (nis ? `${nis}@siswa.com` : null);
       if (email) allEmails.push(email.toString());
@@ -126,6 +130,11 @@ export class ClassesService {
     );
 
     for (const row of data) {
+      if (req?.aborted || req?.socket?.destroyed) {
+        console.warn('Import aborted by client. Stopping loop.');
+        throw new BadRequestException('Proses import dibatalkan oleh pengguna');
+      }
+
       const no_absen = row['NO'] || row['NOABSEN'];
       const nama = row['NAMAPESERTA'] || row['NAMA'];
       const nis = row['NIPD'] || row['NIS'] || row['NISN'];
@@ -445,6 +454,94 @@ export class ClassesService {
     return { success: true };
   }
 
+  private async removeStudentClassProgress(classId: string, studentIds: string[]) {
+    // 1. Dapatkan semua material, kuis, dan project di kelas ini
+    const classData = await this.prisma.class.findUnique({
+      where: { id: classId },
+      include: {
+        modules: {
+          include: {
+            materials: true,
+            quizzes: true,
+          }
+        },
+        quizzes: true,
+        projectAssignments: true,
+      }
+    });
+
+    if (!classData) return;
+
+    const materialIds: string[] = [];
+    const quizIds: string[] = classData.quizzes.map(q => q.id);
+    classData.modules.forEach(m => {
+      materialIds.push(...m.materials.map(mat => mat.id));
+      quizIds.push(...m.quizzes.map(q => q.id));
+    });
+    const projectIds: string[] = classData.projectAssignments.map(p => p.id);
+
+    // Proses untuk setiap siswa
+    for (const studentId of studentIds) {
+      let xpToDeduct = 0;
+
+      // a. Material Completions
+      if (materialIds.length > 0) {
+        const completions = await this.prisma.materialCompletion.findMany({
+          where: { user_id: studentId, material_id: { in: materialIds } },
+          include: { material: true }
+        });
+        completions.forEach(c => xpToDeduct += (c.material.xp_reward || 0));
+        await this.prisma.materialCompletion.deleteMany({
+          where: { user_id: studentId, material_id: { in: materialIds } }
+        });
+      }
+
+      // b. Quiz Attempts
+      if (quizIds.length > 0) {
+        const attempts = await this.prisma.quizAttempt.findMany({
+          where: { user_id: studentId, quiz_id: { in: quizIds } }
+        });
+        attempts.forEach(a => xpToDeduct += (a.xp_earned || 0));
+        await this.prisma.quizAttempt.deleteMany({
+          where: { user_id: studentId, quiz_id: { in: quizIds } }
+        });
+      }
+
+      // c. Project Submissions
+      if (projectIds.length > 0) {
+        const submissions = await this.prisma.projectSubmission.findMany({
+          where: { user_id: studentId, assignment_id: { in: projectIds } }
+        });
+        submissions.forEach(s => xpToDeduct += (s.xp_earned || 0));
+        await this.prisma.projectSubmission.deleteMany({
+          where: { user_id: studentId, assignment_id: { in: projectIds } }
+        });
+      }
+
+      // Decrement User XP and Level
+      if (xpToDeduct > 0) {
+        const user = await this.prisma.user.findUnique({ where: { id: studentId } });
+        if (user) {
+          const newXp = Math.max(0, user.xp - xpToDeduct);
+          const newLevel = calculateLevel(newXp);
+          await this.prisma.user.update({
+            where: { id: studentId },
+            data: { xp: newXp, level: newLevel }
+          });
+          
+          await this.prisma.xpLog.create({
+            data: {
+              user_id: studentId,
+              amount: -xpToDeduct,
+              source: 'KELAS_DIHAPUS',
+              reference_id: classId
+            }
+          });
+        }
+      }
+    }
+  }
+
   async removeStudent(classId: string, classStudentId: string) {
     const classStudent = await this.prisma.classStudent.findUnique({
       where: { id: classStudentId, class_id: classId },
@@ -452,6 +549,8 @@ export class ClassesService {
 
     if (!classStudent)
       throw new BadRequestException('Data siswa tidak ditemukan');
+
+    await this.removeStudentClassProgress(classId, [classStudent.student_id]);
 
     await this.prisma.classStudent.delete({
       where: { id: classStudentId },
@@ -461,6 +560,16 @@ export class ClassesService {
   }
 
   async bulkRemoveStudents(classId: string, classStudentIds: string[]) {
+    const classStudents = await this.prisma.classStudent.findMany({
+      where: {
+        class_id: classId,
+        id: { in: classStudentIds },
+      },
+    });
+
+    const studentIds = classStudents.map(cs => cs.student_id);
+    await this.removeStudentClassProgress(classId, studentIds);
+
     await this.prisma.classStudent.deleteMany({
       where: {
         class_id: classId,
@@ -515,7 +624,7 @@ export class ClassesService {
     return { success: true };
   }
 
-  async importBatchClasses(teacherId: string, file: Express.Multer.File) {
+  async importBatchClasses(teacherId: string, file: Express.Multer.File, req?: any) {
     if (!file) {
       throw new BadRequestException('File tidak ditemukan');
     }
@@ -538,6 +647,10 @@ export class ClassesService {
     };
 
     for (const sheetName of workbook.SheetNames) {
+      if (req?.aborted || req?.socket?.destroyed) {
+        throw new BadRequestException('Proses import dibatalkan oleh pengguna');
+      }
+
       const upperName = sheetName.toUpperCase();
       if (upperName === 'TOTAL' || upperName === 'REKAP') {
         continue;
@@ -649,6 +762,10 @@ export class ClassesService {
       let rowIndex = headerRowIndex + 1;
       let currentNoAbsen = 1;
       while (rowIndex < rawData.length) {
+        if (req?.aborted || req?.socket?.destroyed) {
+          throw new BadRequestException('Proses import dibatalkan oleh pengguna');
+        }
+
         const rowArr = rawData[rowIndex];
         if (!rowArr || rowArr.length === 0 || rowArr.join('').trim() === '') {
           // Empty row

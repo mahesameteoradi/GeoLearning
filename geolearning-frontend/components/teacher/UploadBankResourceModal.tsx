@@ -76,7 +76,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
         type: finalType,
         file_url: finalUrl,
         content: null,
-        xp_reward: xpReward,
+        xp_reward: !isNaN(Number(xpReward)) ? Number(xpReward) : 15,
         updated_at: new Date().toISOString()
       })
 
@@ -94,7 +94,7 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
 
   if (submitResult) {
     return (
-      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-800/75 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[60] flex items-start overflow-y-auto justify-center p-4 py-8 backdrop-blur-sm" style={{ background: 'rgba(15,23,42,0.75)' }}>
         <div className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-md p-8 text-center flex flex-col items-center">
           {submitResult.type === 'success' ? (
             <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
@@ -125,8 +125,8 @@ export function UploadBankResourceModal({ teacherId, onClose, onSuccess }: { tea
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-800/50 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-md">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-md">
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-800">Unggah ke Bank Materi</h2>

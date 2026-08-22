@@ -47,8 +47,8 @@ export function EditResourceBankModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-800/50 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-md">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/50 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-md">
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-800">Edit Materi Bank</h2>

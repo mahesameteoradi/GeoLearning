@@ -188,10 +188,10 @@ export function QuizBankModal({ classId, targetModuleId: initialModuleId, existi
   })
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 sm:py-12">
       <div className="absolute inset-0 bg-slate-800/40 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative flex h-full max-h-[800px] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-md">
+      <div className="relative flex w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-md" style={{ minHeight: '70vh' }}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
           <div>

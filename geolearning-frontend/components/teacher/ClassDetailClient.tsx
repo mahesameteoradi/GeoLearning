@@ -84,12 +84,12 @@ export interface CourseItem {
   order: number
   itemType: CourseItemType
   created_at: string
-  
+
   // material specific
   type?: string
   content_url?: string | null
   content_text?: string | null
-  
+
   // quiz specific
   time_limit?: number | null
   xp_reward?: number
@@ -117,12 +117,12 @@ function getCategoryFromUrl(url: string | null, type: string): FileCategoryExpan
 type FileCategoryExpanded = FileCategory | 'interactive_map' | 'bank'
 
 const CATEGORY_META: Record<FileCategoryExpanded, { icon: React.ElementType; color: string; bg: string; border: string; label: string }> = {
-  pdf:   { icon: FileText,     color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    label: 'PDF' },
-  video: { icon: Video,        color: 'text-blue-400',   bg: 'bg-blue-50',   border: 'border-blue-200',   label: 'Video' },
-  ppt:   { icon: Presentation, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', label: 'Presentasi' },
-  doc:   { icon: FileText,     color: 'text-blue-600',    bg: 'bg-blue-50',    border: 'border-blue-200',    label: 'Dokumen' },
-  link:  { icon: LinkIcon,     color: 'text-blue-600', bg: 'bg-amber-50', border: 'border-blue-300', label: 'Link' },
-  image: { icon: FileImage,    color: 'text-green-600',bg: 'bg-green-50',border: 'border-green-200',label: 'Gambar' },
+  pdf: { icon: FileText, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200', label: 'PDF' },
+  video: { icon: Video, color: 'text-blue-400', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Video' },
+  ppt: { icon: Presentation, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200', label: 'Presentasi' },
+  doc: { icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Dokumen' },
+  link: { icon: LinkIcon, color: 'text-blue-600', bg: 'bg-amber-50', border: 'border-blue-300', label: 'Link' },
+  image: { icon: FileImage, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200', label: 'Gambar' },
   interactive_map: { icon: MapIcon, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Peta Pembelajaran' },
   bank: { icon: BookMarked, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200', label: 'Bank Materi' },
 }
@@ -134,14 +134,14 @@ function formatTime(seconds: number) {
 
 // ─── Material Card ────────────────────────────────────────────────────────────
 
-function CourseItemCard({ 
+function CourseItemCard({
   item, index, total, onMove, onDelete, onViewMap, onEditQuiz, onEditMaterial, onViewFile, onViewQuiz, onTogglePublishItem
-}: { 
-  item: CourseItem; 
-  index: number; 
+}: {
+  item: CourseItem;
+  index: number;
   total: number;
-  onMove: (id: string, type: CourseItemType, dir: 'up'|'down') => void;
-  onDelete: (id: string, type: CourseItemType, url: string | null) => void; 
+  onMove: (id: string, type: CourseItemType, dir: 'up' | 'down') => void;
+  onDelete: (id: string, type: CourseItemType, url: string | null) => void;
   onViewMap: (item: CourseItem) => void;
   onEditQuiz: (item: CourseItem) => void;
   onEditMaterial: (item: CourseItem) => void;
@@ -150,7 +150,7 @@ function CourseItemCard({
   onTogglePublishItem: (item: CourseItem) => void;
 }) {
   const isMaterial = item.itemType === 'material'
-  
+
   let cat: FileCategoryExpanded = 'pdf'
   let meta = CATEGORY_META.pdf
   let Icon: React.ElementType = FileText
@@ -175,7 +175,7 @@ function CourseItemCard({
         <div className={cn('flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border', meta.bg, meta.border)}>
           <Icon className={cn('h-5 w-5', meta.color)} />
         </div>
-        
+
         <div className="flex-1 min-w-0 py-1">
           <div className="flex flex-wrap items-center gap-2 mb-1.5">
             <h3 className="text-sm font-bold text-slate-800 truncate group-hover:text-blue-600 transition-colors max-w-full">{item.title}</h3>
@@ -235,17 +235,18 @@ function CourseItemCard({
 
 type UploadTab = 'pdf' | 'video' | 'ppt' | 'doc' | 'link'
 const UPLOAD_TABS: { key: UploadTab; label: string; icon: React.ElementType; accept: string; dbType: string }[] = [
-  { key: 'pdf',   label: 'PDF',        icon: FileText,     accept: '.pdf',                 dbType: 'PDF'   },
-  { key: 'video', label: 'Video',      icon: Video,        accept: '.mp4,.webm,.mov,.avi', dbType: 'VIDEO' },
-  { key: 'ppt',   label: 'Presentasi', icon: Presentation, accept: '.ppt,.pptx',           dbType: 'PDF'   },
-  { key: 'doc',   label: 'Dokumen',    icon: FileText,     accept: '.doc,.docx',           dbType: 'PDF'   },
-  { key: 'link',  label: 'Link',       icon: LinkIcon,     accept: '',                     dbType: 'LINK'  },
+  { key: 'pdf', label: 'PDF', icon: FileText, accept: '.pdf', dbType: 'PDF' },
+  { key: 'video', label: 'Video', icon: Video, accept: '.mp4,.webm,.mov,.avi', dbType: 'VIDEO' },
+  { key: 'ppt', label: 'Presentasi', icon: Presentation, accept: '.ppt,.pptx', dbType: 'PDF' },
+  { key: 'doc', label: 'Dokumen', icon: FileText, accept: '.doc,.docx', dbType: 'PDF' },
+  { key: 'link', label: 'Link', icon: LinkIcon, accept: '', dbType: 'LINK' },
 ]
 
 import { useConfirm } from '@/components/ui/ConfirmProvider'
+import { LogoLoader } from '@/components/ui/LogoLoader'
 
-function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, onSuccess, onModuleAdded, editMaterial, teacherId }: {
-  classId: string; existingModules: {id: string, title: string}[]; nextOrderMap?: Record<string, number>; onClose: () => void; onSuccess: (mat: MaterialItem, newModule?: any, isUpdate?: boolean) => void; onModuleAdded: (mod: any) => void; editMaterial?: CourseItem | null; teacherId?: string
+function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, onSuccess, onModuleAdded, editMaterial, teacherId, onRefreshItems }: {
+  classId: string; existingModules: { id: string, title: string }[]; nextOrderMap?: Record<string, number>; onClose: () => void; onSuccess: (mat: MaterialItem, newModule?: any, isUpdate?: boolean) => void; onModuleAdded: (mod: any) => void; editMaterial?: CourseItem | null; teacherId?: string; onRefreshItems?: () => void
 }) {
   const { confirm } = useConfirm()
   const [tab, setTab] = useState<UploadTab>(() => {
@@ -293,8 +294,8 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
     const supabase = createClient()
     const { error } = await supabase.from('modules').update({ title: editedModuleTitle.trim() }).eq('id', editingModuleId)
     setIsUpdatingModule(false)
-    if (error) { toast.error('Gagal memperbarui nama bab') } 
-    else { toast.success('Nama bab diperbarui'); setEditingModuleId(null); window.location.reload() }
+    if (error) { toast.error('Gagal memperbarui nama bab') }
+    else { toast.success('Nama bab diperbarui'); setEditingModuleId(null); onRefreshItems?.() }
   }
 
   async function handleDeleteModule(modId: string) {
@@ -306,7 +307,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
     })
     if (!isConfirmed) return
     setIsUpdatingModule(true)
-    
+
     try {
       const res = await fetch('/api/teacher/course-items', {
         method: 'POST',
@@ -316,7 +317,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
       const result = await res.json()
       if (!result.success) throw new Error('Gagal menghapus bab')
       toast.success('Bab berhasil dihapus')
-      window.location.reload()
+      onRefreshItems?.()
     } catch (error) {
       toast.error('Gagal menghapus bab')
     } finally {
@@ -343,12 +344,12 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
     }
   }
 
-  function handleFile(f: File) { 
+  function handleFile(f: File) {
     if (f.size > 500 * 1024 * 1024) {
       toast.error('Ukuran file maksimal adalah 500MB');
       return;
     }
-    setFile(f); 
+    setFile(f);
     if (!title) setTitle(f.name.replace(/\.[^.]+$/, ''));
   }
 
@@ -366,8 +367,8 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const ext = file.name.split('.').pop()
         const path = `${classId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`
         setUploadProgress(20)
-        const { error: uploadErr } = await supabase.storage.from('class-materials').upload(path, file, { 
-          cacheControl: '31536000', 
+        const { error: uploadErr } = await supabase.storage.from('class-materials').upload(path, file, {
+          cacheControl: '31536000',
           upsert: false,
           contentType: file.type
         })
@@ -377,7 +378,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         contentUrl = publicUrl
       } else { contentUrl = isLink ? linkUrl.trim() : (editMaterial?.content_url || null) }
       setUploadProgress(85)
-      
+
       // Resolve Module
       let targetModuleId = selectedModuleId === 'new' ? null : selectedModuleId
       let newMod
@@ -395,7 +396,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const { data: mat, error: matErr } = await supabase.from('materials').update({
           module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
-          xp_reward: parseInt(xpReward) || 15,
+          xp_reward: !isNaN(parseInt(xpReward)) ? parseInt(xpReward) : 15,
           updated_at: new Date().toISOString(),
         }).eq('id', editMaterial.id).select().single()
         if (matErr) throw new Error(matErr.message)
@@ -407,7 +408,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const { data: mat, error: matErr } = await supabase.from('materials').insert({
           id: crypto.randomUUID(), module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
-          xp_reward: parseInt(xpReward) || 15,
+          xp_reward: !isNaN(parseInt(xpReward)) ? parseInt(xpReward) : 15,
           updated_at: new Date().toISOString(),
         }).select().single()
         if (matErr) throw new Error(matErr.message)
@@ -415,7 +416,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         if (teacherId) {
           // Resolve module title for the bank
           const modTitle = selectedModuleId === 'new' ? newModuleTitle.trim() : existingModules.find(m => m.id === selectedModuleId)?.title;
-          
+
           // Auto-save to TeacherResource bank
           const { error: saveErr } = await supabase.from('teacher_resources').insert({
             id: crypto.randomUUID(),
@@ -475,63 +476,63 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
           })}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2 relative">
-                <div className="flex items-center justify-between -mb-0.5">
-                  <label className="block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Bab / Modul <span className="text-red-600">*</span></label>
-                  {selectedModuleId !== 'new' && existingModules.length > 0 && !editingModuleId && (
-                    <div className="flex shrink-0 gap-1">
-                      <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
-                      <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </div>
-                  )}
-                </div>
-                {editingModuleId ? (
-                  <div className="flex items-center gap-1.5">
-                    <input
-                      autoFocus
-                      value={editedModuleTitle}
-                      onChange={e => setEditedModuleTitle(e.target.value)}
-                      disabled={isUpdatingModule}
-                      className="flex-1 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
-                    />
-                    <button type="button" onClick={handleSaveModuleEdit} disabled={isUpdatingModule || !editedModuleTitle.trim()} className="rounded-xl bg-amber-500 p-2.5 text-white hover:bg-amber-600 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
-                    <button type="button" onClick={() => setEditingModuleId(null)} disabled={isUpdatingModule} className="rounded-xl bg-slate-200 p-2.5 text-slate-600 hover:bg-slate-300 disabled:opacity-50"><X className="h-4 w-4" /></button>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2 relative">
+              <div className="flex items-center justify-between -mb-0.5">
+                <label className="block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Bab / Modul <span className="text-red-600">*</span></label>
+                {selectedModuleId !== 'new' && existingModules.length > 0 && !editingModuleId && (
+                  <div className="flex shrink-0 gap-1">
+                    <button type="button" title="Edit Nama Bab" onClick={() => { setEditingModuleId(selectedModuleId); setEditedModuleTitle(existingModules.find(m => m.id === selectedModuleId)?.title || '') }} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-amber-100 hover:text-amber-600 transition-colors"><Edit3 className="h-3.5 w-3.5" /></button>
+                    <button type="button" title="Hapus Bab" onClick={() => handleDeleteModule(selectedModuleId)} className="rounded-md bg-slate-50 p-1 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><Trash2 className="h-3.5 w-3.5" /></button>
                   </div>
-                ) : (
-                  <select 
-                    value={selectedModuleId} 
-                    onChange={e => setSelectedModuleId(e.target.value)}
+                )}
+              </div>
+              {editingModuleId ? (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    autoFocus
+                    value={editedModuleTitle}
+                    onChange={e => setEditedModuleTitle(e.target.value)}
                     disabled={isUpdatingModule}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30"
-                  >
-                    {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
-                    <option value="new">+ Tambah Bab / Modul Baru...</option>
-                  </select>
-                )}
-                {selectedModuleId === 'new' && (
-                  <div className="flex items-center gap-1.5">
-                    <input 
-                      value={newModuleTitle} 
-                      onChange={e => setNewModuleTitle(e.target.value)} 
-                      required={selectedModuleId === 'new'}
-                      maxLength={120} 
-                      placeholder="Ketik nama bab baru (Contoh: Bab 1)" 
-                      className="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm text-blue-900 placeholder-blue-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30" 
-                    />
-                    <button type="button" onClick={handleSaveNewModule} disabled={isUpdatingModule || !newModuleTitle.trim()} className="rounded-xl bg-blue-600 p-2.5 text-white hover:bg-blue-700 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Materi ke- (Urutan) <span className="text-red-600">*</span></label>
-                <input type="number" value={order} onChange={e => setOrder(Number(e.target.value))} required min={0}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
-              </div>
+                    className="flex-1 rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2.5 text-sm text-amber-900 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/30"
+                  />
+                  <button type="button" onClick={handleSaveModuleEdit} disabled={isUpdatingModule || !editedModuleTitle.trim()} className="rounded-xl bg-amber-500 p-2.5 text-white hover:bg-amber-600 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
+                  <button type="button" onClick={() => setEditingModuleId(null)} disabled={isUpdatingModule} className="rounded-xl bg-slate-200 p-2.5 text-slate-600 hover:bg-slate-300 disabled:opacity-50"><X className="h-4 w-4" /></button>
+                </div>
+              ) : (
+                <select
+                  value={selectedModuleId}
+                  onChange={e => setSelectedModuleId(e.target.value)}
+                  disabled={isUpdatingModule}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30"
+                >
+                  {existingModules.map(m => <option key={m.id} value={m.id}>{m.title}</option>)}
+                  <option value="new">+ Tambah Bab / Modul Baru...</option>
+                </select>
+              )}
+              {selectedModuleId === 'new' && (
+                <div className="flex items-center gap-1.5">
+                  <input
+                    value={newModuleTitle}
+                    onChange={e => setNewModuleTitle(e.target.value)}
+                    required={selectedModuleId === 'new'}
+                    maxLength={120}
+                    placeholder="Ketik nama bab baru (Contoh: Bab 1)"
+                    className="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm text-blue-900 placeholder-blue-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
+                  />
+                  <button type="button" onClick={handleSaveNewModule} disabled={isUpdatingModule || !newModuleTitle.trim()} className="rounded-xl bg-blue-600 p-2.5 text-white hover:bg-blue-700 disabled:opacity-50"><CheckCircle className="h-4 w-4" /></button>
+                </div>
+              )}
             </div>
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Judul Materi <span className="text-red-600">*</span></label>
-              <input value={title} onChange={e => setTitle(e.target.value)} required maxLength={120} placeholder="Contoh: Pengertian Geografi"
+              <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Materi ke- (Urutan) <span className="text-red-600">*</span></label>
+              <input type="number" value={order} onChange={e => setOrder(Number(e.target.value))} required min={0}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">Judul Materi <span className="text-red-600">*</span></label>
+            <input value={title} onChange={e => setTitle(e.target.value)} required maxLength={120} placeholder="Contoh: Pengertian Geografi"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-amber-500/30" />
           </div>
           <div>
@@ -567,7 +568,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
                       <p className="mt-3 border-t border-slate-200 pt-3 text-[10px] text-slate-500">Klik / drag file baru ke sini untuk mengganti</p>
                     </div>
                   )
-                  : (<><UploadCloud className="h-7 w-7 text-slate-600" /><p className="text-xs font-semibold text-slate-500">Drag &amp; drop atau klik untuk pilih file</p><p className="text-[11px] text-slate-600">{currentTab.accept.replace(/\./g, '').toUpperCase()} · Maks. 500MB</p></>)}
+                    : (<><UploadCloud className="h-7 w-7 text-slate-600" /><p className="text-xs font-semibold text-slate-500">Drag &amp; drop atau klik untuk pilih file</p><p className="text-[11px] text-slate-600">{currentTab.accept.replace(/\./g, '').toUpperCase()} · Maks. 500MB</p></>)}
               </div>
               <input ref={fileInputRef} type="file" accept={currentTab.accept} className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
             </div>
@@ -580,6 +581,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
               </div>
             </div>
           )}
+          <LogoLoader isOpen={uploading} message={uploadProgress > 0 ? `Mengunggah... ${uploadProgress}%` : (editMaterial ? 'Menyimpan...' : 'Memproses...')} onCancel={() => setUploading(false)} />
           <div className="flex gap-2.5 pt-1">
             <button type="button" onClick={onClose} disabled={uploading} className="flex-1 rounded-xl border border-slate-200 py-2.5 text-sm font-semibold text-slate-500 hover:border-slate-300 hover:text-slate-800 disabled:opacity-50">Batal</button>
             <button type="submit" disabled={uploading || !title.trim() || (isLink ? !linkUrl.trim() : (!file && !editMaterial))}
@@ -599,8 +601,8 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   const { confirm } = useConfirm()
   const initialItems: CourseItem[] = cls.modules.flatMap(m => [
     ...m.materials.map(mat => ({ ...mat, itemType: 'material' as CourseItemType })),
-    ...(m.quizzes || []).map(q => ({ 
-      ...q, 
+    ...(m.quizzes || []).map(q => ({
+      ...q,
       itemType: 'quiz' as CourseItemType,
       time_limit: q.time_limit,
       xp_reward: q.xp_reward,
@@ -628,6 +630,51 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
 
   const toggleModule = (id: string) => setExpandedModules(p => ({ ...p, [id]: !p[id] }))
 
+  // ─── Smooth in-place refresh (no full page reload) ───────────────────────
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const refreshItems = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      const supabase = createClient()
+      const { data: freshMods } = await supabase
+        .from('modules')
+        .select(`
+          id, title, order, class_id,
+          materials(id, module_id, title, type, content_url, content_text, order, created_at, xp_reward, is_published),
+          quizzes(id, module_id, title, type, order, created_at, xp_reward, time_limit, passing_score, is_published, quiz_type, max_attempts)
+        `)
+        .eq('class_id', cls.id)
+        .order('order')
+
+      if (freshMods) {
+        // Rebuild items from fresh data
+        const newItems: CourseItem[] = freshMods.flatMap((m: any) => [
+          ...(m.materials || []).map((mat: any) => ({ ...mat, itemType: 'material' as CourseItemType })),
+          ...(m.quizzes || []).map((q: any) => ({ ...q, itemType: 'quiz' as CourseItemType })),
+        ]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+        // Update modules list on cls (for module dropdowns)
+        freshMods.forEach((fm: any) => {
+          const existing = cls.modules.find(m => m.id === fm.id)
+          if (!existing) cls.modules.push({ ...fm, materials: fm.materials || [], quizzes: fm.quizzes || [] })
+          else {
+            existing.materials = fm.materials || []
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ; (existing as any).quizzes = fm.quizzes || []
+          }
+        })
+
+        setItems(newItems)
+      }
+    } catch (err) {
+      console.error('refreshItems error:', err)
+    } finally {
+      // Small delay so the fade looks intentional, not a glitch
+      setTimeout(() => setIsRefreshing(false), 300)
+    }
+  }, [cls.id, cls.modules])
+
   async function ensureModuleExists(): Promise<string | null> {
     if (cls.modules.length > 0) return cls.modules[0].id
     setInitializingModule(true)
@@ -642,7 +689,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
 
   async function handleOpenModal() { await ensureModuleExists(); setShowModal(true) }
   async function handleOpenMapEditor() { const mid = await ensureModuleExists(); if (mid) setShowMapEditor(true) }
-  function handleMaterialAdded(mat: MaterialItem, newMod?: any, isUpdate?: boolean) { 
+  function handleMaterialAdded(mat: MaterialItem, newMod?: any, isUpdate?: boolean) {
     if (newMod) {
       cls.modules.push({ ...newMod, materials: [], quizzes: [] })
     }
@@ -661,7 +708,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
         const newItems = [...prev, { ...mat, itemType: 'material' as CourseItemType }]
         return newItems.sort((a, b) => a.order - b.order)
       }
-    }) 
+    })
   }
 
   async function handleMove(id: string, type: CourseItemType, dir: 'up' | 'down') {
@@ -706,7 +753,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
     })
     if (!isConfirmed) return
     const supabase = createClient()
-    
+
     // Attempt storage deletion if applicable
     if (type !== 'quiz' && storageUrl?.includes('supabase')) {
       const pathMatch = storageUrl.match(/class-materials\/(.+)$/)
@@ -764,7 +811,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   }
 
   const TABS = [
-    { key: 'siswa'  as PageTab, label: 'Siswa',  icon: Users },
+    { key: 'siswa' as PageTab, label: 'Siswa', icon: Users },
     { key: 'materi' as PageTab, label: 'Materi Kelas', icon: BookOpen, count: items.length },
     { key: 'peringkat' as PageTab, label: 'Peringkat', icon: Trophy },
   ]
@@ -775,7 +822,24 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
   }, {} as Record<string, number>)
 
   return (
-    <div className="min-h-full p-3 sm:p-5 lg:p-7">
+    <div className="min-h-full p-3 sm:p-5 lg:p-7 relative">
+      {/* Smooth Refresh Overlay */}
+      <AnimatePresence>
+        {isRefreshing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-3xl m-3 sm:m-5 lg:m-7"
+          >
+            <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-6 shadow-xl border border-slate-100">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+              <p className="text-sm font-bold text-slate-700 animate-pulse">Memperbarui Data...</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Back */}
       <Link href="/teacher/classes" className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-700">
         <ArrowLeft className="h-4 w-4" />Kembali ke Daftar Kelas
@@ -786,7 +850,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse"></div>
         <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-blue-500 blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-        
+
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-6">
             <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 text-2xl font-black text-white shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-105 hover:rotate-3 drop-shadow-md">
@@ -891,40 +955,40 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                           {isExpanded ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
                         </div>
                       </button>
-                      
+
                       {isExpanded && (
                         <div className="space-y-2 border-t border-slate-100 bg-slate-50/50 p-4">
                           <AnimatePresence mode="popLayout">
-                          {modItems.length > 0 ? (
-                            modItems.map((item, idx) => (
-                              <motion.div 
-                                layout
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ duration: 0.2 }}
-                                key={item.itemType + item.id}
-                              >
-                                <CourseItemCard 
-                                  item={item} 
-                                  index={idx}
-                                  total={modItems.length}
-                                  onMove={handleMove}
-                                  onDelete={handleDelete} 
-                                  onViewMap={setViewingMap}
-                                  onEditQuiz={setEditingQuiz}
-                                  onEditMaterial={setEditingMaterial}
-                                  onViewFile={(url, title) => setViewingFile({ url, title })}
-                                  onViewQuiz={setSelectedDetailQuiz}
-                                  onTogglePublishItem={handleTogglePublishItem}
-                                />
+                            {modItems.length > 0 ? (
+                              modItems.map((item, idx) => (
+                                <motion.div
+                                  layout
+                                  initial={{ opacity: 0, scale: 0.95 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.95 }}
+                                  transition={{ duration: 0.2 }}
+                                  key={item.itemType + item.id}
+                                >
+                                  <CourseItemCard
+                                    item={item}
+                                    index={idx}
+                                    total={modItems.length}
+                                    onMove={handleMove}
+                                    onDelete={handleDelete}
+                                    onViewMap={setViewingMap}
+                                    onEditQuiz={setEditingQuiz}
+                                    onEditMaterial={setEditingMaterial}
+                                    onViewFile={(url, title) => setViewingFile({ url, title })}
+                                    onViewQuiz={setSelectedDetailQuiz}
+                                    onTogglePublishItem={handleTogglePublishItem}
+                                  />
+                                </motion.div>
+                              ))
+                            ) : (
+                              <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
+                                <p className="text-sm font-medium text-slate-500">Belum ada materi atau kuis di bab ini.</p>
                               </motion.div>
-                            ))
-                          ) : (
-                            <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50 py-10 text-center">
-                              <p className="text-sm font-medium text-slate-500">Belum ada materi atau kuis di bab ini.</p>
-                            </motion.div>
-                          )}
+                            )}
                           </AnimatePresence>
                         </div>
                       )}
@@ -947,18 +1011,19 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
 
       {/* Upload Modal */}
       {(showModal || editingMaterial) && (
-        <UploadMaterialModal 
-          classId={cls.id} 
-          existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))} 
+        <UploadMaterialModal
+          classId={cls.id}
+          existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))}
           nextOrderMap={nextOrderMap}
           editMaterial={editingMaterial}
           teacherId={teacherId}
-          onClose={() => { setShowModal(false); setEditingMaterial(null); }} 
-          onSuccess={handleMaterialAdded} 
+          onClose={() => { setShowModal(false); setEditingMaterial(null); }}
+          onSuccess={handleMaterialAdded}
           onModuleAdded={(mod) => {
             cls.modules.push({ ...mod, materials: [], quizzes: [] })
             setItems([...items]) // trigger re-render
           }}
+          onRefreshItems={refreshItems}
         />
       )}
 
@@ -972,7 +1037,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
           onClose={() => setShowQuizBankModal(false)}
           onSuccess={() => {
             setShowQuizBankModal(false)
-            window.location.reload()
+            refreshItems()
           }}
         />
       )}
@@ -987,7 +1052,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
           onClose={() => setShowResourceBankModal(false)}
           onSuccess={() => {
             setShowResourceBankModal(false)
-            window.location.reload()
+            refreshItems()
           }}
         />
       )}
@@ -1010,9 +1075,9 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
 
       {/* Quiz Editor Modal (For Editing only) */}
       {editingQuiz && (
-        <QuizEditorModal 
+        <QuizEditorModal
           classId={cls.id}
-          existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))} 
+          existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))}
           nextOrderMap={nextOrderMap}
           quiz={editingQuiz ? {
             id: editingQuiz.id,
@@ -1029,20 +1094,20 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
           onClose={() => setEditingQuiz(null)}
           onSaved={(newMod: any) => {
             setEditingQuiz(null)
-            window.location.reload()
+            refreshItems()
           }}
         />
       )}
 
       {/* Map Editor Modal */}
       {showMapEditor && moduleId && (
-        <InteractiveMapEditorModal 
+        <InteractiveMapEditorModal
           existingModules={cls.modules.map(m => ({ id: m.id, title: m.title }))}
           defaultModuleId={moduleId}
           nextOrderMap={nextOrderMap}
           defaultTitle={`Peta Pembelajaran: ${cls.name}`}
-          onClose={() => setShowMapEditor(false)} 
-          onSuccess={handleMaterialAdded} 
+          onClose={() => setShowMapEditor(false)}
+          onSuccess={handleMaterialAdded}
         />
       )}
 
@@ -1067,15 +1132,15 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                 <h3 className="font-bold text-slate-800 text-lg truncate pr-4">{viewingFile.title}</h3>
               </div>
               <div className="flex items-center gap-2">
-                <a 
-                  href={viewingFile.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                <a
+                  href={viewingFile.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="px-4 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors shadow-sm"
                 >
                   Buka di Tab Baru
                 </a>
-                <button 
+                <button
                   onClick={() => setViewingFile(null)}
                   className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors"
                 >
@@ -1087,7 +1152,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
               {(() => {
                 const url = viewingFile.url;
                 const ext = url.split('.').pop()?.toLowerCase() || '';
-                
+
                 if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) {
                   return <img src={url} alt={viewingFile.title} className="max-w-full max-h-full rounded-xl object-contain shadow-sm" />;
                 }
@@ -1112,7 +1177,7 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                     </div>
                   );
                 }
-                
+
                 // Fallback
                 return <iframe src={url} className="w-full h-full rounded-2xl border-0 shadow-inner bg-white" title={viewingFile.title} />;
               })()}

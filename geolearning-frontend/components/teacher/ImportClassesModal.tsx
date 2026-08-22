@@ -5,6 +5,7 @@ import { X, Upload, FileSpreadsheet, Loader2, CheckCircle, AlertCircle, Download
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { LogoLoader } from '@/components/ui/LogoLoader'
 
 interface ImportClassesModalProps {
   onClose: () => void
@@ -18,6 +19,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
   const [progressText, setProgressText] = useState('')
   const [result, setResult] = useState<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const router = useRouter()
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,8 +53,10 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
     if (!file) return
 
     setLoading(true)
-    setProgress(0)
-    setProgressText('Mengunggah file Excel...')
+    setProgress(5)
+    setProgressText('Menyiapkan file...')
+
+    abortControllerRef.current = new AbortController()
 
     // Simulate progress
     const progressInterval = setInterval(() => {
@@ -81,7 +85,8 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
         headers: {
           ...(sessionData.session?.access_token && { 'Authorization': `Bearer ${sessionData.session.access_token}` })
         },
-        body: formData
+        body: formData,
+        signal: abortControllerRef.current.signal
       })
 
       clearInterval(progressInterval)
@@ -100,10 +105,22 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
       }, 500)
     } catch (err: any) {
       clearInterval(progressInterval)
-      toast.error(err.message)
+      if (err.name === 'AbortError') {
+        toast.error('Proses import dibatalkan')
+      } else {
+        toast.error(err.message)
+      }
       setLoading(false)
       setProgress(0)
     }
+  }
+
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    setLoading(false)
+    setProgress(0)
   }
 
   const downloadErrorLog = () => {
@@ -124,7 +141,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
 
   if (result) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-800/60 p-4 backdrop-blur-sm animate-in fade-in">
+      <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm animate-in fade-in">
         <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-md p-8 flex flex-col items-center text-center">
           <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
             <CheckCircle className="w-8 h-8" />
@@ -176,7 +193,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -250,21 +267,8 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
 
         <div className="flex gap-3">
           {loading ? (
-            <div className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-6 flex flex-col items-center">
-              <div className="w-full bg-slate-200 rounded-full h-3 mb-4 overflow-hidden">
-                <div 
-                  className="bg-green-500 h-3 rounded-full transition-all duration-300 ease-out relative"
-                  style={{ width: `${progress}%` }}
-                >
-                  <div className="absolute top-0 left-0 right-0 bottom-0 overflow-hidden rounded-full">
-                    <div className="w-full h-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-semibold text-slate-600 animate-pulse">{progressText}</span>
-                <span className="text-xs font-black text-green-600">{progress}%</span>
-              </div>
+            <div className="w-full flex items-center justify-center p-4">
+              <span className="text-sm font-semibold text-slate-500 animate-pulse">Memproses...</span>
             </div>
           ) : (
             <>
@@ -286,6 +290,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
             </>
           )}
         </div>
+        <LogoLoader isOpen={loading} message={progress > 0 ? `${progressText} ${progress}%` : progressText} onCancel={handleCancel} />
       </div>
     </div>
   )

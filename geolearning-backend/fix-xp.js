@@ -1,17 +1,16 @@
 const { Client } = require('pg');
 require('dotenv').config();
+const { createClient } = require('@supabase/supabase-js');
 
 async function main() {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
 
-  // Find students with XP > 0 to identify who has the 615 XP
+  // Recalculate and fix XP for all students with XP > 0
   const { rows: students } = await client.query(
-    "SELECT id, name, email, xp FROM users WHERE role = 'STUDENT' AND xp > 0 ORDER BY xp DESC"
+    "SELECT id, name, xp FROM users WHERE role = 'STUDENT' AND xp > 0"
   );
-  console.log('Students with XP > 0:', students);
 
-  // For each student, calculate legit XP
   for (const s of students) {
     // Quiz XP: best attempt per quiz
     const { rows: quizAttempts } = await client.query(
@@ -20,7 +19,7 @@ async function main() {
     );
     const quizXp = quizAttempts.reduce((sum, r) => sum + Number(r.best_xp || 0), 0);
 
-    // Material XP: from xp_logs MATERIAL_READ
+    // Material XP
     const { rows: matLogs } = await client.query(
       "SELECT COALESCE(SUM(amount), 0) as total FROM xp_logs WHERE user_id = $1 AND source = 'MATERIAL_READ'",
       [s.id]
@@ -35,15 +34,31 @@ async function main() {
     const projXp = Number(projSubs[0].total || 0);
 
     const legitXp = quizXp + matXp + projXp;
-    const bonus = s.xp - legitXp;
 
-    console.log(`\n[${s.name}]`);
-    console.log(`  DB XP: ${s.xp}`);
-    console.log(`  Quiz XP: ${quizXp}, Material XP: ${matXp}, Project XP: ${projXp}`);
-    console.log(`  Legit Total: ${legitXp}`);
-    console.log(`  Unexplained bonus: ${bonus}`);
+    if (legitXp !== s.xp) {
+      // Calculate level: XP thresholds: 1=0, 2=100, 3=250, 4=500, 5=1000, 6=2000...
+      function calculateLevel(xp) {
+        const thresholds = [0, 100, 250, 500, 1000, 2000, 3500, 5500, 8000, 11000];
+        let level = 1;
+        for (let i = 1; i < thresholds.length; i++) {
+          if (xp >= thresholds[i]) level = i + 1;
+          else break;
+        }
+        return level;
+      }
+      const newLevel = calculateLevel(legitXp);
+
+      await client.query(
+        "UPDATE users SET xp = $1, level = $2 WHERE id = $3",
+        [legitXp, newLevel, s.id]
+      );
+      console.log(`✅ Fixed [${s.name}]: ${s.xp} XP → ${legitXp} XP (Level ${newLevel})`);
+    } else {
+      console.log(`✓ [${s.name}] XP already correct: ${s.xp}`);
+    }
   }
 
   await client.end();
+  console.log('Done!');
 }
 main();

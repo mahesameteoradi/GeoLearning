@@ -1,3 +1,5 @@
+'use client'
+
 import { cn } from '@/lib/utils/cn'
 import { 
   Target, Star, Flame, Shield, Library, Zap, 
@@ -136,78 +138,116 @@ export const BadgeShieldContainer = ({ children, className, isEarned = true, hov
 export function BadgeGrid({ earned, equippedId, className, compact = false }: BadgeGridProps) {
   const earnedIds = new Set(earned.map((b) => b.id))
 
-  return (
-    <div
-      className={cn(
-        'flex overflow-x-auto overflow-y-hidden pb-4 sm:pb-0 touch-pan-x',
-        'sm:grid sm:overflow-visible',
-        'gap-4 sm:gap-4',
-        compact ? 'sm:grid-cols-6' : 'sm:grid-cols-4 md:grid-cols-5',
-        className
-      )}
-    >
-      {ALL_BADGES.map((badge) => {
-        const isEarned = earnedIds.has(badge.id)
-        const isEquipped = badge.id === equippedId
-        const tier = badge.tier || 'bronze'
+  const badgeItems = ALL_BADGES.map((badge) => {
+    const isEarned = earnedIds.has(badge.id)
+    const isEquipped = badge.id === equippedId
+    const tier = badge.tier || 'bronze'
 
-        return (
-          <div
-            key={badge.id}
-            title={isEarned ? `${badge.display_name}: ${badge.description}` : `Terkunci — ${badge.display_name}: Syarat: ${badge.description}`}
-            className={cn(
-              'group relative flex flex-col items-center gap-2 transition-all duration-300 flex-shrink-0',
-              compact ? 'w-16 sm:w-auto' : 'w-20 sm:w-auto',
-              isEarned ? 'cursor-pointer hover:scale-110 hover:-translate-y-1 hover:z-10' : 'cursor-default'
-            )}
+    return (
+      <div
+        key={badge.id}
+        title={isEarned ? `${badge.display_name}: ${badge.description}` : `Terkunci — ${badge.display_name}: Syarat: ${badge.description}`}
+        className={cn(
+          'group relative flex flex-col items-center gap-2 transition-all duration-300 flex-shrink-0',
+          compact ? 'w-16' : 'w-20',
+          isEarned ? 'cursor-pointer hover:scale-110 hover:-translate-y-1 hover:z-10' : 'cursor-default'
+        )}
+      >
+        {/* Equipped indicator */}
+        {isEquipped && (
+          <div className="absolute -top-1.5 -right-1.5 z-20 flex h-6 w-6 animate-bounce items-center justify-center rounded-full bg-blue-600 shadow-lg ring-2 ring-white">
+            <span className="text-[10px] text-white">⭐</span>
+          </div>
+        )}
+
+        {/* Aura effect for equipped badge */}
+        {isEquipped && (
+          <div className="absolute inset-0 z-0 animate-pulse rounded-full bg-blue-400/30 blur-xl scale-150" />
+        )}
+
+        {/* Badge container shape */}
+        <div className="relative">
+          <BadgeShieldContainer
+            isEarned={isEarned}
+            hoverGlow={isEarned}
+            className={compact ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'}
           >
-            {/* Equipped indicator */}
-            {isEquipped && (
-              <div className="absolute -top-1.5 -right-1.5 z-20 flex h-6 w-6 animate-bounce items-center justify-center rounded-full bg-blue-600 shadow-lg ring-2 ring-white">
-                <span className="text-[10px] text-white">⭐</span>
-              </div>
-            )}
+            <BadgeIcon id={badge.id} />
+          </BadgeShieldContainer>
 
-            {/* Aura effect for equipped badge */}
-            {isEquipped && (
-              <div className="absolute inset-0 z-0 animate-pulse rounded-full bg-blue-400/30 blur-xl scale-150" />
-            )}
-
-            {/* Badge container shape */}
-            <div className="relative">
-              <BadgeShieldContainer 
-                isEarned={isEarned} 
-                hoverGlow={isEarned}
-                className={compact ? 'h-8 w-8 sm:h-10 sm:w-10' : 'h-10 w-10 sm:h-12 sm:w-12'}
-              >
-                <BadgeIcon id={badge.id} />
-              </BadgeShieldContainer>
-              
-              {!isEarned && (
-                <div className="absolute -bottom-1 -right-1 z-30 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-slate-700 shadow-sm border border-slate-600">
-                  <Lock className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-slate-300" />
-                </div>
-              )}
+          {!isEarned && (
+            <div className="absolute -bottom-1 -right-1 z-30 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-slate-700 shadow-sm border border-slate-600">
+              <Lock className="h-2 w-2 sm:h-2.5 sm:w-2.5 text-slate-300" />
             </div>
+          )}
+        </div>
 
-            {!compact && (
-              <div className="flex flex-col items-center mt-1 w-full px-1">
-                <span className={cn(
-                  "text-center text-[10px] sm:text-xs font-bold leading-tight w-full truncate",
-                  isEarned ? "text-slate-700 group-hover:text-blue-600" : "text-slate-400"
-                )}>
-                  {badge.display_name}
-                </span>
-                {isEarned && (
-                  <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {tier}
-                  </span>
-                )}
-              </div>
+        {!compact && (
+          <div className="flex flex-col items-center mt-1 w-full px-1">
+            <span className={cn(
+              "text-center text-[10px] font-bold leading-tight w-full truncate",
+              isEarned ? "text-slate-700 group-hover:text-blue-600" : "text-slate-400"
+            )}>
+              {badge.display_name}
+            </span>
+            {isEarned && (
+              <span className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                {tier}
+              </span>
             )}
           </div>
-        )
-      })}
-    </div>
+        )}
+      </div>
+    )
+  })
+
+  return (
+    <>
+      {/* Desktop: grid layout */}
+      <div
+        className={cn(
+          'hidden md:grid gap-4',
+          compact ? 'grid-cols-6' : 'grid-cols-4 lg:grid-cols-5',
+          className
+        )}
+      >
+        {badgeItems}
+      </div>
+
+      {/* Mobile / Tablet: infinite marquee */}
+      <div className="md:hidden relative overflow-hidden py-2">
+        {/* Fade edges */}
+        <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-white to-transparent" />
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-white to-transparent" />
+
+        <div className="flex w-max animate-badge-marquee gap-6 px-4">
+          {/* First copy */}
+          {badgeItems}
+          {/* Second copy for seamless loop */}
+          {badgeItems.map((item, i) => (
+            <div key={`dup-${i}`} className={cn(
+              'group relative flex flex-col items-center gap-2 transition-all duration-300 flex-shrink-0',
+              compact ? 'w-16' : 'w-20'
+            )} aria-hidden>
+              {item.props.children}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Marquee keyframe - injected as global style */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes badge-marquee {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-badge-marquee {
+          animation: badge-marquee 20s linear infinite;
+        }
+        .animate-badge-marquee:hover {
+          animation-play-state: paused;
+        }
+      ` }} />
+    </>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { X, UploadCloud, FileSpreadsheet, Loader2, CheckCircle, AlertTriangle, Download } from 'lucide-react'
 import toast from 'react-hot-toast'
 import * as xlsx from 'xlsx'
+import { LogoLoader } from '@/components/ui/LogoLoader'
 
 interface ImportSiswaModalProps {
   classId: string
@@ -18,6 +19,7 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
   const [result, setResult] = useState<any>(null)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const handleDownloadTemplate = () => {
     // Generate a simple Excel template
@@ -60,23 +62,22 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
     formData.append('file', file)
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-    const token = localStorage.getItem('supabase.auth.token') // Depending on how auth is handled, usually Next.js server actions handle this, but here we call NestJS.
-    // In Supabase, the token might be in a cookie or localStorage. Let's just pass the session if needed, but since we are bypassing RLS in backend using service role, we might just need any auth or it might be protected by an API key. 
-    // Wait, the backend endpoint currently doesn't have an @UseGuards applied specifically on the endpoint. If it does, we need to pass Authorization token.
-    // For now, let's assume standard Supabase auth session fetching or just sending the request.
-
+    
     try {
       // Get the session from Supabase to send Bearer token
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
       const { data: sessionData } = await supabase.auth.getSession();
       
+      abortControllerRef.current = new AbortController()
+
       const res = await fetch(`${apiUrl}/kelas/${classId}/import-siswa`, {
         method: 'POST',
         headers: {
           ...(sessionData.session?.access_token && { 'Authorization': `Bearer ${sessionData.session.access_token}` })
         },
-        body: formData
+        body: formData,
+        signal: abortControllerRef.current.signal
       })
 
       const data = await res.json()
@@ -89,15 +90,28 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
       toast.success('Proses import selesai!')
       onSuccess()
     } catch (err: any) {
-      toast.error(err.message)
+      if (err.name === 'AbortError') {
+        toast.error('Proses import dibatalkan')
+      } else {
+        toast.error(err.message)
+      }
     } finally {
       setUploading(false)
     }
   }
 
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    setUploading(false)
+  }
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-800/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-md">
+    <div className="fixed inset-0 z-50 flex items-start overflow-y-auto justify-center p-4 py-8 md:py-12 bg-slate-900/60 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg rounded-[2rem] border border-white/20 bg-white p-6 shadow-2xl">
+        <LogoLoader isOpen={uploading} message="Memproses Data Siswa..." onCancel={handleCancel} />
+        
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -119,7 +133,8 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
 
         {/* Body */}
         {!result ? (
-          <div className="space-y-5">
+          <>
+            <div className="space-y-5">
             <button
               onClick={handleDownloadTemplate}
               disabled={uploading}
@@ -130,21 +145,6 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
             </button>
 
             <div>
-              {uploading ? (
-                <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border-2 border-slate-100 bg-slate-50/50 py-12 px-6 text-center">
-                  <div className="relative flex items-center justify-center">
-                    <div className="absolute inset-0 animate-ping rounded-full bg-blue-400/30"></div>
-                    <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 shadow-inner">
-                      <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-800 animate-pulse">Memproses Data Siswa...</p>
-                    <p className="mt-1 text-xs text-slate-500">Mohon tunggu sebentar, sedang mendaftarkan akun ke sistem.</p>
-                  </div>
-                </div>
-              ) : (
-                <>
                   <div 
                     onDragOver={e => { e.preventDefault(); setDragOver(true) }} 
                     onDragLeave={() => setDragOver(false)}
@@ -173,8 +173,6 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
                     )}
                   </div>
                   <input ref={fileInputRef} type="file" accept=".xlsx, .xls" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFileChange(f) }} />
-                </>
-              )}
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -198,6 +196,8 @@ export function ImportSiswaModal({ classId, onClose, onSuccess }: ImportSiswaMod
               </button>
             </div>
           </div>
+          <LogoLoader isOpen={uploading} message="Memproses Data Siswa..." />
+        </>
         ) : (
           <div className="space-y-5">
             <div className="flex flex-col items-center justify-center py-6 text-center">

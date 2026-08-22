@@ -8,6 +8,7 @@ import {
   Body,
   Put,
   Delete,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClassesService } from './classes.service';
@@ -27,11 +28,12 @@ export class ClassesController {
   async importStudents(
     @Param('classId') classId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
   ) {
     if (!file) {
       throw new BadRequestException('File tidak ditemukan');
     }
-    return this.classesService.importStudents(classId, file);
+    return this.classesService.importStudents(classId, file, req);
   }
 
   @Post('import-batch')
@@ -39,6 +41,7 @@ export class ClassesController {
   async importBatchClasses(
     @Body('teacherId') teacherId: string,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
   ) {
     if (!file) {
       throw new BadRequestException('File tidak ditemukan');
@@ -46,7 +49,7 @@ export class ClassesController {
     if (!teacherId) {
       throw new BadRequestException('teacherId wajib diisi');
     }
-    return this.classesService.importBatchClasses(teacherId, file);
+    return this.classesService.importBatchClasses(teacherId, file, req);
   }
 
   @Post(':classId/students')

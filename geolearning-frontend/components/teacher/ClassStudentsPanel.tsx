@@ -7,6 +7,7 @@ import { ImportSiswaModal } from './ImportSiswaModal'
 import { AddSiswaModal } from './AddSiswaModal'
 import { EditSiswaModal } from './EditSiswaModal'
 import { UnlockModuleModal } from './UnlockModuleModal'
+import { LogoLoader } from '@/components/ui/LogoLoader'
 import toast from 'react-hot-toast'
 import { useConfirm } from '@/components/ui/ConfirmProvider'
 
@@ -371,6 +372,7 @@ export function ClassStudentsPanel({ classId }: { classId: string }) {
           </button>
         </div>
       </div>
+      <LogoLoader isOpen={isExporting} message="Mengekspor Data Nilai..." onCancel={() => setIsExporting(false)} />
 
       <div className="mb-4 relative max-w-sm">
         <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

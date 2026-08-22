@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Flame, BookOpen, GraduationCap, Users, Plus, ArrowRight, Compass, Loader2, AlertTriangle, Zap, Trophy, CheckCircle, Target, BrainCircuit } from 'lucide-react'
@@ -191,6 +192,7 @@ interface DashboardClientProps {
 }
 
 export function DashboardClient({ initialData, initialError }: DashboardClientProps = {}) {
+  const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(initialData?.profile ?? null)
   const [attempts, setAttempts] = useState<AttemptItem[]>(initialData?.attempts ?? [])
   const [notifications, setNotifications] = useState<NotifItem[]>(initialData?.notifications ?? [])
@@ -597,7 +599,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           <p className="text-2xl mb-2">⚠️</p>
           <p className="text-sm text-red-600">{error ?? 'Profil tidak ditemukan.'}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => router.refresh()}
             className="mt-4 rounded-lg bg-red-50 px-4 py-2 text-xs text-red-600 hover:bg-red-50 transition"
           >
             Refresh
@@ -780,7 +782,7 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
           userId={profile.id}
           onComplete={(style) => {
             setShowVarkModal(false)
-            window.location.reload()
+            router.refresh()
           }}
         />
       )}
