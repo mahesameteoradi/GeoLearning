@@ -72,6 +72,14 @@ export class ClassesController {
     return this.classesService.updateStudent(classId, classStudentId, body);
   }
 
+  @Delete(':classId')
+  @UseGuards(SupabaseAuthGuard)
+  @ApiBearerAuth('supabase-jwt')
+  @ApiOperation({ summary: 'Delete a class and all its associated students' })
+  async deleteClass(@Param('classId') classId: string) {
+    return this.classesService.deleteClass(classId);
+  }
+
   @Delete(':classId/students/:classStudentId')
   async removeStudent(
     @Param('classId') classId: string,

@@ -84,15 +84,23 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
     
     setIsDeleting(id)
     const supabase = createClient()
-    const { error } = await supabase.from('classes').delete().eq('id', id)
+    const { data: { session } } = await supabase.auth.getSession()
     
-    if (error) {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kelas/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token}`
+        }
+      })
+      if (!res.ok) throw new Error('Gagal menghapus kelas')
+      toast.success('Kelas dan seluruh siswanya berhasil dihapus')
+      router.refresh()
+    } catch (error) {
       toast.error('Gagal menghapus kelas')
       console.error(error)
+    } finally {
       setIsDeleting(null)
-    } else {
-      toast.success('Kelas berhasil dihapus')
-      router.refresh()
     }
   }
 
@@ -109,16 +117,28 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
     
     setIsBulkDeleting(true)
     const supabase = createClient()
-    const { error } = await supabase.from('classes').delete().in('id', selectedClasses)
-    
-    if (error) {
-      toast.error('Gagal menghapus kelas terpilih')
-      console.error(error)
-      setIsBulkDeleting(false)
-    } else {
-      toast.success(`${selectedClasses.length} Kelas berhasil dihapus`)
+    const { data: { session } } = await supabase.auth.getSession()
+
+    try {
+      // Loop or Promise.all to delete multiple classes via the backend
+      await Promise.all(selectedClasses.map(async (id) => {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kelas/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`
+          }
+        })
+        if (!res.ok) throw new Error(`Failed to delete class ${id}`)
+      }))
+
+      toast.success(`${selectedClasses.length} kelas berhasil dihapus`)
       setSelectedClasses([])
       router.refresh()
+    } catch (error) {
+      toast.error('Gagal menghapus kelas terpilih')
+      console.error(error)
+    } finally {
+      setIsBulkDeleting(false)
     }
   }
 

@@ -620,6 +620,44 @@ export class ClassesService {
     return { success: true };
   }
 
+  async deleteClass(classId: string) {
+    // 1. Fetch all students in the class
+    const classStudents = await this.prisma.classStudent.findMany({
+      where: { class_id: classId },
+    });
+
+    const studentIds = classStudents.map((cs) => cs.student_id);
+    const studentsToDelete: string[] = [];
+
+    // 2. Identify students enrolled ONLY in this class
+    for (const studentId of studentIds) {
+      const enrollmentsCount = await this.prisma.classStudent.count({
+        where: { student_id: studentId },
+      });
+      if (enrollmentsCount <= 1) {
+        studentsToDelete.push(studentId);
+      }
+    }
+
+    // 3. Hard delete these users completely (from Supabase Auth and Prisma)
+    if (studentsToDelete.length > 0) {
+      const supabaseAdmin = this.supabaseService.getAdminClient();
+      await Promise.all(
+        studentsToDelete.map((id) => supabaseAdmin.auth.admin.deleteUser(id).catch(err => console.error(err))),
+      );
+      await this.prisma.user.deleteMany({
+        where: { id: { in: studentsToDelete } },
+      });
+    }
+
+    // 4. Finally, delete the class itself
+    await this.prisma.class.delete({
+      where: { id: classId },
+    });
+
+    return { success: true };
+  }
+
   async unlockModule(
     classId: string,
     studentId: string,
