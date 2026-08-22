@@ -9,6 +9,7 @@ import {
   Put,
   Delete,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ClassesService } from './classes.service';
@@ -18,6 +19,8 @@ import {
   BulkRemoveStudentsDto,
   UnlockModuleDto,
 } from './dto/classes.dto';
+import { SupabaseAuthGuard } from '../auth/auth.guard';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
 @Controller('kelas')
 export class ClassesController {
@@ -98,5 +101,17 @@ export class ClassesController {
       body.teacher_id,
       body.note,
     );
+  }
+
+  @Post(':classId/materials/:materialId/complete')
+  @UseGuards(SupabaseAuthGuard)
+  @ApiBearerAuth('supabase-jwt')
+  @ApiOperation({ summary: 'Mark material as completed and award XP' })
+  async completeMaterial(
+    @Param('classId') classId: string,
+    @Param('materialId') materialId: string,
+    @Body() body: { userId: string },
+  ) {
+    return this.classesService.completeMaterial(classId, materialId, body.userId);
   }
 }

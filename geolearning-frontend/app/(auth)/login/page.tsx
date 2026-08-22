@@ -57,7 +57,7 @@ export default function LoginPage() {
       })
 
       if (signInError) {
-        setError('Email atau password salah.')
+        setError('Akun belum terdaftar di GeoLearning, silakan hubungi guru (atau pastikan password benar).')
         setLoading(false)
         return
       }

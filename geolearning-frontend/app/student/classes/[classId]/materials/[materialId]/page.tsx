@@ -134,23 +134,23 @@ export default function MaterialReaderPage() {
   }, [material])
 
   const handleFinishReading = async () => {
-    if (!material) return
+    if (!material || isFinished) return
     setIsFinished(true)
     triggerConfetti()
     
-    // Save completion via secure API
+    // Save completion via secure backend API
     const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session && session.user) {
       try {
-        const res = await fetch('/api/materials/finish', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/kelas/${classId}/materials/${materialId}/complete`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
           body: JSON.stringify({
-            userId: user.id,
-            materialId: materialId,
-            materialTitle: material.title,
-            materialType: material.type
+            userId: session.user.id
           })
         })
         const result = await res.json()
@@ -176,10 +176,22 @@ export default function MaterialReaderPage() {
       }
     }
 
-    setTimeout(() => {
-      window.location.href = `/student/classes/${classId}`
-    }, 2000) // increased timeout slightly to let user read toast
+    const timerId = setTimeout(() => {
+      router.push(`/student/classes/${classId}`)
+    }, 2500)
+
+    // Store timer in window so we can clear it if needed
+    ;(window as any)._materialFinishTimer = timerId;
   }
+
+  // Clear timeout if unmounted
+  useEffect(() => {
+    return () => {
+      if ((window as any)._materialFinishTimer) {
+        clearTimeout((window as any)._materialFinishTimer)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     const onFullscreenChange = () => {

@@ -3,9 +3,10 @@ import { ClassesController } from './classes.controller';
 import { ClassesService } from './classes.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SupabaseModule } from '../supabase/supabase.module';
+import { GamificationModule } from '../gamification/gamification.module';
 
 @Module({
-  imports: [PrismaModule, SupabaseModule],
+  imports: [PrismaModule, SupabaseModule, GamificationModule],
   controllers: [ClassesController],
   providers: [ClassesService],
   exports: [ClassesService],

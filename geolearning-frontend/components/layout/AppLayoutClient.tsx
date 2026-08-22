@@ -63,7 +63,7 @@ export function AppLayoutClient({ role, userName, avatarUrl, children }: AppLayo
         </div>
         
         {/* Main Content Scroll Area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
           {children}
         </div>
       </main>

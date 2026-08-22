@@ -1,6 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SupabaseService } from '../supabase/supabase.service';
+import { GamificationService } from '../gamification/gamification.service';
 import { Role } from '@prisma/client';
 import * as xlsx from 'xlsx';
 import { calculateLevel } from '../gamification/constants/level-thresholds';
@@ -10,6 +11,7 @@ export class ClassesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly supabaseService: SupabaseService,
+    private readonly gamificationService: GamificationService,
   ) {}
 
   async importStudents(classId: string, file: Express.Multer.File, req?: any) {
@@ -954,5 +956,53 @@ export class ClassesService {
     }
 
     return results;
+  }
+
+  async completeMaterial(classId: string, materialId: string, studentId: string) {
+    // 1. Check if material exists
+    const material = await this.prisma.material.findUnique({
+      where: { id: materialId },
+    });
+    if (!material) throw new NotFoundException('Materi tidak ditemukan');
+
+    // 2. Check if already completed (prevent farming XP)
+    const existing = await this.prisma.materialCompletion.findUnique({
+      where: {
+        user_id_material_id: {
+          user_id: studentId,
+          material_id: materialId,
+        },
+      },
+    });
+
+    if (existing) {
+      return { success: true, message: 'Already completed', xpEarned: 0, earnedBadges: [] };
+    }
+
+    // 3. Mark as completed
+    await this.prisma.materialCompletion.create({
+      data: {
+        user_id: studentId,
+        material_id: materialId,
+      },
+    });
+
+    // 4. Award XP via gamification service (atomic transaction)
+    let earnedBadges: any[] = [];
+    const xpAmount = material.xp_reward ?? 0;
+    
+    if (xpAmount > 0) {
+      const xpResult = await this.gamificationService.awardXP(studentId, xpAmount, {
+        source: 'MATERIAL_READ',
+        referenceId: materialId,
+      });
+      earnedBadges = xpResult.newBadges || [];
+    }
+
+    return {
+      success: true,
+      xpEarned: xpAmount,
+      earnedBadges,
+    };
   }
 }
