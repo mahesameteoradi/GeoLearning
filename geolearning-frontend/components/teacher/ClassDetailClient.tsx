@@ -396,7 +396,7 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
         const { data: mat, error: matErr } = await supabase.from('materials').update({
           module_id: targetModuleId, title: title.trim(), type: finalType,
           content_url: contentUrl, content_text: description.trim() || null, order: Number(order) || 0,
-          xp_reward: !isNaN(parseInt(xpReward)) ? parseInt(xpReward) : 15,
+          xp_reward: !isNaN(parseInt(xpReward)) ? parseInt(xpReward) : 0,
           updated_at: new Date().toISOString(),
         }).eq('id', editMaterial.id).select().single()
         if (matErr) throw new Error(matErr.message)

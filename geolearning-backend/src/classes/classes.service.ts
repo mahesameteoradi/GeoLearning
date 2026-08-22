@@ -550,11 +550,22 @@ export class ClassesService {
     if (!classStudent)
       throw new BadRequestException('Data siswa tidak ditemukan');
 
-    await this.removeStudentClassProgress(classId, [classStudent.student_id]);
-
-    await this.prisma.classStudent.delete({
-      where: { id: classStudentId },
+    const enrollmentsCount = await this.prisma.classStudent.count({
+      where: { student_id: classStudent.student_id },
     });
+
+    if (enrollmentsCount <= 1) {
+      // Hard delete user completely (Cascades to ClassStudent, QuizAttempt, MaterialCompletion, XpLog)
+      const supabaseAdmin = this.supabaseService.getAdminClient();
+      await supabaseAdmin.auth.admin.deleteUser(classStudent.student_id);
+      await this.prisma.user.delete({ where: { id: classStudent.student_id } });
+    } else {
+      // Soft remove: Just remove from this class and deduct XP
+      await this.removeStudentClassProgress(classId, [classStudent.student_id]);
+      await this.prisma.classStudent.delete({
+        where: { id: classStudentId },
+      });
+    }
 
     return { success: true };
   }
@@ -567,15 +578,43 @@ export class ClassesService {
       },
     });
 
-    const studentIds = classStudents.map(cs => cs.student_id);
-    await this.removeStudentClassProgress(classId, studentIds);
+    const studentIds = classStudents.map((cs) => cs.student_id);
+    const studentsToDelete: string[] = [];
+    const studentsToRemoveFromClass: string[] = [];
 
-    await this.prisma.classStudent.deleteMany({
-      where: {
-        class_id: classId,
-        id: { in: classStudentIds },
-      },
-    });
+    for (const studentId of studentIds) {
+      const enrollmentsCount = await this.prisma.classStudent.count({
+        where: { student_id: studentId },
+      });
+      if (enrollmentsCount <= 1) {
+        studentsToDelete.push(studentId);
+      } else {
+        studentsToRemoveFromClass.push(studentId);
+      }
+    }
+
+    // Hard delete users completely
+    if (studentsToDelete.length > 0) {
+      const supabaseAdmin = this.supabaseService.getAdminClient();
+      await Promise.all(
+        studentsToDelete.map((id) => supabaseAdmin.auth.admin.deleteUser(id)),
+      );
+      await this.prisma.user.deleteMany({
+        where: { id: { in: studentsToDelete } },
+      });
+    }
+
+    // Soft remove from class
+    if (studentsToRemoveFromClass.length > 0) {
+      await this.removeStudentClassProgress(classId, studentsToRemoveFromClass);
+      await this.prisma.classStudent.deleteMany({
+        where: {
+          class_id: classId,
+          student_id: { in: studentsToRemoveFromClass },
+        },
+      });
+    }
+    
     return { success: true };
   }
 

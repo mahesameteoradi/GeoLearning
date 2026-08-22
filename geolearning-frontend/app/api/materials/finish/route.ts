@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       .eq('id', materialId)
       .single()
 
-    const xpAmount = materialData?.xp_reward ?? 15
+    const xpAmount = materialData?.xp_reward ?? 0
     let earnedBadges: any[] = []
     
     if (xpAmount > 0) {
