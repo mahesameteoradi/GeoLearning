@@ -24,6 +24,7 @@ import { ClassStudentsPanel } from '@/components/teacher/ClassStudentsPanel'
 import { Trophy, Map as MapIcon, MapPin } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { motion, AnimatePresence } from 'framer-motion'
+import * as tus from 'tus-js-client'
 
 const PdfViewer = dynamic(() => import('@/components/ui/PdfViewer'), { ssr: false })
 
@@ -366,14 +367,47 @@ function UploadMaterialModal({ classId, existingModules, nextOrderMap, onClose, 
       if (!isLink && file) {
         const ext = file.name.split('.').pop()
         const path = `${classId}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`
-        setUploadProgress(20)
-        const { error: uploadErr } = await supabase.storage.from('class-materials').upload(path, file, {
-          cacheControl: '31536000',
-          upsert: false,
-          contentType: file.type
+        setUploadProgress(10) // Start
+        const { data: { session } } = await supabase.auth.getSession()
+
+        await new Promise((resolve, reject) => {
+          const upload = new tus.Upload(file, {
+            endpoint: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/upload/resumable`,
+            retryDelays: [0, 3000, 5000, 10000, 20000],
+            headers: {
+              authorization: `Bearer ${session?.access_token}`,
+              'x-upsert': 'true',
+            },
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            metadata: {
+              bucketName: 'class-materials',
+              objectName: path,
+              contentType: file.type,
+              cacheControl: '31536000',
+            },
+            chunkSize: 6 * 1024 * 1024, // 6MB chunk size
+            onError: function (error) {
+              reject(error)
+            },
+            onProgress: function (bytesUploaded, bytesTotal) {
+              const percentage = (bytesUploaded / bytesTotal) * 100
+              // Progress visually moves from 10 to 90 during upload
+              setUploadProgress(10 + (percentage * 0.8))
+            },
+            onSuccess: function () {
+              resolve(true)
+            },
+          })
+          
+          upload.findPreviousUploads().then(function (previousUploads) {
+            if (previousUploads.length) {
+              upload.resumeFromPreviousUpload(previousUploads[0])
+            }
+            upload.start()
+          })
         })
-        if (uploadErr) throw new Error(uploadErr.message)
-        setUploadProgress(70)
+        
         const { data: { publicUrl } } = supabase.storage.from('class-materials').getPublicUrl(path)
         contentUrl = publicUrl
       } else { contentUrl = isLink ? linkUrl.trim() : (editMaterial?.content_url || null) }
