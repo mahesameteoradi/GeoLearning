@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Eye, EyeOff, Loader2, BookOpen, Sparkles, Globe2, Compass, ArrowLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -19,6 +19,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('error') === 'orphan_account') {
+        setError('Akun Anda telah dihapus oleh guru. Silakan daftar ulang atau minta guru untuk mendaftarkan Anda kembali.')
+      }
+    }
+  }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()

@@ -18,6 +18,15 @@ export default async function StudentLayout({ children }: { children: React.Reac
     .single()
 
   if (error || !profile) {
+    // If the user's Auth account is older than 5 minutes, they were likely hard-deleted from public.users
+    // but their Auth account was left behind due to a previous bug. We should not recreate their profile.
+    const createdAt = new Date(user.created_at).getTime()
+    if (Date.now() - createdAt > 5 * 60 * 1000) {
+      // User is an orphan Auth account. Force logout.
+      await supabase.auth.signOut()
+      redirect('/login?error=orphan_account')
+    }
+
     // Profile missing — attempt to create it (handles race condition after registration)
     const displayName =
       user.user_metadata?.full_name ??
