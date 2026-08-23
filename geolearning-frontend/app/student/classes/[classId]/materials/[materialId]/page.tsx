@@ -358,9 +358,9 @@ export default function MaterialReaderPage() {
                   target="_blank" 
                   rel="noopener noreferrer" 
                   onClick={() => setHasInteracted(true)} 
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-4 py-2 rounded-full"
+                  className="inline-flex flex-wrap justify-center items-center gap-2 text-xs md:text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors bg-blue-50 px-4 py-2 rounded-2xl md:rounded-full"
                 >
-                  Tidak bisa memutar / melihat konten? Buka di tab baru <ArrowLeft className="w-4 h-4 rotate-135" style={{ transform: 'rotate(135deg)' }} />
+                  <span className="text-center">Tidak bisa memutar / melihat konten? Buka di tab baru</span> <ArrowLeft className="w-4 h-4 rotate-135 flex-shrink-0" style={{ transform: 'rotate(135deg)' }} />
                 </a>
               </div>
             </div>

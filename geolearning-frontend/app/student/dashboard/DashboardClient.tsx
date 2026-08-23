@@ -789,3 +789,4 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
     </div>
   )
 }
+
