@@ -117,8 +117,8 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Main grid skeleton */}
-      <div className="grid gap-5 xl:grid-cols-3">
-        <div className="space-y-5 xl:col-span-2">
+      <div className="grid gap-5 xl:grid-cols-3 min-w-0">
+        <div className="space-y-5 xl:col-span-2 min-w-0">
           {/* Badges skeleton */}
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
             <Skeleton className="h-3 w-16 mb-3" />
@@ -686,9 +686,9 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
       </div>
 
       {/* ─── Main Grid ───────────────────────────────────────────────────── */}
-      <div className="grid gap-5 xl:grid-cols-3">
+      <div className="grid gap-5 xl:grid-cols-3 min-w-0">
         {/* Left — flashcards + badges + activity */}
-        <div className="space-y-5 xl:col-span-2">
+        <div className="space-y-5 xl:col-span-2 min-w-0">
 
 
           <section id="tour-student-badges">
@@ -736,13 +736,13 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
         </div>
 
         {/* Right — leaderboard & interventions */}
-        <div className="flex flex-col md:flex-row xl:flex-col gap-5">
-          <div id="tour-student-leaderboard" className="flex-1 w-full">
+        <div className="flex flex-col md:flex-row xl:flex-col gap-5 min-w-0">
+          <div id="tour-student-leaderboard" className="flex-1 min-w-0">
             <LeaderboardWidget entries={leaderboard} currentUserId={profile.id} className="h-full" />
           </div>
 
           {/* Interventions (Catatan Guru) */}
-          <div id="tour-student-interventions" className="flex-1 w-full rounded-2xl border border-slate-200 bg-white p-4 flex flex-col">
+          <div id="tour-student-interventions" className="flex-1 min-w-0 rounded-2xl border border-slate-200 bg-white p-4 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
                 💬 Pesan Guru
@@ -789,4 +789,6 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
     </div>
   )
 }
+
+
 
