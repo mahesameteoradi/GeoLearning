@@ -342,7 +342,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
 
       {/* ── Gamification Section (STUDENT ONLY) ──────────────────────────── */}
       {role === 'STUDENT' && (
-        <div className="mb-8 grid gap-6 md:grid-cols-2">
+        <div className="mb-8 grid gap-6 grid-cols-1">
           {/* Status & Progress */}
           <div id="tour-student-profile-gamification" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="mb-4 text-lg font-bold text-slate-800 flex items-center gap-2">
@@ -720,4 +720,5 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
     </div>
   )
 }
+
 
