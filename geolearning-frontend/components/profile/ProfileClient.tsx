@@ -319,7 +319,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
   if (!profile) return null
 
   return (
-    <div className="mx-auto max-w-3xl p-5 lg:p-8">
+    <div className="mx-auto max-w-3xl p-5 lg:p-8 overflow-x-hidden">
       {role === 'STUDENT' ? (
         <OnboardingTour tourKey="profile_student" steps={profileStudentSteps} />
       ) : (
@@ -357,7 +357,7 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
                 </div>
               </div>
               
-              <div className="flex-1 w-full text-center md:text-left">
+              <div className="flex-1 min-w-0 text-center md:text-left">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="font-bold text-slate-700">{getLevelMeaning(profile.level).title}</span>
                   <span className="font-semibold text-slate-500">{profile.xp} XP</span>
@@ -720,3 +720,4 @@ export function ProfileClient({ userId, role }: ProfileClientProps) {
     </div>
   )
 }
+
