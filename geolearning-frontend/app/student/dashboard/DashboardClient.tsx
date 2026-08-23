@@ -736,13 +736,13 @@ export function DashboardClient({ initialData, initialError }: DashboardClientPr
         </div>
 
         {/* Right — leaderboard & interventions */}
-        <div className="space-y-5">
-          <div id="tour-student-leaderboard">
-            <LeaderboardWidget entries={leaderboard} currentUserId={profile.id} />
+        <div className="flex flex-col md:flex-row xl:flex-col gap-5">
+          <div id="tour-student-leaderboard" className="flex-1 w-full">
+            <LeaderboardWidget entries={leaderboard} currentUserId={profile.id} className="h-full" />
           </div>
 
           {/* Interventions (Catatan Guru) */}
-          <div id="tour-student-interventions" className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div id="tour-student-interventions" className="flex-1 w-full rounded-2xl border border-slate-200 bg-white p-4 flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-bold uppercase tracking-widest text-slate-500">
                 💬 Pesan Guru
