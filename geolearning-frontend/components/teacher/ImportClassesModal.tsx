@@ -18,6 +18,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
   const [progress, setProgress] = useState(0)
   const [progressText, setProgressText] = useState('')
   const [result, setResult] = useState<any>(null)
+  const [showErrors, setShowErrors] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const router = useRouter()
@@ -123,20 +124,8 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
     setProgress(0)
   }
 
-  const downloadErrorLog = () => {
-    if (!result || !result.errors || result.errors.length === 0) return
-
-    const logContent = result.errors
-      .map((e: any) => `Sheet: ${e.sheet} | Baris: ${e.baris} | Alasan: ${e.alasan}`)
-      .join('\n')
-    
-    const blob = new Blob([logContent], { type: 'text/plain' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `Error_Log_Import_${new Date().getTime()}.txt`
-    a.click()
-    window.URL.revokeObjectURL(url)
+  const toggleErrors = () => {
+    setShowErrors(!showErrors)
   }
 
   if (result) {
@@ -169,12 +158,28 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
           </div>
 
           {result.errors.length > 0 && (
-            <button
-              onClick={downloadErrorLog}
-              className="flex items-center gap-2 text-sm text-rose-600 font-medium bg-rose-50 px-4 py-2 rounded-xl hover:bg-rose-100 transition-colors w-full justify-center mb-3"
-            >
-              <Download className="w-4 h-4" /> Unduh Log Error ({result.errors.length} masalah)
-            </button>
+            <div className="w-full mb-6">
+              <button
+                onClick={toggleErrors}
+                className="flex items-center gap-2 text-sm text-rose-600 font-medium bg-rose-50 px-4 py-2 rounded-xl hover:bg-rose-100 transition-colors w-full justify-center"
+              >
+                <AlertCircle className="w-4 h-4" /> 
+                {showErrors ? 'Sembunyikan Detail Kesalahan' : `Lihat ${result.errors.length} Kesalahan Import`}
+              </button>
+              
+              {showErrors && (
+                <div className="mt-3 text-left bg-rose-50 border border-rose-100 rounded-xl p-3 max-h-48 overflow-y-auto">
+                  <ul className="space-y-2">
+                    {result.errors.map((e: any, idx: number) => (
+                      <li key={idx} className="text-xs text-rose-700 bg-white p-2 rounded-lg border border-rose-100 shadow-sm">
+                        <span className="font-semibold block mb-0.5">Sheet: {e.sheet} | Baris: {e.baris}</span>
+                        <span>{e.alasan}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           )}
 
           <button 
@@ -290,7 +295,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
             </>
           )}
         </div>
-        <LogoLoader isOpen={loading} message={progress > 0 ? `${progressText} ${progress}%` : progressText} onCancel={handleCancel} />
+        <LogoLoader isOpen={loading} message={progress > 0 ? `${progressText} ${progress}%` : progressText} progress={progress} onCancel={handleCancel} />
       </div>
     </div>
   )

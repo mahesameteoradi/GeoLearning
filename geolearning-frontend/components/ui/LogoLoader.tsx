@@ -6,6 +6,7 @@ import Image from 'next/image'
 interface LogoLoaderProps {
   isOpen: boolean
   message?: string
+  progress?: number
   onCancel?: () => void
 }
 
@@ -54,7 +55,7 @@ const MythicEmblem = ({ className }: { className?: string }) => (
   </svg>
 )
 
-export function LogoLoader({ isOpen, message = 'Memproses...', onCancel }: LogoLoaderProps) {
+export function LogoLoader({ isOpen, message = 'Memproses...', progress, onCancel }: LogoLoaderProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -209,9 +210,21 @@ export function LogoLoader({ isOpen, message = 'Memproses...', onCancel }: LogoL
             <h3 className="text-lg font-extrabold text-slate-800 text-center mb-2 z-10 mt-2">
               Mohon Tunggu
             </h3>
-            <p className="text-sm font-medium text-slate-500 text-center z-10 animate-pulse">
+            <p className="text-sm font-medium text-slate-500 text-center z-10 animate-pulse mb-4">
               {message}
             </p>
+
+            {/* Visual Progress Bar */}
+            {progress !== undefined && (
+              <div className="w-full z-10 bg-slate-100 rounded-full h-2.5 mb-2 overflow-hidden shadow-inner border border-slate-200">
+                <motion.div 
+                  className="bg-gradient-to-r from-blue-500 to-amber-400 h-2.5 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  transition={{ ease: "easeOut", duration: 0.5 }}
+                />
+              </div>
+            )}
 
             {onCancel && (
               <button

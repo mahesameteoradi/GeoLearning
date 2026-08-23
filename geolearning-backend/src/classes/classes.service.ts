@@ -598,9 +598,13 @@ export class ClassesService {
     // Hard delete users completely
     if (studentsToDelete.length > 0) {
       const supabaseAdmin = this.supabaseService.getAdminClient();
-      await Promise.all(
-        studentsToDelete.map((id) => supabaseAdmin.auth.admin.deleteUser(id)),
-      );
+      for (const id of studentsToDelete) {
+        try {
+          await supabaseAdmin.auth.admin.deleteUser(id);
+        } catch (err) {
+          console.error(`Failed to delete auth user ${id}:`, err);
+        }
+      }
       await this.prisma.user.deleteMany({
         where: { id: { in: studentsToDelete } },
       });
@@ -634,7 +638,13 @@ export class ClassesService {
       const enrollmentsCount = await this.prisma.classStudent.count({
         where: { student_id: studentId },
       });
-      if (enrollmentsCount <= 1) {
+      
+      const user = await this.prisma.user.findUnique({
+        where: { id: studentId },
+        select: { role: true }
+      });
+      
+      if (enrollmentsCount <= 1 && user?.role !== 'TEACHER') {
         studentsToDelete.push(studentId);
       }
     }
@@ -642,18 +652,29 @@ export class ClassesService {
     // 3. Hard delete these users completely (from Supabase Auth and Prisma)
     if (studentsToDelete.length > 0) {
       const supabaseAdmin = this.supabaseService.getAdminClient();
-      await Promise.all(
-        studentsToDelete.map((id) => supabaseAdmin.auth.admin.deleteUser(id).catch(err => console.error(err))),
-      );
+      for (const id of studentsToDelete) {
+        try {
+          await supabaseAdmin.auth.admin.deleteUser(id);
+        } catch (err) {
+          console.error(`Failed to delete auth user ${id}:`, err);
+        }
+      }
       await this.prisma.user.deleteMany({
         where: { id: { in: studentsToDelete } },
       });
     }
 
-    // 4. Finally, delete the class itself
-    await this.prisma.class.delete({
-      where: { id: classId },
-    });
+    // 4. Finally, delete the class itself (wrap in try-catch in case it was already cascade-deleted)
+    try {
+      await this.prisma.class.delete({
+        where: { id: classId },
+      });
+    } catch (e: any) {
+      if (e.code !== 'P2025') {
+        throw e;
+      }
+      // P2025 means it's already deleted, which is fine
+    }
 
     return { success: true };
   }
@@ -840,6 +861,9 @@ export class ClassesService {
       // Process Students
       let rowIndex = headerRowIndex + 1;
       let currentNoAbsen = 1;
+      
+      const validRows: Array<{ nis: string, nama: string, email: string, rowIndex: number, noAbsen: number }> = [];
+
       while (rowIndex < rawData.length) {
         if (req?.aborted || req?.socket?.destroyed) {
           throw new BadRequestException('Proses import dibatalkan oleh pengguna');
@@ -851,13 +875,7 @@ export class ClassesService {
           rowIndex++;
           continue;
         }
-        
-        const rowObj: Record<string, any> = {};
-        for (let j = 0; j < headersMap.length; j++) {
-          if (headersMap[j]) rowObj[headersMap[j] as string] = rowArr[j];
-        }
 
-        // Check stop conditions
         const firstColStr = String(rowArr[0] || '').toUpperCase();
         if (firstColStr.includes('LAKI-LAKI') || firstColStr.includes('PEREMPUAN') || firstColStr.includes('JUMLAH')) {
           break;
@@ -872,10 +890,8 @@ export class ClassesService {
             continue;
           }
           // If it has other data but NIS is empty, it might be a merged header sub-row or an invalid student
-          // If the row looks like a sub-header (e.g. L / P columns), we can safely skip it
           const firstCellStr = String(rowArr[0] || '').trim();
           if (!firstCellStr && rowIndex === headerRowIndex + 1) {
-             // likely the second row of a merged header
              rowIndex++;
              continue;
           }
@@ -896,38 +912,50 @@ export class ClassesService {
         }
 
         const email = `${nis}@siswa.com`;
-        const password = '12345678';
+        
+        validRows.push({ nis, nama, email, rowIndex, noAbsen: currentNoAbsen });
+        rowIndex++;
+        currentNoAbsen++;
+      }
 
-        try {
-          let user = await this.prisma.user.findUnique({ where: { email } });
-          if (!user) {
-             user = await this.prisma.user.findFirst({ where: { nis_nip: nis } });
-          }
+      // Pre-fetch all existing users
+      const emails = validRows.map(r => r.email);
+      const nisNips = validRows.map(r => r.nis);
+      
+      const existingUsers = emails.length > 0 ? await this.prisma.user.findMany({
+        where: { OR: [{ email: { in: emails } }, { nis_nip: { in: nisNips } }] }
+      }) : [];
+      
+      const userByEmail = new Map(existingUsers.map(u => [u.email, u]));
+      const userByNis = new Map(existingUsers.filter(u => u.nis_nip).map(u => [u.nis_nip, u]));
 
-          if (!user) {
-            // Create in Auth
-            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-              email,
-              password,
-              email_confirm: true,
-              user_metadata: { role: 'STUDENT', full_name: nama, nis_nip: nis },
-            });
-
-            if (authError) throw new Error(authError.message);
-            if (!authData.user) throw new Error('Gagal membuat user auth');
-
-            try {
-              user = await this.prisma.user.create({
-                data: {
-                  id: authData.user.id,
-                  name: nama,
-                  email: email,
-                  role: Role.STUDENT,
-                  nis_nip: nis,
-                }
+      // Process in concurrent chunks
+      const CHUNK_SIZE = 5;
+      for (let i = 0; i < validRows.length; i += CHUNK_SIZE) {
+        if (req?.aborted || req?.socket?.destroyed) break;
+        
+        const chunk = validRows.slice(i, i + CHUNK_SIZE);
+        
+        await Promise.all(chunk.map(async (row) => {
+          const { nis, nama, email, rowIndex: currentRowIndex, noAbsen } = row;
+          const password = '12345678';
+          
+          try {
+            let user = userByEmail.get(email) || userByNis.get(nis);
+            
+            if (!user) {
+              // Create in Auth
+              const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+                email,
+                password,
+                email_confirm: true,
+                user_metadata: { role: 'STUDENT', full_name: nama, nis_nip: nis },
               });
-            } catch (e: any) {
-              if (e.code === 'P2002') {
+
+              if (authError) throw new Error(authError.message);
+              if (!authData.user) throw new Error('Gagal membuat user auth');
+
+              try {
                 user = await this.prisma.user.update({
                   where: { id: authData.user.id },
                   data: {
@@ -937,59 +965,62 @@ export class ClassesService {
                     nis_nip: nis,
                   }
                 });
-              } else {
-                throw e;
+              } catch (e: any) {
+                user = await this.prisma.user.create({
+                  data: {
+                    id: authData.user.id,
+                    name: nama,
+                    email: email,
+                    role: Role.STUDENT,
+                    nis_nip: nis,
+                  }
+                });
               }
-            }
-          } else {
-            // Check if names match (to prevent NIPD collision between different students)
-            const existingName = (user.name || '').toLowerCase().replace(/[^a-z]/g, '');
-            const newName = nama.toLowerCase().replace(/[^a-z]/g, '');
-            
-            // If completely different names, reject to prevent overwriting
-            if (existingName && newName && !existingName.includes(newName) && !newName.includes(existingName)) {
-              results.errors.push({ 
-                sheet: sheetName, 
-                baris: rowIndex + 1, 
-                alasan: `NIPD ${nis} bentrok dengan siswa bernama "${user.name}". Silakan bedakan NIPD-nya di Excel jika ini siswa yang berbeda.` 
+              
+              userByEmail.set(email, user);
+              userByNis.set(nis, user);
+            } else {
+              const existingName = (user.name || '').toLowerCase().replace(/[^a-z]/g, '');
+              const newName = nama.toLowerCase().replace(/[^a-z]/g, '');
+              
+              if (existingName && newName && !existingName.includes(newName) && !newName.includes(existingName)) {
+                results.errors.push({ 
+                  sheet: sheetName, 
+                  baris: currentRowIndex + 1, 
+                  alasan: `NIPD ${nis} bentrok dengan siswa bernama "${user.name}". Silakan bedakan NIPD-nya di Excel jika ini siswa yang berbeda.` 
+                });
+                results.studentsFailed++;
+                return;
+              }
+
+              user = await this.prisma.user.update({
+                where: { id: user.id },
+                data: { name: nama, nis_nip: nis }
               });
-              results.studentsFailed++;
-              rowIndex++;
-              continue;
             }
 
-            // Update in DB
-            user = await this.prisma.user.update({
-              where: { id: user.id },
-              data: { name: nama, nis_nip: nis }
-            });
+            if (!studentsInClass.has(user.id)) {
+              await this.prisma.classStudent.create({
+                data: {
+                  class_id: cls.id,
+                  student_id: user.id,
+                  no_absen: noAbsen,
+                },
+              });
+              studentsInClass.add(user.id);
+            } else {
+              await this.prisma.classStudent.updateMany({
+                where: { class_id: cls.id, student_id: user.id },
+                data: { no_absen: noAbsen },
+              });
+            }
+            
+            results.studentsAdded++;
+          } catch (err: any) {
+            results.errors.push({ sheet: sheetName, baris: currentRowIndex + 1, alasan: err.message || 'Gagal menyimpan siswa' });
+            results.studentsFailed++;
           }
-
-          // Add to class if not already in it
-          if (!studentsInClass.has(user.id)) {
-            await this.prisma.classStudent.create({
-              data: {
-                class_id: cls.id,
-                student_id: user.id,
-                no_absen: currentNoAbsen,
-              },
-            });
-            studentsInClass.add(user.id);
-          } else {
-            await this.prisma.classStudent.updateMany({
-              where: { class_id: cls.id, student_id: user.id },
-              data: { no_absen: currentNoAbsen },
-            });
-          }
-          
-          currentNoAbsen++;
-          results.studentsAdded++;
-        } catch (err: any) {
-          results.errors.push({ sheet: sheetName, baris: rowIndex + 1, alasan: err.message || 'Gagal menyimpan siswa' });
-          results.studentsFailed++;
-        }
-
-        rowIndex++;
+        }));
       }
     }
 
