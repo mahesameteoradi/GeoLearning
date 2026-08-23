@@ -65,20 +65,22 @@ export default async function StudentDetailAnalyticsPage({ params }: { params: P
       <div className="mb-8 relative overflow-hidden rounded-2xl bg-[#0B1120] p-8 shadow-md border border-slate-800">
         
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <Link href="/teacher/analytics" className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-110 text-white">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            {student.avatar_url ? (
-              <div className="h-16 w-16 flex-shrink-0 rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner drop-shadow-md overflow-hidden relative">
-                <img src={student.avatar_url} alt={student.name} className="h-full w-full object-cover" />
-              </div>
-            ) : (
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm drop-shadow-md">
-                <UserIcon className="h-8 w-8 text-white" />
-              </div>
-            )}
-            <div>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6 w-full md:w-auto">
+            <div className="flex items-center gap-4">
+              <Link href="/teacher/analytics" className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm transition-transform duration-500 hover:scale-110 text-white">
+                <ArrowLeft className="h-5 w-5" />
+              </Link>
+              {student.avatar_url ? (
+                <div className="h-16 w-16 flex-shrink-0 rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner drop-shadow-md overflow-hidden relative">
+                  <img src={student.avatar_url} alt={student.name} className="h-full w-full object-cover" />
+                </div>
+              ) : (
+                <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border-2 border-white/20 bg-white/10 shadow-inner backdrop-blur-sm drop-shadow-md">
+                  <UserIcon className="h-8 w-8 text-white" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm flex items-center gap-3">
                 {student.name}
               </h1>

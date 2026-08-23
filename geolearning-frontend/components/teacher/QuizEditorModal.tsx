@@ -875,12 +875,12 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 py-8"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-2 sm:p-4 py-4 sm:py-8"
       style={{ backgroundColor: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
     >
       <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-md shadow-black/60">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100">
               <ClipboardList className="h-4 w-4 text-blue-600" />
@@ -1145,3 +1145,4 @@ export function QuizEditorModal({ classes, quiz, classId, existingModules, nextO
     </div>
   )
 }
+
