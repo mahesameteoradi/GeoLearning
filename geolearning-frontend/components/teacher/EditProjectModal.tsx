@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Loader2, Edit3, FlaskConical, Cpu, Wrench, Palette, Calculator } from 'lucide-react'
+import { X, Loader2, Edit3, FlaskConical, Cpu, Wrench, Palette, Calculator, Upload, FileText } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils/cn'
@@ -27,6 +27,7 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
   const [form, setForm] = useState({
     title: project.title || '',
     description: project.description || '',
+    instruction_file_url: project.instruction_file_url || '',
     class_id: project.class_id || (classes[0]?.id ?? ''),
     xp_reward: project.xp_reward || 100,
     deadline: project.deadline ? new Date(project.deadline).toISOString().slice(0, 16) : '',
@@ -35,6 +36,32 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
     use_steam: !!project.steam_integration,
     steam: initialSteam
   })
+  const [isUploading, setIsUploading] = useState(false)
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploading(true)
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+    const path = `project-instructions/${fileName}`
+
+    const { error: uploadError } = await supabase.storage
+      .from('class-materials')
+      .upload(path, file, { cacheControl: '31536000', upsert: false })
+
+    if (uploadError) {
+      toast.error(`Gagal mengunggah file: ${uploadError.message}`)
+      setIsUploading(false)
+      return
+    }
+
+    const { data } = supabase.storage.from('class-materials').getPublicUrl(path)
+    setForm(prev => ({ ...prev, instruction_file_url: data.publicUrl }))
+    setIsUploading(false)
+    toast.success('File berhasil diunggah')
+  }
 
   async function handleSave() {
     if (!form.title.trim() || !form.description.trim()) {
@@ -55,6 +82,7 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
           class_id: form.class_id,
           xp_reward: form.xp_reward,
           deadline: form.deadline ? new Date(form.deadline).toISOString() : null,
+          instruction_file_url: form.instruction_file_url || null,
           is_published: form.is_published,
           is_group_project: form.is_group_project,
           steam_integration: null,
@@ -115,6 +143,26 @@ export function EditProjectModal({ project, classes, onClose, onSaved }: EditPro
               className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none"
               placeholder="Masukkan instruksi tugas di sini..."
             />
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-slate-500 uppercase">File Arahan / Panduan (PDF/Opsional)</label>
+            <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
+                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                {isUploading ? 'Mengunggah...' : 'Unggah File'}
+                <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+              </label>
+              {form.instruction_file_url && (
+                <div className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100">
+                  <FileText className="h-4 w-4" />
+                  <span className="truncate max-w-[200px]">File terlampir</span>
+                  <button onClick={() => setForm({ ...form, instruction_file_url: '' })} className="ml-2 text-slate-400 hover:text-red-500">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

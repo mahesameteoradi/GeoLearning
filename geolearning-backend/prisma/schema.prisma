@@ -243,6 +243,7 @@ model ProjectAssignment {
   updated_at        DateTime            @updatedAt
   is_group_project  Boolean             @default(false)
   steam_integration Json?
+  instruction_file_url String?
   class             Class               @relation(fields: [class_id], references: [id], onDelete: Cascade)
   submissions       ProjectSubmission[]
 

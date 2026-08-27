@@ -40,7 +40,7 @@ export default function StudentProjectDetailPage() {
     // Load Project details
     const { data: pData, error: pErr } = await supabase
       .from('project_assignments')
-      .select('id, title, description, deadline, xp_reward, is_group_project, steam_integration, class_id, class:classes(name)')
+      .select('id, title, description, deadline, xp_reward, is_group_project, steam_integration, instruction_file_url, class_id, class:classes(name)')
       .eq('id', projectId)
       .single()
 
@@ -292,6 +292,19 @@ export default function StudentProjectDetailPage() {
               <p className="whitespace-pre-wrap text-[15px]">{project.description}</p>
             </div>
 
+            {project.instruction_file_url && (
+              <div className="mt-8 border-t border-slate-100 pt-6">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3">File Panduan dari Guru</h3>
+                <a 
+                  href={project.instruction_file_url} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
+                >
+                  <FileText className="h-4 w-4" /> Lihat File Panduan (PDF)
+                </a>
+              </div>
+            )}
 
           </div>
         </div>
