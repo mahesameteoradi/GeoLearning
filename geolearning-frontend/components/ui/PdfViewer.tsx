@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
@@ -13,6 +13,19 @@ export default function PdfViewer({ url }: { url: string }) {
   const [numPages, setNumPages] = useState<number | null>(null)
   const [scale, setScale] = useState(1.0)
   const [loading, setLoading] = useState(true)
+  const [containerWidth, setContainerWidth] = useState<number>(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width)
+      }
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages)
@@ -20,7 +33,7 @@ export default function PdfViewer({ url }: { url: string }) {
   }
 
   return (
-    <div className="flex flex-col w-full h-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-200">
+    <div ref={containerRef} className="flex flex-col w-full h-full bg-slate-50 rounded-2xl overflow-hidden border border-slate-200">
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-slate-200 shadow-sm z-10 shrink-0">
         <div className="flex items-center gap-2 bg-slate-50 rounded-lg px-3 py-1.5">
@@ -71,7 +84,7 @@ export default function PdfViewer({ url }: { url: string }) {
             <Page
               key={`page_${index + 1}`}
               pageNumber={index + 1}
-              scale={scale}
+              width={containerWidth ? Math.min(containerWidth - 32, 800) * scale : undefined}
               renderTextLayer={true}
               renderAnnotationLayer={true}
               className="bg-white shadow-sm"

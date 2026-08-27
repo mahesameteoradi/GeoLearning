@@ -13,14 +13,18 @@ export async function POST(req: Request) {
     // Fetch the current attempt and its quiz details
     const { data: currentAttempt, error: fetchError } = await supabase
       .from('quiz_attempts')
-      .select('quiz_id, quiz:quizzes(xp_reward, questions(*))')
+      .select('quiz_id, completed_at, quiz:quizzes(xp_reward, questions(*))')
       .eq('id', attemptId)
       .single()
       
     if (fetchError || !currentAttempt || !currentAttempt.quiz) {
       return NextResponse.json({ success: false, error: 'Attempt or Quiz not found' }, { status: 404 })
     }
-    
+
+    // Idempotency check: Jika attempt ini sudah selesai/disubmit sebelumnya, abaikan agar XP tidak dobel
+    if (currentAttempt.completed_at) {
+      return NextResponse.json({ success: true, earnedBadges: [], message: 'Already submitted' })
+    }
     // Server-side Score and XP Calculation
     let correct = 0
     let totalXp = 0

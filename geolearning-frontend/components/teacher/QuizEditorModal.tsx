@@ -438,8 +438,10 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
         const content = await file.text()
         setText(content)
         toast.success('File TXT berhasil dibaca! Klik "Parse Soal Otomatis".')
+      } else if (name.endsWith('.doc') || name.endsWith('.rtf')) {
+        toast.error('Format Word Lama (.doc / .rtf) tidak didukung. Mohon buka file tersebut di Word lalu "Save As" ke format .docx')
       } else {
-        toast.error('Format file tidak didukung.')
+        toast.error(`Format file ${name.split('.').pop()} tidak didukung. Gunakan .docx, .pdf, atau .txt`)
       }
     } catch(err: any) {
       toast.error(err.message, { id: 'parse-doc' })

@@ -597,8 +597,11 @@ export default function QuizPlayerPage() {
   }
 
 
+  const isSubmittingRef = useRef(false)
+
   const handleSubmit = useCallback(async () => {
-    if (!quiz || !attemptId) return
+    if (!quiz || !attemptId || isSubmittingRef.current || state === 'finished') return
+    isSubmittingRef.current = true
     setState('finished')
     playSound('finish')
 
