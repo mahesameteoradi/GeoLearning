@@ -387,23 +387,46 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
   const [isDragging, setIsDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  function handleParse() {
-    const qs = parseTextToQuestions(text)
-    if (qs.length === 0) {
-      toast.error('Tidak ada soal yang berhasil diparsing. Pastikan format sudah benar.')
-      return
-    }
-    setParsed(qs)
-    setShowPreview(true)
-  }
-
   const [loadingFile, setLoadingFile] = useState(false)
+
+  async function handleParse() {
+    if (!text.trim()) return
+    setLoadingFile(true)
+    toast.loading('Memproses teks dengan AI...', { id: 'parse-ai' })
+    try {
+      const res = await fetch('/api/parse-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text })
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Failed to parse text')
+      
+      const qs = (json.questions || []).map((q: any, i: number) => ({
+        ...q,
+        type: 'MULTIPLE_CHOICE',
+        order: i
+      }))
+      
+      if (qs.length === 0) {
+        toast.error('AI tidak menemukan soal yang valid.', { id: 'parse-ai' })
+        return
+      }
+      setParsed(qs)
+      setShowPreview(true)
+      toast.success(`${qs.length} soal berhasil dibaca!`, { id: 'parse-ai' })
+    } catch(err: any) {
+      toast.error(err.message, { id: 'parse-ai' })
+    } finally {
+      setLoadingFile(false)
+    }
+  }
 
   async function processFile(file: File | undefined) {
     if (!file) return;
 
-    if (file.size > 500 * 1024 * 1024) {
-      toast.error('Ukuran file maksimal adalah 500MB');
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Ukuran file maksimal adalah 10MB');
       return;
     }
 
@@ -411,24 +434,32 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
       setLoadingFile(true)
       const name = file.name.toLowerCase()
 
-      if (name.endsWith('.docx') || name.endsWith('.pdf')) {
+      if (name.endsWith('.docx') || name.endsWith('.pdf') || name.endsWith('.txt') || file.type === 'text/plain') {
         const formData = new FormData()
         formData.append('file', file)
-        toast.loading('Mengekstrak teks...', { id: 'parse-doc' })
+        toast.loading('Membaca dokumen dengan AI...', { id: 'parse-doc' })
         const res = await fetch('/api/parse-document', { method: 'POST', body: formData })
-        if (!res.ok) throw new Error('Failed to parse document')
         const json = await res.json()
-        setText(json.text || '')
-        toast.success('File berhasil diekstrak! Klik "Parse Soal Otomatis".', { id: 'parse-doc' })
-      } else if (name.endsWith('.txt') || file.type === 'text/plain') {
-        const content = await file.text()
-        setText(content)
-        toast.success('File TXT berhasil dibaca! Klik "Parse Soal Otomatis".')
+        if (!res.ok) throw new Error(json.error || 'Failed to parse document')
+        
+        const qs = (json.questions || []).map((q: any, i: number) => ({
+          ...q,
+          type: 'MULTIPLE_CHOICE',
+          order: i
+        }))
+        
+        if (qs.length === 0) {
+          toast.error('AI tidak menemukan soal yang valid.', { id: 'parse-doc' })
+          return
+        }
+        setParsed(qs)
+        setShowPreview(true)
+        toast.success(`${qs.length} soal berhasil diimpor!`, { id: 'parse-doc' })
       } else {
         toast.error('Format file tidak didukung.')
       }
-    } catch(err) {
-      toast.error('Terjadi kesalahan saat memproses file.', { id: 'parse-doc' })
+    } catch(err: any) {
+      toast.error(err.message, { id: 'parse-doc' })
     } finally {
       setLoadingFile(false)
       if (fileRef.current) fileRef.current.value = ''
