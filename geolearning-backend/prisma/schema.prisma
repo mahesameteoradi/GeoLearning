@@ -55,6 +55,7 @@ model Class {
   updated_at         DateTime            @updatedAt
   gamification_mode  GamificationMode    @default(STANDARD)
   flashcards         Json?
+  grade_level        Int?
   enrollments        ClassStudent[]
   teacher            User                @relation("TeacherClasses", fields: [teacher_id], references: [id], onDelete: Cascade)
   modules            Module[]

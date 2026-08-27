@@ -23,7 +23,7 @@ function generateJoinCode(): string {
 }
 
 export function CreateClassModal({ onClose, teacherId }: CreateClassModalProps) {
-  const [form, setForm] = useState({ name: '', description: '', gamification_mode: 'STANDARD' })
+  const [form, setForm] = useState({ name: '', description: '', gamification_mode: 'STANDARD', grade_level: '' })
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -43,6 +43,7 @@ export function CreateClassModal({ onClose, teacherId }: CreateClassModalProps) 
         teacher_id: teacherId,
         join_code: joinCode,
         gamification_mode: form.gamification_mode,
+        grade_level: form.grade_level ? parseInt(form.grade_level, 10) : null,
         updated_at: new Date().toISOString(),
       })
 
@@ -126,7 +127,22 @@ export function CreateClassModal({ onClose, teacherId }: CreateClassModalProps) 
             />
           </div>
 
-
+          {/* Grade Level */}
+          <div>
+            <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+              Tingkat Kelas <span className="text-slate-600">(opsional)</span>
+            </label>
+            <select
+              value={form.grade_level}
+              onChange={(e) => setForm({ ...form, grade_level: e.target.value })}
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+            >
+              <option value="">-- Pilih Tingkat Kelas --</option>
+              <option value="10">Kelas 10</option>
+              <option value="11">Kelas 11</option>
+              <option value="12">Kelas 12</option>
+            </select>
+          </div>
 
           {/* Actions */}
           <div className="flex gap-2.5 pt-1">

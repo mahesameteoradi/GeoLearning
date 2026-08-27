@@ -19,6 +19,7 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
   const [progressText, setProgressText] = useState('')
   const [result, setResult] = useState<any>(null)
   const [showErrors, setShowErrors] = useState(false)
+  const [gradeLevel, setGradeLevel] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const router = useRouter()
@@ -80,6 +81,9 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
       const formData = new FormData()
       formData.append('file', file)
       formData.append('teacherId', teacherId)
+      if (gradeLevel) {
+        formData.append('gradeLevel', gradeLevel)
+      }
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/kelas/import-batch`, {
         method: 'POST',
@@ -254,6 +258,23 @@ export function ImportClassesModal({ onClose, teacherId }: ImportClassesModalPro
               <p className="text-xs text-slate-500">Mendukung file .xlsx dan .xls</p>
             </div>
           )}
+        </div>
+
+        {/* Grade Level for Import */}
+        <div className="mb-4">
+          <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-widest text-slate-500">
+            Tingkat Kelas <span className="text-slate-600">(berlaku untuk semua sheet)</span>
+          </label>
+          <select
+            value={gradeLevel}
+            onChange={(e) => setGradeLevel(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 transition-colors focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-amber-500/30"
+          >
+            <option value="">-- Pilih Tingkat Kelas --</option>
+            <option value="10">Kelas 10</option>
+            <option value="11">Kelas 11</option>
+            <option value="12">Kelas 12</option>
+          </select>
         </div>
 
         <div className="rounded-xl bg-amber-50 p-4 border border-amber-100 mb-6">

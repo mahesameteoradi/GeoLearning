@@ -19,6 +19,7 @@ interface ClassItem {
   name: string
   description: string | null
   gamification_mode?: string
+  grade_level?: number | null
   join_code: string
 
   moduleCount: number
@@ -150,6 +151,23 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
     )
   }
 
+  const groupedClasses = classes.reduce((acc, cls) => {
+    const grade = cls.grade_level ? `Kelas ${cls.grade_level}` : 'Belum Diklasifikasikan'
+    if (!acc[grade]) acc[grade] = []
+    acc[grade].push(cls)
+    return acc
+  }, {} as Record<string, ClassItem[]>)
+
+  const gradeOrder = ['Kelas 10', 'Kelas 11', 'Kelas 12', 'Belum Diklasifikasikan']
+  const sortedGrades = Object.keys(groupedClasses).sort((a, b) => {
+    const indexA = gradeOrder.indexOf(a)
+    const indexB = gradeOrder.indexOf(b)
+    if (indexA !== -1 && indexB !== -1) return indexA - indexB
+    if (indexA !== -1) return -1
+    if (indexB !== -1) return 1
+    return a.localeCompare(b)
+  })
+
   return (
     <>
       <OnboardingTour tourKey="classes_teacher" steps={classesTeacherSteps} />
@@ -242,8 +260,22 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {classes.map((cls) => (
+          <div className="flex flex-col gap-10">
+            {sortedGrades.map((grade) => (
+              <div key={grade}>
+                <div className="flex items-center gap-2 mb-4 px-1">
+                  <div className={cn(
+                    "h-2.5 w-2.5 rounded-full",
+                    grade === 'Kelas 10' ? "bg-emerald-500" :
+                    grade === 'Kelas 11' ? "bg-blue-500" :
+                    grade === 'Kelas 12' ? "bg-purple-500" :
+                    "bg-slate-400"
+                  )}></div>
+                  <h3 className="text-lg font-bold text-slate-700">{grade}</h3>
+                  <span className="bg-slate-100 text-slate-500 text-xs font-semibold px-2 py-0.5 rounded-full">{groupedClasses[grade].length}</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {groupedClasses[grade].map((cls) => (
               <Link
                 key={cls.id}
                 href={isSelectMode ? '#' : `/teacher/classes/${cls.id}`}
@@ -327,9 +359,16 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
                   <TrendingUp className="h-3.5 w-3.5 text-slate-700 transition-colors group-hover:text-amber-500" />
                 </div>
               </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+                </div>
+              </div>
+            ))}
+          </div>
 
+          <div className="mt-10 border-t border-slate-200/60 pt-6">
+            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4">Aksi Cepat</h3>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {/* Add New Card */}
           <button
             id="tour-teacher-create-class"
@@ -356,9 +395,9 @@ export function ClassesClient({ classes, teacherId, totalStudents, totalModules 
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-current">
               <FileSpreadsheet className="h-5 w-5" />
             </div>
-            <span className="text-sm font-semibold">Import dari Excel</span>
           </button>
           </div>
+        </div>
         </div>
       )}
 

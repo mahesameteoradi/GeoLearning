@@ -43,6 +43,7 @@ export class ClassesController {
   @UseInterceptors(FileInterceptor('file'))
   async importBatchClasses(
     @Body('teacherId') teacherId: string,
+    @Body('gradeLevel') gradeLevel: string,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
@@ -52,7 +53,10 @@ export class ClassesController {
     if (!teacherId) {
       throw new BadRequestException('teacherId wajib diisi');
     }
-    return this.classesService.importBatchClasses(teacherId, file, req);
+    
+    const parsedGradeLevel = gradeLevel ? parseInt(gradeLevel, 10) : undefined;
+    
+    return this.classesService.importBatchClasses(teacherId, file, req, parsedGradeLevel);
   }
 
   @Post(':classId/students')

@@ -724,7 +724,7 @@ export class ClassesService {
     return { success: true };
   }
 
-  async importBatchClasses(teacherId: string, file: Express.Multer.File, req?: any) {
+  async importBatchClasses(teacherId: string, file: Express.Multer.File, req?: any, gradeLevel?: number) {
     if (!file) {
       throw new BadRequestException('File tidak ditemukan');
     }
@@ -820,6 +820,7 @@ export class ClassesService {
             name: className,
             teacher_id: teacherId,
             join_code: joinCode,
+            ...(gradeLevel !== undefined && { grade_level: gradeLevel }),
           }
         });
         results.classesCreated++;
