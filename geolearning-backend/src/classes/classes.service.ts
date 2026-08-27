@@ -733,6 +733,7 @@ export class ClassesService {
     try {
       workbook = xlsx.read(file.buffer, { type: 'buffer' });
     } catch (e) {
+      console.error('Excel parse error:', e);
       throw new BadRequestException('Format file tidak didukung atau rusak');
     }
 
