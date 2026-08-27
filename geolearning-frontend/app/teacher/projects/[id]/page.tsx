@@ -29,7 +29,7 @@ export default function ProjectSubmissionsPage() {
     // Fetch project info
     const { data: pData, error: pErr } = await supabase
       .from('project_assignments')
-      .select('id, title, xp_reward, class_id, is_group_project, class:classes(name)')
+      .select('id, title, xp_reward, class_id, is_group_project, instruction_file_url, class:classes(name)')
       .eq('id', projectId)
       .single()
 
@@ -198,7 +198,16 @@ export default function ProjectSubmissionsPage() {
             <div>
               <h1 className="text-3xl font-black text-white tracking-tight drop-shadow-sm">{project.title}</h1>
               <p className="mt-1.5 text-blue-100/80 max-w-xl text-sm leading-relaxed">{project.class?.name} • Max {project.xp_reward} XP</p>
-
+              {project.instruction_file_url && (
+                <a 
+                  href={project.instruction_file_url} 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20 transition-colors"
+                >
+                  <FileText className="h-4 w-4" /> Lihat File Panduan Proyek
+                </a>
+              )}
             </div>
           </div>
         </div>

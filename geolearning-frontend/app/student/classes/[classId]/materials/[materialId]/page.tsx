@@ -334,7 +334,7 @@ export default function MaterialReaderPage() {
                       );
                     } else if (isPdf) {
                       return (
-                        <div className="w-full h-[500px] md:h-[700px] transition-all duration-300" style={isFullscreen ? { minHeight: '100vh', height: '100vh' } : undefined} onClick={() => setHasInteracted(true)}>
+                        <div className="w-full h-[85vh] transition-all duration-300" style={isFullscreen ? { minHeight: '100vh', height: '100vh' } : undefined} onClick={() => setHasInteracted(true)}>
                           <PdfViewer url={embedUrl} />
                         </div>
                       )
@@ -342,7 +342,7 @@ export default function MaterialReaderPage() {
                       return (
                         <iframe 
                           src={embedUrl}
-                          className="w-full h-[400px] md:h-[600px] transition-all duration-300"
+                          className="w-full h-[85vh] transition-all duration-300"
                           style={isFullscreen ? { minHeight: '100vh' } : undefined}
                           onLoad={() => setHasInteracted(true)}
                         />

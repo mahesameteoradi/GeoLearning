@@ -209,6 +209,7 @@ async function StudentDashboardData({ user }: { user: any }) {
         class_students(id)
       `)
       .order('created_at', { ascending: false })
+      .limit(20)
 
     const availableClasses = (allClassesRes.data ?? []).filter(
       (cls) => !enrolledIds.includes(cls.id)
