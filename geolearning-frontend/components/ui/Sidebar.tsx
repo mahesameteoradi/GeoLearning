@@ -17,6 +17,7 @@ import {
   ChevronRight,
   ClipboardList,
   User,
+  Loader2,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils/cn'
@@ -61,6 +62,7 @@ interface SidebarProps {
 export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
   const { startTour } = useTour()
@@ -141,6 +143,7 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
   }, [])
 
   const handleLogout = async () => {
+    setIsLoggingOut(true)
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
@@ -269,11 +272,16 @@ export function Sidebar({ role, userName, avatarUrl, onNavClick }: SidebarProps)
 
         <button
           onClick={handleLogout}
+          disabled={isLoggingOut}
           title="Keluar"
-          className={cn("flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all", logoutText)}
+          className={cn("flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all", logoutText, isLoggingOut && "opacity-70 cursor-not-allowed")}
         >
-          <LogOut className="h-4 w-4 flex-shrink-0" />
-          {!collapsed && <span>Keluar</span>}
+          {isLoggingOut ? (
+            <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4 flex-shrink-0" />
+          )}
+          {!collapsed && <span>{isLoggingOut ? 'Keluar...' : 'Keluar'}</span>}
         </button>
       </div>
 
