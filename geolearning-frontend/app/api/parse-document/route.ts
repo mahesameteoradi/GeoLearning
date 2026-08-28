@@ -35,13 +35,20 @@ export async function POST(req: NextRequest) {
     } else if (filename.endsWith('.docx')) {
       const result = await mammoth.extractRawText({ buffer });
       text = result.value;
+    } else if (filename.endsWith('.doc')) {
+      const WordExtractor = require('word-extractor');
+      const extractor = new WordExtractor();
+      const extracted = await extractor.extract(buffer);
+      text = extracted.getBody();
+    } else if (filename.endsWith('.txt')) {
+      text = buffer.toString('utf-8');
     } else {
-      return NextResponse.json({ error: 'Unsupported file type. Please use .pdf or .docx' }, { status: 400 });
+      return NextResponse.json({ error: 'Unsupported file type. Please use .pdf, .docx, .doc, or .txt' }, { status: 400 });
     }
 
     return NextResponse.json({ text });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error parsing document:', error);
-    return NextResponse.json({ error: 'Failed to parse document' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to parse document' }, { status: 500 });
   }
 }

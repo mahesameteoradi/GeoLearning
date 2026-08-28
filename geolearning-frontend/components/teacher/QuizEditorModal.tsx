@@ -424,12 +424,14 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
       setLoadingFile(true)
       const name = file.name.toLowerCase()
 
-      if (name.endsWith('.docx') || name.endsWith('.pdf')) {
+      if (name.endsWith('.docx') || name.endsWith('.doc') || name.endsWith('.pdf')) {
         const formData = new FormData()
         formData.append('file', file)
         toast.loading('Mengekstrak teks...', { id: 'parse-doc' })
+        
         const res = await fetch('/api/parse-document', { method: 'POST', body: formData })
         const json = await res.json()
+        
         if (!res.ok) throw new Error(json.error || 'Failed to parse document')
         
         setText(json.text || '')
@@ -438,10 +440,10 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
         const content = await file.text()
         setText(content)
         toast.success('File TXT berhasil dibaca! Klik "Parse Soal Otomatis".')
-      } else if (name.endsWith('.doc') || name.endsWith('.rtf')) {
-        toast.error('Format Word Lama (.doc / .rtf) tidak didukung. Mohon buka file tersebut di Word lalu "Save As" ke format .docx')
+      } else if (name.endsWith('.rtf')) {
+        toast.error('Format .rtf tidak didukung. Mohon "Save As" ke format .docx')
       } else {
-        toast.error(`Format file ${name.split('.').pop()} tidak didukung. Gunakan .docx, .pdf, atau .txt`)
+        toast.error(`Format file ${name.split('.').pop()} tidak didukung. Gunakan .docx, .doc, .pdf, atau .txt`)
       }
     } catch(err: any) {
       toast.error(err.message, { id: 'parse-doc' })
@@ -471,35 +473,14 @@ function ImportPanel({ onImported }: { onImported: (qs: QuestionDraft[]) => void
     setIsDragging(false)
   }
 
-  async function downloadTemplate() {
+  function downloadTemplate() {
     try {
-      const content = `<html><body>
-        <p>1. Apa ibukota Indonesia?</p>
-        <p>A. Jakarta</p>
-        <p>B. Surabaya</p>
-        <p>C. Bandung</p>
-        <p>D. Medan</p>
-        <p>Jawaban: A</p>
-        <p>Pembahasan: Jakarta adalah ibukota negara Indonesia secara de facto dan de jure.</p>
-        <br/>
-        <p>2. Gunung tertinggi di Indonesia adalah...</p>
-        <p>A. Semeru</p>
-        <p>B. Rinjani</p>
-        <p>C. Puncak Jaya</p>
-        <p>D. Kerinci</p>
-        <p>Jawaban: C</p>
-        <p>Pembahasan: Puncak Jaya terletak di Papua dan merupakan gunung tertinggi di Indonesia.</p>
-      </body></html>`
-      
-      const blob = new Blob([content], { type: 'application/msword' })
-      const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
-      a.href = url
-      a.download = 'Template_Soal_GeoLearning.doc'
+      a.href = '/Template_Soal_GeoLearning.docx'
+      a.download = 'Template_Soal_GeoLearning.docx'
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      URL.revokeObjectURL(url)
     } catch (err) {
       toast.error('Gagal mengunduh template')
     }
