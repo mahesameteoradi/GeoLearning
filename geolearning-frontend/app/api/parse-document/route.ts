@@ -12,7 +12,7 @@ if (typeof global !== 'undefined') {
     (global as any).Path2D = class Path2D {} as any;
   }
 }
-const pdfParse = require('pdf-parse');
+const pdfParse = require('pdf-parse-new');
 
 export async function POST(req: NextRequest) {
   try {
