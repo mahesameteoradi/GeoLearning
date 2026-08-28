@@ -26,28 +26,29 @@ export default function ProjectSubmissionsPage() {
   const loadData = async () => {
     setLoading(true)
     
-    // Fetch project info
-    const { data: pData, error: pErr } = await supabase
-      .from('project_assignments')
-      .select('id, title, xp_reward, class_id, is_group_project, instruction_file_url, class:classes(name)')
-      .eq('id', projectId)
-      .single()
+    // Fetch project info and submissions in parallel
+    const [pRes, sRes] = await Promise.all([
+      supabase
+        .from('project_assignments')
+        .select('id, title, xp_reward, class_id, is_group_project, instruction_file_url, class:classes(name)')
+        .eq('id', projectId)
+        .single(),
+      supabase
+        .from('project_submissions')
+        .select('id, file_url, notes, feedback, score, xp_earned, submitted_at, group_members, user:users(name, avatar_url)')
+        .eq('assignment_id', projectId)
+        .order('submitted_at', { ascending: false })
+    ])
 
-    if (pErr) {
+    if (pRes.error) {
       toast.error('Gagal memuat tugas')
       setLoading(false)
       return
     }
+    const pData = pRes.data
     setProject(pData)
 
-    // Fetch submissions
-    const { data: sData } = await supabase
-      .from('project_submissions')
-      .select('id, file_url, notes, feedback, score, xp_earned, submitted_at, group_members, user:users(name, avatar_url)')
-      .eq('assignment_id', projectId)
-      .order('submitted_at', { ascending: false })
-
-    let submissionsData = sData ?? []
+    let submissionsData = sRes.data ?? []
 
     if (pData.is_group_project) {
       const { data: classStudents } = await supabase

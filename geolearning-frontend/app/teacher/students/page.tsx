@@ -21,31 +21,31 @@ export default async function TeacherStudentsPage() {
 
   if (!user) redirect('/login')
 
-  // Fetch enrollments to know which class each student is in (for teacher's classes)
-  const { data: teacherClasses } = await supabase
-    .from('classes')
-    .select('id, name')
-    .eq('teacher_id', user.id)
-    .order('name', { ascending: true })
+  const [teacherClassesRes, enrollmentsRes] = await Promise.all([
+    supabase
+      .from('classes')
+      .select('id, name')
+      .eq('teacher_id', user.id)
+      .order('name', { ascending: true }),
+    supabase
+      .from('class_students')
+      .select('student_id, class_id, classes!inner(teacher_id)')
+      .eq('classes.teacher_id', user.id)
+  ])
 
-  const teacherClassIds = (teacherClasses ?? []).map((c) => c.id)
+  const teacherClasses = teacherClassesRes.data
+  const enrollments = enrollmentsRes.data
 
-  // Fetch enrollments for teacher's classes
-  const { data: enrollments } = teacherClassIds.length > 0
+  const studentIds = Array.from(new Set((enrollments ?? []).map((e: any) => e.student_id)))
+
+  const { data: rawStudents, error: studentsError } = studentIds.length > 0 
     ? await supabase
-        .from('class_students')
-        .select('student_id, class_id')
-        .in('class_id', teacherClassIds)
-    : { data: [] }
-
-  const studentIds = Array.from(new Set((enrollments ?? []).map(e => e.student_id)))
-
-  const { data: rawStudents, error: studentsError } = studentIds.length > 0 ? await supabase
-    .from('users')
-    .select('id, name, email, nis_nip, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
-    .eq('role', 'STUDENT')
-    .in('id', studentIds)
-    .order('xp', { ascending: false }) : { data: [], error: null }
+        .from('users')
+        .select('id, name, email, nis_nip, xp, level, current_streak, longest_streak, avatar_url, badges:user_badges!user_badges_user_id_fkey(badge:badges(id, display_name, icon))')
+        .eq('role', 'STUDENT')
+        .in('id', studentIds)
+        .order('xp', { ascending: false }) 
+    : { data: [], error: null }
 
   if (studentsError) {
     return <div>Error loading students: {studentsError.message}</div>

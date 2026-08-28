@@ -196,28 +196,28 @@ export default function StudentQuizzesPage() {
       .eq('is_published', true)
       .order('created_at', { ascending: false })
 
-    // Get this student's attempts
     const quizIds = (rawQuizzes ?? []).map(q => q.id)
-    const { data: attempts } = quizIds.length > 0
-      ? await supabase
-          .from('quiz_attempts')
-          .select('quiz_id, score, xp_earned, completed_at')
-          .eq('user_id', user.id)
-          .in('quiz_id', quizIds)
-      : { data: [] }
+    const moduleIds = Array.from(new Set((rawQuizzes ?? []).map(q => q.module_id).filter(Boolean)))
+
+    const [attemptsRes, materialsRes, completionsRes] = await Promise.all([
+      quizIds.length > 0
+        ? supabase.from('quiz_attempts').select('quiz_id, score, xp_earned, completed_at').eq('user_id', user.id).in('quiz_id', quizIds)
+        : Promise.resolve({ data: [] }),
+      moduleIds.length > 0
+        ? supabase.from('materials').select('id, module_id').in('module_id', moduleIds)
+        : Promise.resolve({ data: [] }),
+      supabase.from('material_completions').select('material_id').eq('user_id', user.id)
+    ])
+
+    const attempts = attemptsRes.data
+    const materials = materialsRes.data
+    const completions = completionsRes.data
 
     const attemptMap: Record<string, { score: number; xp_earned: number; completed_at: string | null }> = {}
     for (const a of attempts ?? []) {
       attemptMap[a.quiz_id] = { score: a.score ?? 0, xp_earned: a.xp_earned ?? 0, completed_at: a.completed_at }
     }
 
-    // Material completions logic
-    const moduleIds = Array.from(new Set((rawQuizzes ?? []).map(q => q.module_id).filter(Boolean)))
-    const { data: materials } = moduleIds.length > 0 
-      ? await supabase.from('materials').select('id, module_id').in('module_id', moduleIds)
-      : { data: [] }
-    
-    const { data: completions } = await supabase.from('material_completions').select('material_id').eq('user_id', user.id)
     const completedSet = new Set((completions ?? []).map(c => c.material_id))
 
     const mapped: QuizCard[] = (rawQuizzes ?? []).map(q => {

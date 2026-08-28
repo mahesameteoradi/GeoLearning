@@ -1,29 +1,33 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+require('dotenv').config({ path: '../geolearning-frontend/.env.local' });
+const { createClient } = require('@supabase/supabase-js');
 
-async function check() {
-  const data = await prisma.$queryRaw`
-    SELECT
-        tc.table_name, 
-        kcu.column_name, 
-        ccu.table_name AS foreign_table_name,
-        ccu.column_name AS foreign_column_name,
-        rc.update_rule,
-        rc.delete_rule
-    FROM 
-        information_schema.table_constraints AS tc 
-        JOIN information_schema.key_column_usage AS kcu
-          ON tc.constraint_name = kcu.constraint_name
-          AND tc.table_schema = kcu.table_schema
-        JOIN information_schema.constraint_column_usage AS ccu
-          ON ccu.constraint_name = tc.constraint_name
-          AND ccu.table_schema = tc.table_schema
-        JOIN information_schema.referential_constraints AS rc
-          ON rc.constraint_name = tc.constraint_name
-    WHERE tc.constraint_type = 'FOREIGN KEY'
-    AND tc.table_name IN ('quiz_attempts', 'material_completions', 'project_submissions');
-  `;
-  console.log(data);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY
+);
+
+async function main() {
+  const teacherId = '969dd1e2-b883-4a0b-8d00-dfbbbd377ef4'; // Need a valid teacher ID, maybe just fetch one
+  const { data: user } = await supabase.from('users').select('id').eq('role', 'TEACHER').limit(1).single();
+  if (!user) return console.log('No teacher found');
+
+  const { data, error } = await supabase
+    .from('users')
+    .select(`
+      id, name, 
+      class_students!inner(
+        class_id, 
+        classes!inner(id, name, teacher_id)
+      )
+    `)
+    .eq('role', 'STUDENT')
+    .eq('class_students.classes.teacher_id', user.id);
+
+  if (error) {
+    console.error(error);
+  } else {
+    console.log(JSON.stringify(data, null, 2));
+  }
 }
 
-check().catch(console.error).finally(() => prisma.$disconnect());
+main();
