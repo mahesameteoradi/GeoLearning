@@ -13,10 +13,10 @@ const MAP_TYPES = [
   { id: 'geology', category: 'Peta Tematik', name: 'Peta Geologi', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
   { id: 'climate', category: 'Peta Tematik', name: 'Peta Iklim & Curah Hujan', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
   { id: 'land_use', category: 'Peta Tematik', name: 'Peta Penggunaan Lahan', baseMap: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri' },
-  { id: 'population', category: 'Peta Tematik', name: 'Peta Kepadatan Penduduk', baseMap: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attribution: '&copy; CARTO' },
+  { id: 'population', category: 'Peta Tematik', name: 'Peta Kepadatan Penduduk', baseMap: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri' },
   { id: 'flora_fauna', category: 'Peta Tematik', name: 'Peta Flora & Fauna', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
   { id: 'mining', category: 'Peta Tematik', name: 'Peta Potensi Tambang', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' },
-  { id: 'maritime', category: 'Peta Tematik', name: 'Peta Poros Maritim', baseMap: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', attribution: '&copy; CARTO' },
+  { id: 'maritime', category: 'Peta Tematik', name: 'Peta Poros Maritim', baseMap: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri' },
   { id: 'custom', category: 'Lainnya', name: 'Peta Dasar (Kosong)', baseMap: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OSM' }
 ]
 
