@@ -1201,13 +1201,13 @@ export function ClassDetailClient({ cls, teacherId }: { cls: ClassData; teacherI
                   );
                 }
                 if (['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext)) {
-                  const gviewUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+                  const msViewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
                   return (
                     <div className="w-full h-full flex flex-col">
                       <div className="bg-amber-50 text-amber-800 text-xs p-2 text-center rounded-t-xl border border-amber-200">
                         Pratinjau dokumen. Jika gagal memuat, silakan klik <b>Buka di Tab Baru</b>.
                       </div>
-                      <iframe src={gviewUrl} className="w-full flex-1 rounded-b-xl border-0 shadow-inner bg-white" title={viewingFile.title} />
+                      <iframe src={msViewerUrl} className="w-full flex-1 rounded-b-xl border-0 shadow-inner bg-white" title={viewingFile.title} />
                     </div>
                   );
                 }

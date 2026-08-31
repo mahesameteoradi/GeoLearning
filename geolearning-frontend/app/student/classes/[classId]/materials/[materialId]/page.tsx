@@ -310,8 +310,8 @@ export default function MaterialReaderPage() {
                       const fileId = embedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1];
                       if (fileId) embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
                     } else if (isOfficeDoc) {
-                      // Gunakan Google Docs Viewer hanya untuk file Office
-                      embedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(embedUrl)}&embedded=true`;
+                      // Gunakan Microsoft Office Viewer untuk file Office
+                      embedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(embedUrl)}`;
                     }
 
                     if (isRawVideo) {

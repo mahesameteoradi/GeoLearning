@@ -291,13 +291,13 @@ export function ResourceBankClient({ teacherId }: { teacherId: string }) {
                   return <video src={url} controls className="max-w-full max-h-full rounded-2xl shadow-sm bg-black" />;
                 }
                 if (['doc', 'docx', 'ppt', 'pptx'].includes(ext)) {
-                  const gviewUrl = 'https://docs.google.com/gview?url=' + encodeURIComponent(url) + '&embedded=true';
+                  const msViewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url);
                   return (
                     <div className="w-full h-full flex flex-col shadow-sm rounded-2xl overflow-hidden bg-white">
                       <div className="bg-amber-50 text-amber-800 text-xs p-2 text-center border-b border-amber-200">
                         Pratinjau dokumen Office. Jika gagal memuat, silakan klik <b>Buka di Tab Baru</b>.
                       </div>
-                      <iframe src={gviewUrl} className="w-full flex-1 border-0" title={viewingFile.title} />
+                      <iframe src={msViewerUrl} className="w-full flex-1 border-0" title={viewingFile.title} />
                     </div>
                   );
                 }
