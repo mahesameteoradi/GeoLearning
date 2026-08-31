@@ -122,8 +122,8 @@ export class ClassesController {
   async completeMaterial(
     @Param('classId') classId: string,
     @Param('materialId') materialId: string,
-    @Body() body: { userId: string },
+    @Body() body: { userId: string; durationSeconds?: number },
   ) {
-    return this.classesService.completeMaterial(classId, materialId, body.userId);
+    return this.classesService.completeMaterial(classId, materialId, body.userId, body.durationSeconds);
   }
 }

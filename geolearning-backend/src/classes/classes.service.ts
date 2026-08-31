@@ -1029,7 +1029,7 @@ export class ClassesService {
     return results;
   }
 
-  async completeMaterial(classId: string, materialId: string, studentId: string) {
+  async completeMaterial(classId: string, materialId: string, studentId: string, durationSeconds?: number) {
     // 1. Check if material exists
     const material = await this.prisma.material.findUnique({
       where: { id: materialId },
@@ -1050,17 +1050,41 @@ export class ClassesService {
       return { success: true, message: 'Already completed', xpEarned: 0, earnedBadges: [] };
     }
 
+    // Hitung XP berdasarkan durasi (Opsi 2)
+    let xpAmount = 0;
+    const maxXp = material.xp_reward ?? 15;
+    const estimatedTime = material.estimated_time_seconds ?? 120;
+    
+    if (durationSeconds !== undefined) {
+      if (durationSeconds < 10) {
+        // Terlalu cepat (spam klik), tidak dapat XP
+        xpAmount = 0;
+      } else if (durationSeconds >= estimatedTime) {
+        // Durasi melebihi estimasi, dapat XP penuh
+        xpAmount = maxXp;
+      } else {
+        // Proporsional
+        xpAmount = Math.floor((durationSeconds / estimatedTime) * maxXp);
+        // Pastikan dapat setidaknya 1 XP jika baca > 10 detik
+        if (xpAmount === 0 && maxXp > 0) xpAmount = 1;
+      }
+    } else {
+      // Jika tidak ada durasi dikirim (fallback), berikan XP penuh atau sebagian
+      xpAmount = maxXp;
+    }
+
     // 3. Mark as completed
     await this.prisma.materialCompletion.create({
       data: {
         user_id: studentId,
         material_id: materialId,
+        duration_seconds: durationSeconds,
+        xp_earned: xpAmount
       },
     });
 
     // 4. Award XP via gamification service (atomic transaction)
     let earnedBadges: any[] = [];
-    const xpAmount = material.xp_reward ?? 0;
     
     if (xpAmount > 0) {
       const xpResult = await this.gamificationService.awardXP(studentId, xpAmount, {

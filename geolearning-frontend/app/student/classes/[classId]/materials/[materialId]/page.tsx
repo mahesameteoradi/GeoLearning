@@ -40,6 +40,7 @@ export default function MaterialReaderPage() {
   const [hasInteracted, setHasInteracted] = useState(false)
   const [timeLeft, setTimeLeft] = useState(-1)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [activeSeconds, setActiveSeconds] = useState(0)
   
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -102,6 +103,19 @@ export default function MaterialReaderPage() {
     }
   }, [timeLeft])
 
+  // Track active reading time
+  useEffect(() => {
+    if (isFinished || isAlreadyFinished) return;
+    
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        setActiveSeconds(prev => prev + 1);
+      }
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isFinished, isAlreadyFinished]);
+
   // Track if user reads the material (scrolls to bottom) or interacts with iframe
   useEffect(() => {
     const handleScroll = () => {
@@ -150,13 +164,24 @@ export default function MaterialReaderPage() {
             'Authorization': `Bearer ${session.access_token}`
           },
           body: JSON.stringify({
-            userId: session.user.id
+            userId: session.user.id,
+            durationSeconds: activeSeconds
           })
         })
         const result = await res.json()
         if (!result.success) {
           console.error('Error from API:', result.error)
         } else {
+          // Show toast for XP earned if any
+          if (result.xpEarned > 0) {
+            import('react-hot-toast').then(({ toast }) => {
+              toast.success(`Mendapatkan ${result.xpEarned} XP!`, {
+                duration: 4000,
+                icon: '⚡',
+              })
+            })
+          }
+          
           // Show toast for newly earned badges
           if (result.earnedBadges && result.earnedBadges.length > 0) {
             // Need to import toast from react-hot-toast dynamically or at top of file
