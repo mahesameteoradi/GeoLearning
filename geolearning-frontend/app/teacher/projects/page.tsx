@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { BookMarked, Plus, FileText, CheckCircle, Clock, Edit2, Trash2, Loader2 } from 'lucide-react'
+import { BookMarked, Plus, FileText, CheckCircle, Clock, Edit2, Trash2, Loader2, Send } from 'lucide-react'
 import { CreateProjectModal } from '@/components/teacher/CreateProjectModal'
 import { EditProjectModal } from '@/components/teacher/EditProjectModal'
 import { cn } from '@/lib/utils/cn'
@@ -22,6 +22,7 @@ export default function TeacherProjectsPage() {
   const [editingProject, setEditingProject] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [publishingId, setPublishingId] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL')
 
   const loadData = async () => {
@@ -72,6 +73,27 @@ export default function TeacherProjectsPage() {
       toast.error(`Gagal menghapus tugas: ${err.message}`)
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  const handlePublish = async (id: string, title: string) => {
+    const isConfirmed = await confirm({
+      title: 'Publish Tugas',
+      message: `Apakah Anda yakin ingin mempublish tugas "${title}"? Tugas yang sudah di-publish akan langsung terlihat oleh siswa.`,
+      confirmText: 'Ya, Publish',
+    })
+    if (!isConfirmed) return
+    
+    setPublishingId(id)
+    try {
+      const { error } = await supabase.from('project_assignments').update({ is_published: true }).eq('id', id)
+      if (error) throw error
+      toast.success('Tugas berhasil dipublish')
+      loadData()
+    } catch (err: any) {
+      toast.error(`Gagal mempublish tugas: ${err.message}`)
+    } finally {
+      setPublishingId(null)
     }
   }
 
@@ -191,6 +213,16 @@ export default function TeacherProjectsPage() {
                   >
                     Lihat Pengumpulan
                   </a>
+                  {!proj.is_published && (
+                    <button
+                      onClick={() => handlePublish(proj.id, proj.title)}
+                      disabled={publishingId === proj.id}
+                      className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-500 hover:bg-green-50 hover:text-green-600 hover:border-green-200 transition-colors disabled:opacity-50"
+                      title="Publish Tugas"
+                    >
+                      {publishingId === proj.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </button>
+                  )}
                   <button
                     onClick={() => setEditingProject(proj)}
                     className="flex items-center justify-center w-10 h-10 rounded-xl border border-slate-200 text-slate-500 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-colors"
